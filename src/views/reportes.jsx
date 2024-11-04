@@ -278,12 +278,6 @@ export default function Reportes() {
              { operacion: {eq:'Donación'} },
              { operacion: {eq:'Testamento'} }]
     };
-  
-
-
-  console.log("Accionista", valAccionista);
-  console.log("Filtro", filter);
-
     const apiData = await API.graphql({ query: listOperaciones , variables: { filter: filter , limit: 10000},  });
     const operacionesFromAPI = apiData.data.listOperaciones.items;
 
@@ -309,7 +303,7 @@ export default function Reportes() {
     /*
     var from = $("#datepicker").val().split("-")
     var f = new Date(from[2], from[1] - 1, from[0])
-*/
+    */
 
     finalmente.sort(function (a, b) {
         if (new Date(+a.fecha.split("-")[2],a.fecha.split("-")[1] - 1, +a.fecha.split("-")[0]) > new Date(+b.fecha.split("-")[2],b.fecha.split("-")[1] - 1, +b.fecha.split("-")[0])) return 1;
@@ -326,18 +320,6 @@ export default function Reportes() {
       const result = finalmente.filter(d => {var time = new Date(+d.fecha.split("-")[2],d.fecha.split("-")[1] - 1, +d.fecha.split("-")[0]).getTime();
                              return (new Date(transferenciasDesde).getTime() < time && time < new Date(dateHasta).getTime());
                             });
-/*
-      console.log("desde ", new Date(transferenciasDesde).getTime());
-      console.log("hasta ", new Date(transferenciasHasta).getTime());
-
-      console.log("desde ", sd);
-      console.log("hasta ", ed);
-
-      console.log("Finalmente ", finalmente);
-
-      console.log("Resultado ", result);
-*/
-
 
     const title = "Reporte de Transferencias";
     const headers = [["Fecha", "Transferencia", "Cedente", "Acciones","Cesionario"]];
@@ -363,6 +345,11 @@ export default function Reportes() {
 
   }
 
+  const exportPDFDividendos = async() => {
+    const apiData = await API.graphql({ query: getPeriodosDividendos });
+    const periodosDividendos = apiData.data.getPeriodosDividendos.items;
+    console.log("accionistas", periodosDividendos)
+  }
 
   return (
     <main className={classes.content}>
@@ -625,18 +612,14 @@ export default function Reportes() {
                 variant="contained"
                 color="primary"
                 className={classes.button}
-                startIcon={<VisibilityIcon/>}                    
-                disabled
-                onClick={exportPDFTransferencias}
+                startIcon={<VisibilityIcon/>}
+                onClick={exportPDFDividendos}
             >
                 Ver Reporte
             </Button>
           </div>
         </Grid>
 
-
-
-  
       </Grid>
 
      </Paper>
