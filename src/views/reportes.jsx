@@ -610,7 +610,7 @@ export default function Reportes() {
                 <Select
                 labelId="simple-select-label"
                 id="simple-select"
-                value={3}
+                value={2}
                 label="Periodo"
                 //onChange={handleChangeEstadoListado}
                 >
@@ -618,6 +618,7 @@ export default function Reportes() {
                 <MenuItem value={2} >2021</MenuItem>
                 <MenuItem value={3} >2022</MenuItem>
                 <MenuItem value={4} >2023</MenuItem>
+
                 </Select>
             </FormControl>
 
