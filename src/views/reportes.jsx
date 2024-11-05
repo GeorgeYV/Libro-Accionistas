@@ -592,20 +592,18 @@ export default function Reportes() {
                 Dividendos
             </Typography>     
 
-            <FormControl fullWidth  style={{paddingTop:40,paddingBottom:50,}}>
+            <FormControl disabled fullWidth  style={{paddingTop:40,paddingBottom:50,}}>
                 
                 <Select
                 labelId="simple-select-label"
                 id="simple-select"
-                value={3}
+                value={2}
                 label="Periodo"
                 //onChange={handleChangeEstadoListado}
                 >
                 <MenuItem value={1} >2020</MenuItem>
                 <MenuItem value={2} >2021</MenuItem>
                 <MenuItem value={3} >2022</MenuItem>
-                <MenuItem value={4} >2023</MenuItem>
-                <MenuItem value={5} >2024</MenuItem>
                 </Select>
             </FormControl>
 
