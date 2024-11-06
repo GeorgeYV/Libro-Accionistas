@@ -4,7 +4,7 @@ import { makeStyles, Paper, Avatar , Grid, Typography,TextField,Button,withStyle
 
 import Autocomplete from '@material-ui/lab/Autocomplete';
 import { API, Storage, graphqlOperation, Auth } from 'aws-amplify';
-import { listAccionistas, listOperaciones, listHerederoPorOperacions } from './../graphql/queries';
+import { listAccionistas, listOperaciones, listHerederoPorOperacions,listDividendos } from './../graphql/queries';
 
 import CloudUploadOutlinedIcon from '@material-ui/icons/CloudUploadOutlined';
 import SaveIcon from '@material-ui/icons/Save';
@@ -217,7 +217,7 @@ export default function Reportes() {
     const apiData = await API.graphql({ query: listAccionistas, variables: { filter: filter, limit: 10000}});
     const accionistasFromAPI = apiData.data.listAccionistas.items;
 
-    const apiData2 = await API.graphql({ query: listAccionistas, variables: { limit: 10}, items: cantidadAcciones});
+    const apiData2 = await API.graphql({ query: listAccionistas, variables: { limit: 10}, items: 'cantidadAcciones'});
     const accionistasFromAPI2 = apiData2.data.listAccionistas.items;
     console.log("Cantidad de acciones:", accionistasFromAPI2)
 
@@ -376,12 +376,12 @@ export default function Reportes() {
     const apiData = await API.graphql({ query: listDividendos});
     const dividendosFromAPI = apiData.data.listDividendos.items;
     console.log("Dividendos:", dividendosFromAPI)
-    
+
     const dividendos = dividendosFromAPI.map(function(elt) {
         return {concepto : elt.concepto, dividendo : elt.dividendo, createdAt: elt.createdAt, periodo : elt.periodo};
       })
 
-    const totaldividendos = Object.keys(accionistasFromAPI).length;
+    const totaldividendos = Object.keys(dividendosFromAPI).length;
 
     const title = "Listado de Dividendos";
 
