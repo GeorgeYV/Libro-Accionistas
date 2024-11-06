@@ -1392,14 +1392,6 @@ export const getDividendos = /* GraphQL */ `
     }
   }
 `;
-export const getPeriodosDividendos = /* GraphQL */ `
-  query GetPeriodosDividendos() {
-    getPeriodosDividendos() {
-      periodo
-      __typename
-    }
-  }
-`;
 export const listDividendos = /* GraphQL */ `
   query ListDividendos(
     $filter: ModelDividendosFilterInput
