@@ -618,7 +618,6 @@ export default function Reportes() {
                 <MenuItem value={2} >2021</MenuItem>
                 <MenuItem value={3} >2022</MenuItem>
                 <MenuItem value={4} >2023</MenuItem>
-
                 </Select>
             </FormControl>
 
