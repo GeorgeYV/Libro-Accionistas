@@ -401,19 +401,20 @@ export default function Reportes() {
       body: data
     };
 
-    doc.addImage(logo,"JPEG",700,20,80,30);  
+    doc.addImage(logo,"JPEG",600,10,150,70);  
     doc.setDrawColor(255, 0, 0); // draw red lines
     doc.setLineWidth(2.5);
-    doc.line(40, 60, 800, 40);
+    doc.line(40, 60, 800, 60);
     doc.setFontSize(16);
     doc.setFont("helvetica", "bold");
     doc.text(title, marginLeft, 40);
     doc.setFontSize(12);
     doc.autoTable(content);
+    doc.addPage("A4","l");
     doc.setFontSize(14);
     doc.setFont("helvetica", "bold");
     doc.text("Total Dividendos :     " + totaldividendos.toString(), marginLeft, 50);
-    doc.save("ReporteDividendos.pdf")    
+    doc.save("ReporteDividendos.pdf");
   }
 
   return (
