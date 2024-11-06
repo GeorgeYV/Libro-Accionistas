@@ -211,9 +211,9 @@ export default function Reportes() {
           eq: estadoListado == "1" ? "Activo" : estadoListado == "2" ? "Bloqueado" : estadoListado == "3" ? "Inactivo" : null
         },
       }      
-    const apiData = await API.graphql({ query: listAccionistas, variables: { filter: filter, limit: 10000} });
+    const apiData = await API.graphql({ query: listAccionistas, variables: { filter: filter, limit: 100},items: "cantidadAcciones" });
     const accionistasFromAPI = apiData.data.listAccionistas.items;
-    console.log("accionistas", accionistasFromAPI)
+    console.log("accionistas:", accionistasFromAPI)
 
     //calcular participacion
     //calcular valor (Q*P)
@@ -605,7 +605,7 @@ export default function Reportes() {
                 Dividendos
             </Typography>     
 
-            <FormControl fullWidth  style={{paddingTop:40,paddingBottom:50,}}>
+            <FormControl fullWidth style={{paddingTop:40,paddingBottom:50,}}>
                 
                 <Select
                 labelId="simple-select-label"
@@ -618,7 +618,6 @@ export default function Reportes() {
                 <MenuItem value={2} >2021</MenuItem>
                 <MenuItem value={3} >2022</MenuItem>
                 <MenuItem value={4} >2023</MenuItem>
-
                 </Select>
             </FormControl>
 
