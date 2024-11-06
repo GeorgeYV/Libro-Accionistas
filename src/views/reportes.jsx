@@ -95,6 +95,12 @@ export default function Reportes() {
   const handleChangeEstadoListado = (event) => {
     setEstadoListado(event.target.value);
   };
+  
+  const [estadoDividendo, setEstadoDividendo] = useState('1');
+
+  const handleChangeEstadoDividendo = (event) => {
+    setEstadoDividendo(event.target.value);
+  };
 
   const [transferenciasDesde, setTransferenciasDesde] = useState(materialDateInput);
   const [transferenciasHasta, setTransferenciasHasta] = useState(materialDateInput);  
@@ -146,7 +152,6 @@ export default function Reportes() {
 
     doc.setFontSize(12);
 
-    //console.log("ESTADO", estado);
     const filter = {
         estado: {
           //eq: estadoLibro == "1" ? "Activo" : estadoLibro == "2" ? "Bloqueado" : estadoLibro == "3" ? "Inactivo" : null
@@ -155,7 +160,6 @@ export default function Reportes() {
       }      
     const apiData = await API.graphql({ query: listAccionistas, variables: { filter: filter, limit: 10000} });
     const accionistasFromAPI = apiData.data.listAccionistas.items;
-    console.log("accionistas", accionistasFromAPI)
 
     //calcular participacion
     //calcular valor (Q*P)
@@ -205,15 +209,17 @@ export default function Reportes() {
 
     doc.setFontSize(12);
 
-    //console.log("ESTADO", estado);
     const filter = {
         estado: {
           eq: estadoListado == "1" ? "Activo" : estadoListado == "2" ? "Bloqueado" : estadoListado == "3" ? "Inactivo" : null
         },
       }      
-    const apiData = await API.graphql({ query: listAccionistas, variables: { filter: filter, limit: 100},items: "cantidadAcciones" });
+    const apiData = await API.graphql({ query: listAccionistas, variables: { filter: filter, limit: 10000}});
     const accionistasFromAPI = apiData.data.listAccionistas.items;
-    console.log("accionistas:", accionistasFromAPI)
+
+    const apiData2 = await API.graphql({ query: listAccionistas, variables: { limit: 10}, items: cantidadAcciones});
+    const accionistasFromAPI2 = apiData2.data.listAccionistas.items;
+    console.log("Cantidad de acciones:", accionistasFromAPI2)
 
     //calcular participacion
     //calcular valor (Q*P)
@@ -281,8 +287,8 @@ export default function Reportes() {
   
 
 
-  console.log("Accionista", valAccionista);
-  console.log("Filtro", filter);
+    console.log("Accionista", valAccionista);
+    console.log("Filtro", filter);
 
     const apiData = await API.graphql({ query: listOperaciones , variables: { filter: filter , limit: 10000},  });
     const operacionesFromAPI = apiData.data.listOperaciones.items;
@@ -309,7 +315,7 @@ export default function Reportes() {
     /*
     var from = $("#datepicker").val().split("-")
     var f = new Date(from[2], from[1] - 1, from[0])
-*/
+    */
 
     finalmente.sort(function (a, b) {
         if (new Date(+a.fecha.split("-")[2],a.fecha.split("-")[1] - 1, +a.fecha.split("-")[0]) > new Date(+b.fecha.split("-")[2],b.fecha.split("-")[1] - 1, +b.fecha.split("-")[0])) return 1;
@@ -326,7 +332,7 @@ export default function Reportes() {
       const result = finalmente.filter(d => {var time = new Date(+d.fecha.split("-")[2],d.fecha.split("-")[1] - 1, +d.fecha.split("-")[0]).getTime();
                              return (new Date(transferenciasDesde).getTime() < time && time < new Date(dateHasta).getTime());
                             });
-/*
+    /*
       console.log("desde ", new Date(transferenciasDesde).getTime());
       console.log("hasta ", new Date(transferenciasHasta).getTime());
 
@@ -336,14 +342,13 @@ export default function Reportes() {
       console.log("Finalmente ", finalmente);
 
       console.log("Resultado ", result);
-*/
+    */
 
 
     const title = "Reporte de Transferencias";
     const headers = [["Fecha", "Transferencia", "Cedente", "Acciones","Cesionario"]];
 
     const data = result.map(elt=> [elt.fecha, elt.operacion, elt.cedente, elt.operacion == 'Posesión Efectiva' ? elt.cantidad : elt.acciones, elt.operacion == 'Posesión Efectiva' ? elt.nombre : elt.cesionario]);
-
 
     let content = {
       theme: 'plain',
@@ -352,17 +357,52 @@ export default function Reportes() {
       body: data
     };
 
-    //console.log("Valor accioinsta", valAccionista) ;
-
-
     doc.addImage(logo,"JPEG",700,20,80,30)    
     doc.text(title, marginLeft, 40);
     doc.autoTable(content);
     doc.save("ReporteTransferencias.pdf")
-
-
   }
 
+  const exportPDFDividendos = async() => {
+    const unit = "pt";
+    const size = "A4";
+    const orientation = "landscape";
+
+    const marginLeft = 40;
+    const doc = new jsPDF(orientation, unit, size);
+
+    doc.setFontSize(12);
+
+    const apiData = await API.graphql({ query: listDividendos});
+    const dividendosFromAPI = apiData.data.listDividendos.items;
+    console.log("Dividendos:", dividendosFromAPI)
+    
+    const dividendos = dividendosFromAPI.map(function(elt) {
+        return {concepto : elt.concepto, dividendo : elt.dividendo, createdAt: elt.createdAt, periodo : elt.periodo};
+      })
+
+    const totaldividendos = Object.keys(accionistasFromAPI).length;
+
+    const title = "Listado de Dividendos";
+
+    const headers = [["Concepto", "Dividendo", "Fecha de creación", "periodo"]];
+
+    const data = dividendos.map(elt=> [elt.concepto, elt.dividendo, elt.createdAt, elt.periodo]);
+
+    let content = {
+      theme: 'plain',
+      startY: 50,
+      head: headers,
+      body: data
+    };
+
+    doc.addImage(logo,"JPEG",700,20,80,30)    
+    doc.text(title, marginLeft, 40);
+    doc.autoTable(content);
+    doc.addPage("A4","l");
+    doc.text("Total Dividendos :     " + totaldividendos.toString(), marginLeft, 50);
+    doc.save("ReporteDividendos.pdf")    
+  }
 
   return (
     <main className={classes.content}>
@@ -605,7 +645,7 @@ export default function Reportes() {
                 Dividendos
             </Typography>     
 
-            <FormControl fullWidth style={{paddingTop:40,paddingBottom:50,}}>
+            <FormControl fullWidth style={{paddingTop:40,paddingBottom:50}}>
                 
                 <Select
                 labelId="simple-select-label"
@@ -626,9 +666,8 @@ export default function Reportes() {
                 variant="contained"
                 color="primary"
                 className={classes.button}
-                startIcon={<VisibilityIcon/>}                    
-                disabled
-                onClick={exportPDFTransferencias}
+                startIcon={<VisibilityIcon/>}
+                onClick={exportPDFDividendos}
             >
                 Ver Reporte
             </Button>
