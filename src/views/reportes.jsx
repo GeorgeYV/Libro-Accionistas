@@ -371,35 +371,47 @@ export default function Reportes() {
     const marginLeft = 40;
     const doc = new jsPDF(orientation, unit, size);
 
-    doc.setFontSize(12);
-
     const apiData = await API.graphql({ query: listDividendos});
     const dividendosFromAPI = apiData.data.listDividendos.items;
-    console.log("Dividendos:", dividendosFromAPI)
 
     const dividendos = dividendosFromAPI.map(function(elt) {
-        return {concepto : elt.concepto, dividendo : elt.dividendo, createdAt: elt.createdAt, periodo : elt.periodo};
-      })
+      return {
+        periodo : elt.periodo,
+        secuencial: elt.secuencial,
+        concepto : elt.concepto,
+        dividendo : elt.dividendo,
+        fechaCorte: elt.fechaCorte,
+        fechaPago: elt.fechaPago,
+        estado: elt.estado
+      };
+    })
 
     const totaldividendos = Object.keys(dividendosFromAPI).length;
 
     const title = "Listado de Dividendos";
 
-    const headers = [["Concepto", "Dividendo", "Fecha de creación", "periodo"]];
+    const headers = [["Periodo", "Secuencial", "Concepto","Dividendo", "Fecha de corte","Fecha de Junta", "Estado"]];
 
-    const data = dividendos.map(elt=> [elt.concepto, elt.dividendo, elt.createdAt, elt.periodo]);
+    const data = dividendos.map(elt=> [elt.periodo,elt.secuencial,elt.concepto,elt.dividendo,elt.fechaCorte,elt.fechaPago,elt.estado]);
 
     let content = {
-      theme: 'plain',
-      startY: 50,
+      theme: 'striped',
+      startY: 80,
       head: headers,
       body: data
     };
 
-    doc.addImage(logo,"JPEG",700,20,80,30)    
+    doc.addImage(logo,"JPEG",700,20,80,30);  
+    doc.setDrawColor(255, 0, 0); // draw red lines
+    doc.setLineWidth(2.5);
+    doc.line(40, 60, 800, 40);
+    doc.setFontSize(16);
+    doc.setFont("helvetica", "bold");
     doc.text(title, marginLeft, 40);
+    doc.setFontSize(12);
     doc.autoTable(content);
-    doc.addPage("A4","l");
+    doc.setFontSize(14);
+    doc.setFont("helvetica", "bold");
     doc.text("Total Dividendos :     " + totaldividendos.toString(), marginLeft, 50);
     doc.save("ReporteDividendos.pdf")    
   }
