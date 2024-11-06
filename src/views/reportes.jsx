@@ -401,7 +401,7 @@ export default function Reportes() {
       body: data
     };
 
-    doc.addImage(logo,"JPEG",700,10,150,70);  
+    doc.addImage(logo,"JPEG",600,10,150,70);  
     doc.setDrawColor(255, 0, 0); // draw red lines
     doc.setLineWidth(2.5);
     doc.line(40, 60, 800, 60);
