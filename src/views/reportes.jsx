@@ -22,7 +22,7 @@ import { uuid } from 'uuidv4';
 import jsPDF from "jspdf";
 import "jspdf-autotable";
 
-//import logo from '../images/logoUNACEMmedMarco.jpg';
+import logoDegradado from '../images/logoUnacemDegradado.png';
 import logo from '../images/logoUNACEMmedMarco2.png';
 
 
@@ -68,7 +68,7 @@ const useStyles = makeStyles((theme) => ({
 
 
 const today = new Date();
-const fecha = today.getDate() + '-' + (today.getMonth() + 1) + '-' +  today.getFullYear();
+const fechaHora = today.getFullYear() + '-' + (today.getMonth() + 1) + '-' + today.getDate() + ' ' + today.getHours() + ':' + today.getSeconds();
 
 
 const dateNow = new Date(); // Creating a new date object with the current date and time
@@ -370,6 +370,7 @@ export default function Reportes() {
 
     const marginLeft = 40;
     const doc = new jsPDF(orientation, unit, size);
+    var totalPagesExp = '{total_pages_count_string}'
 
     const apiData = await API.graphql({ query: listDividendos});
     const dividendosFromAPI = apiData.data.listDividendos.items;
@@ -394,26 +395,39 @@ export default function Reportes() {
 
     const data = dividendos.map(elt=> [elt.periodo,elt.secuencial,elt.concepto,elt.dividendo,elt.fechaCorte,elt.fechaPago,elt.estado]);
 
-    let content = {
-      theme: 'striped',
+    doc.autoTable({
+      theme: 'plain',
       startY: 80,
       head: headers,
-      body: data
-    };
-
-    doc.addImage(logo,"JPEG",600,10,150,70);  
-    doc.setDrawColor(255, 0, 0); // draw red lines
-    doc.setLineWidth(2.5);
-    doc.line(40, 60, 800, 60);
-    doc.setFontSize(16);
-    doc.setFont("helvetica", "bold");
-    doc.text(title, marginLeft, 40);
-    doc.setFontSize(12);
-    doc.autoTable(content);
-    doc.addPage("A4","l");
-    doc.setFontSize(14);
-    doc.setFont("helvetica", "bold");
-    doc.text("Total Dividendos :     " + totaldividendos.toString(), marginLeft, 50);
+      body: data,
+      willDrawPage: function () {
+        // Logo derecha
+        doc.addImage(logo,"JPEG",600,10,150,70);
+        // Logo degradado centro
+        doc.addImage(logoDegradado,"PNG",600,10,150,70);  
+        // Lineas rojas
+        doc.setDrawColor(255, 0, 0);
+        doc.setLineWidth(2.5);
+        doc.line(40, 60, 800, 60);
+        doc.setLineWidth(7);
+        doc.line(40, 592, 800, 592);
+        // Titulo
+        doc.setFontSize(16);
+        doc.setFont("helvetica", "bold");
+        doc.text(title, marginLeft, 40);
+      },
+      didDrawPage: function () {
+        // Fecha
+        doc.setFontSize(10);
+        doc.text(fechaHora, 580, 580);
+        var str = 'Pag ' + doc.internal.getNumberOfPages()
+        if (typeof doc.putTotalPages === 'function') {
+          str = str + ' de ' + totalPagesExp
+        }
+        doc.setFontSize(10)
+        doc.text(str, 60, 580)
+      },
+    })
     doc.save("ReporteDividendos.pdf");
   }
 
