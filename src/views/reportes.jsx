@@ -68,7 +68,7 @@ const useStyles = makeStyles((theme) => ({
 
 
 const today = new Date();
-const fechaHora = today.getFullYear() + '-' + (today.getMonth() + 1) + '-' + today.getDate() + ' ' + today.getHours() + ':' + today.getSeconds();
+const fechaHora = today.getFullYear() + '-' + (today.getMonth() + 1) + '-' + today.getDate() + ' ' + today.getHours() + ':' + today.getMinutes();
 
 
 const dateNow = new Date(); // Creating a new date object with the current date and time
@@ -371,7 +371,6 @@ export default function Reportes() {
     const marginLeft = 40;
     const doc = new jsPDF(orientation, unit, size);
     var totalPagesExp = '{total_pages_count_string}'
-
     const apiData = await API.graphql({ query: listDividendos});
     const dividendosFromAPI = apiData.data.listDividendos.items;
 
@@ -387,7 +386,7 @@ export default function Reportes() {
       };
     })
 
-    const totaldividendos = Object.keys(dividendosFromAPI).length;
+    const totalHojas = Math.trunc((Object.keys(dividendosFromAPI).length)/21)+1;
 
     const title = "Listado de Dividendos";
 
@@ -402,15 +401,13 @@ export default function Reportes() {
       body: data,
       willDrawPage: function () {
         // Logo derecha
-        doc.addImage(logo,"JPEG",600,10,150,70);
+        doc.addImage(logo,"PNG",600,10,150,70);
         // Logo degradado centro
-        doc.addImage(logoDegradado,"PNG",600,10,150,70);  
+        doc.addImage(logoDegradado,"PNG",330, 200, 180, 180);  
         // Lineas rojas
         doc.setDrawColor(255, 0, 0);
         doc.setLineWidth(2.5);
         doc.line(40, 60, 800, 60);
-        doc.setLineWidth(7);
-        doc.line(40, 592, 800, 592);
         // Titulo
         doc.setFontSize(16);
         doc.setFont("helvetica", "bold");
@@ -419,16 +416,23 @@ export default function Reportes() {
       didDrawPage: function () {
         // Fecha
         doc.setFontSize(10);
-        doc.text(fechaHora, 580, 580);
+        doc.text('Fecha de reporte: '+fechaHora, 580, 580);
         var str = 'Pag ' + doc.internal.getNumberOfPages()
         if (typeof doc.putTotalPages === 'function') {
           str = str + ' de ' + totalPagesExp
         }
+        doc.setDrawColor(255, 0, 0);
+        doc.setLineWidth(7);
+        doc.line(40, 592, 800, 592);
         doc.setFontSize(10)
-        doc.text(str, 60, 580)
+        doc.text(str, marginLeft + 20, 580)
       },
     })
+    if (typeof doc.putTotalPages === 'function') {
+      doc.putTotalPages(totalPagesExp)
+    }
     doc.save("ReporteDividendos.pdf");
+    console.log("total de hojas: ", totalHojas);
   }
 
   return (
