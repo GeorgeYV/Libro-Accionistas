@@ -139,19 +139,7 @@ export default function Reportes() {
     setAccionistas(apiData.data.listAccionistas.items);    
   }
 
-
-
   const exportPDFLibroAccionistas = async() => {
-    const unit = "pt";
-    const size = "A4"; // Use A1, A2, A3 or A4
-    //const orientation = "portrait"; // portrait or landscape
-    const orientation = "landscape"; // portrait or landscape
-
-    const marginLeft = 40;
-    const doc = new jsPDF(orientation, unit, size);
-
-    doc.setFontSize(12);
-
     const filter = {
         estado: {
           //eq: estadoLibro == "1" ? "Activo" : estadoLibro == "2" ? "Bloqueado" : estadoLibro == "3" ? "Inactivo" : null
@@ -176,39 +164,74 @@ export default function Reportes() {
 
     const title = "Libro de Accionistas";
     const headers = [["Identificacion", "Nombre", "Nacionalidad", "Acciones","Tipo","Persona","Participación","Valor"]];
-
     const data = libroAccionista.map(elt=> [elt.identificacion, elt.nombre, elt.paisNacionalidad, elt.cantidadAcciones,elt.tipoAcciones,elt.tipoPersona, elt.participacion, elt.valor]);
-
-    let content = {
+    // Creacion del Pdf
+    const unit = "pt";
+    const size = "A4";
+    const orientation = "landscape";
+    const marginLeft = 40;
+    var totalPagesExp = '{total_pages_count_string}';
+    const doc = new jsPDF(orientation, unit, size);
+    doc.autoTable({
       theme: 'plain',
-      startY: 50,
       head: headers,
-      body: data
-    };
-
-    doc.addImage(logo,"JPEG",700,20,80,30)
-    doc.text(title, marginLeft, 40);
-    doc.autoTable(content);
-
+      body: data,
+      willDrawPage: function () {
+        // Logo derecha
+        doc.addImage(logo,"PNG",600,0,150,70);
+        // Logo degradado centro
+        doc.addImage(logoDegradado,"PNG",333, 200, 180, 180);  
+        // Lineas rojas
+        doc.setDrawColor(255, 0, 0);
+        doc.setLineWidth(2.5);
+        doc.line(40, 60, 800, 60);
+        // Titulo
+        doc.setFontSize(16);
+        doc.setFont("helvetica", "bold");
+        doc.text(title, marginLeft + 10, 50);
+      },
+      didDrawPage: function () {
+        // Fecha
+        doc.setFontSize(10);
+        doc.setFont("helvetica", "bold");
+        doc.text('Fecha de reporte: '+fechaHora, 580, 580);
+        var str = 'Pag ' + doc.internal.getNumberOfPages()
+        if (typeof doc.putTotalPages === 'function') {
+          str = str + ' de ' + totalPagesExp
+        }
+        doc.setDrawColor(255, 0, 0);
+        doc.setLineWidth(7);
+        doc.line(40, 592, 800, 592);
+        doc.text(str, marginLeft + 20, 580)
+      },
+      margin: { top: 80 },
+    })
+    if (typeof doc.putTotalPages === 'function') {
+      doc.putTotalPages(totalPagesExp)
+    }
     doc.addPage("A4","l");
-    doc.text("Total accionistas :     " + totalAccionistas.toString(), marginLeft, 50);
-    doc.text("Total acciones    :     " + num.toString(), marginLeft, 80);
-
+    // Logo derecha
+    doc.addImage(logo,"PNG",600,0,150,70);
+    // Logo degradado centro
+    doc.addImage(logoDegradado,"PNG",333, 200, 180, 180);  
+    // Lineas rojas
+    doc.setDrawColor(255, 0, 0);
+    doc.setLineWidth(2.5);
+    doc.line(40, 60, 800, 60);
+    doc.setLineWidth(7);
+    doc.line(40, 592, 800, 592);
+    // Titulo
+    doc.setFontSize(16);
+    doc.setFont("helvetica", "bold");
+    doc.text(title, marginLeft + 10, 50);
+    doc.setFontSize(14);
+    doc.text("Total accionistas :     " + totalAccionistas.toString(), marginLeft, 80);
+    doc.text("Total acciones    :     " + num.toString(), marginLeft, 110);
     doc.save("LibroAccionistas.pdf")
     
   }
 
   const exportPDFListadoAccionistas = async() => {
-    const unit = "pt";
-    const size = "A4"; // Use A1, A2, A3 or A4
-    //const orientation = "portrait"; // portrait or landscape
-    const orientation = "landscape"; // portrait or landscape
-
-    const marginLeft = 40;
-    const doc = new jsPDF(orientation, unit, size);
-
-    doc.setFontSize(12);
-
     const filter = {
         estado: {
           eq: estadoListado == "1" ? "Activo" : estadoListado == "2" ? "Bloqueado" : estadoListado == "3" ? "Inactivo" : null
@@ -236,44 +259,74 @@ export default function Reportes() {
         
 
     const title = "Listado de Accionistas (".concat(estadoListado == "1" ? "Activos)" : estadoListado == "2" ? "Bloqueados)" : "Inactivos)" );
-    //const headers = [["Identificacion", "Nombre", "Nacionalidad", "Acciones","Tipo","Persona","Participación","Valor"]];
     const headers = [["Nombre", "Nacionalidad", "Identificacion", "Tipo", "Cuenta", "Tipo Cta", "Acciones","Participación","Dirección","Email"]];
-
-    //const data = libroAccionista.map(elt=> [elt.identificacion, elt.nombre, elt.paisNacionalidad, elt.cantidadAcciones,elt.tipoAcciones,elt.tipoPersona, elt.participacion, elt.valor]);
     const data = libroAccionista.map(elt=> [elt.nombre, elt.paisNacionalidad, elt.identificacion, elt.tipoIdentificacion, elt.cuentaBancaria, elt.tipoCuenta, elt.cantidadAcciones, elt.direccionCalle, elt.email1]);
-
-    let content = {
+    // Creacion del Pdf
+    const unit = "pt";
+    const size = "A4";
+    const orientation = "landscape";
+    const marginLeft = 40;
+    var totalPagesExp = '{total_pages_count_string}';
+    const doc = new jsPDF(orientation, unit, size);
+    doc.autoTable({
       theme: 'plain',
-      startY: 50,
       head: headers,
-      body: data
-    };
-
-    doc.addImage(logo,"JPEG",700,20,80,30)    
-    doc.text(title, marginLeft, 40);
-
-    doc.autoTable(content);
-
+      body: data,
+      willDrawPage: function () {
+        // Logo derecha
+        doc.addImage(logo,"PNG",600,0,150,70);
+        // Logo degradado centro
+        doc.addImage(logoDegradado,"PNG",333, 200, 180, 180);  
+        // Lineas rojas
+        doc.setDrawColor(255, 0, 0);
+        doc.setLineWidth(2.5);
+        doc.line(40, 60, 800, 60);
+        // Titulo
+        doc.setFontSize(16);
+        doc.setFont("helvetica", "bold");
+        doc.text(title, marginLeft + 10, 50);
+      },
+      didDrawPage: function () {
+        // Fecha
+        doc.setFontSize(10);
+        doc.setFont("helvetica", "bold");
+        doc.text('Fecha de reporte: '+fechaHora, 580, 580);
+        var str = 'Pag ' + doc.internal.getNumberOfPages()
+        if (typeof doc.putTotalPages === 'function') {
+          str = str + ' de ' + totalPagesExp
+        }
+        doc.setDrawColor(255, 0, 0);
+        doc.setLineWidth(7);
+        doc.line(40, 592, 800, 592);
+        doc.text(str, marginLeft + 20, 580)
+      },
+      margin: { top: 80 },
+    })
+    if (typeof doc.putTotalPages === 'function') {
+      doc.putTotalPages(totalPagesExp)
+    }
     doc.addPage("A4","l");
-    doc.text("Total accionistas :     " + totalAccionistas.toString(), marginLeft, 50);
-    doc.text("Total acciones    :     " + num.toString(), marginLeft, 80);
-
-
-    doc.save("ListadoAccionistas.pdf")
-    
+    // Logo derecha
+    doc.addImage(logo,"PNG",600,0,150,70);
+    // Logo degradado centro
+    doc.addImage(logoDegradado,"PNG",333, 200, 180, 180);  
+    // Lineas rojas
+    doc.setDrawColor(255, 0, 0);
+    doc.setLineWidth(2.5);
+    doc.line(40, 60, 800, 60);
+    doc.setLineWidth(7);
+    doc.line(40, 592, 800, 592);
+    // Titulo
+    doc.setFontSize(16);
+    doc.setFont("helvetica", "bold");
+    doc.text(title, marginLeft + 10, 50);
+    doc.setFontSize(14);
+    doc.text("Total accionistas :     " + totalAccionistas.toString(), marginLeft, 80);
+    doc.text("Total acciones    :     " + num.toString(), marginLeft, 110);
+    doc.save("ListadoAccionistas.pdf") 
   }
 
-
   const exportPDFTransferencias = async() => {
-    const unit = "pt";
-    const size = "A4"; // Use A1, A2, A3 or A4
-    const orientation = "landscape"; // portrait or landscape
-
-    const marginLeft = 40;
-    const doc = new jsPDF(orientation, unit, size);
-
-    doc.setFontSize(10);
-
     let filter = {
         estado: {
             eq: 'Aprobada' // filter priority = 1
@@ -284,93 +337,88 @@ export default function Reportes() {
              { operacion: {eq:'Donación'} },
              { operacion: {eq:'Testamento'} }]
     };
-  
-
-
-    console.log("Accionista", valAccionista);
-    console.log("Filtro", filter);
-
+    // Procesamiento de datos
     const apiData = await API.graphql({ query: listOperaciones , variables: { filter: filter , limit: 10000},  });
     const operacionesFromAPI = apiData.data.listOperaciones.items;
-
     const apiData2 = await API.graphql({ query: listHerederoPorOperacions , variables: {  limit: 10000},  });
     const operacionesFromAPI2 = apiData2.data.listHerederoPorOperacions.items;
-    
     const posisionEfectiva = operacionesFromAPI2.map(t1 => ({...t1, ...operacionesFromAPI.find(t2 => t2.id === t1.operacionId)}))
-
     const operacionesSinPosesionEfectivas = operacionesFromAPI.filter((el) =>
-          el.operacion != 'Posesión Efectiva'
-        );        
-
+      el.operacion != 'Posesión Efectiva'
+    );        
     let finalmente = [...operacionesSinPosesionEfectivas, ...posisionEfectiva]
-
-    
     if (valAccionista.id){
       const finalmente3 = finalmente.filter((id) => id.idCedente == valAccionista.id || id.idCesionario == valAccionista.id);
       console.log("Operaciones", finalmente3);  
       finalmente = finalmente3;
     }
-
-
-    /*
-    var from = $("#datepicker").val().split("-")
-    var f = new Date(from[2], from[1] - 1, from[0])
-    */
-
     finalmente.sort(function (a, b) {
         if (new Date(+a.fecha.split("-")[2],a.fecha.split("-")[1] - 1, +a.fecha.split("-")[0]) > new Date(+b.fecha.split("-")[2],b.fecha.split("-")[1] - 1, +b.fecha.split("-")[0])) return 1;
         if (new Date(+a.fecha.split("-")[2],a.fecha.split("-")[1] - 1, +a.fecha.split("-")[0]) < new Date(+b.fecha.split("-")[2],b.fecha.split("-")[1] - 1, +b.fecha.split("-")[0])) return -1;
         return 0;
       });
 
-      const sd = new Date("2021-11-15T00:00:00.000Z").getTime();
-      const ed = new Date("2021-11-16T00:00:00.000Z").getTime();
+    const sd = new Date("2021-11-15T00:00:00.000Z").getTime();
+    const ed = new Date("2021-11-16T00:00:00.000Z").getTime();
 
-      var dateHasta = new Date(transferenciasHasta);
-      dateHasta.setDate(dateHasta.getDate() + 1);
+    var dateHasta = new Date(transferenciasHasta);
+    dateHasta.setDate(dateHasta.getDate() + 1);
 
-      const result = finalmente.filter(d => {var time = new Date(+d.fecha.split("-")[2],d.fecha.split("-")[1] - 1, +d.fecha.split("-")[0]).getTime();
-                             return (new Date(transferenciasDesde).getTime() < time && time < new Date(dateHasta).getTime());
-                            });
-    /*
-      console.log("desde ", new Date(transferenciasDesde).getTime());
-      console.log("hasta ", new Date(transferenciasHasta).getTime());
-
-      console.log("desde ", sd);
-      console.log("hasta ", ed);
-
-      console.log("Finalmente ", finalmente);
-
-      console.log("Resultado ", result);
-    */
-
-
+    const result = finalmente.filter(d => {var time = new Date(+d.fecha.split("-")[2],d.fecha.split("-")[1] - 1, +d.fecha.split("-")[0]).getTime();
+      return (new Date(transferenciasDesde).getTime() < time && time < new Date(dateHasta).getTime());
+    });
+    // Creacion de Pdf
+    const unit = "pt";
+    const size = "A4";
+    const orientation = "landscape";
+    const marginLeft = 40;
+    var totalPagesExp = '{total_pages_count_string}';
+    const doc = new jsPDF(orientation, unit, size);
     const title = "Reporte de Transferencias";
     const headers = [["Fecha", "Transferencia", "Cedente", "Acciones","Cesionario"]];
-
     const data = result.map(elt=> [elt.fecha, elt.operacion, elt.cedente, elt.operacion == 'Posesión Efectiva' ? elt.cantidad : elt.acciones, elt.operacion == 'Posesión Efectiva' ? elt.nombre : elt.cesionario]);
-
-    let content = {
+    doc.autoTable({
       theme: 'plain',
-      startY: 50,
       head: headers,
-      body: data
-    };
-
-    doc.addImage(logo,"JPEG",700,20,80,30)    
-    doc.text(title, marginLeft, 40);
-    doc.autoTable(content);
+      body: data,
+      willDrawPage: function () {
+        // Logo derecha
+        doc.addImage(logo,"PNG",600,0,150,70);
+        // Logo degradado centro
+        doc.addImage(logoDegradado,"PNG",333, 200, 180, 180);  
+        // Lineas rojas
+        doc.setDrawColor(255, 0, 0);
+        doc.setLineWidth(2.5);
+        doc.line(40, 60, 800, 60);
+        // Titulo
+        doc.setFontSize(16);
+        doc.setFont("helvetica", "bold");
+        doc.text(title, marginLeft + 10, 50);
+      },
+      didDrawPage: function () {
+        // Fecha
+        doc.setFontSize(10);
+        doc.setFont("helvetica", "bold");
+        doc.text('Fecha de reporte: '+fechaHora, 580, 580);
+        var str = 'Pag ' + doc.internal.getNumberOfPages()
+        if (typeof doc.putTotalPages === 'function') {
+          str = str + ' de ' + totalPagesExp
+        }
+        doc.setDrawColor(255, 0, 0);
+        doc.setLineWidth(7);
+        doc.line(40, 592, 800, 592);
+        doc.text(str, marginLeft + 20, 580)
+      },
+      margin: { top: 80 },
+    })
+    if (typeof doc.putTotalPages === 'function') {
+      doc.putTotalPages(totalPagesExp)
+    }
     doc.save("ReporteTransferencias.pdf")
   }
 
   const exportPDFDividendos = async() => {
-    const unit = "pt";
-    const size = "A4";
-    const orientation = "landscape";
-
-    const marginLeft = 40;
-    const doc = new jsPDF(orientation, unit, size);
-    var totalPagesExp = '{total_pages_count_string}'
+    // Carga de datos
     const apiData = await API.graphql({ query: listDividendos});
     const dividendosFromAPI = apiData.data.listDividendos.items;
 
@@ -385,25 +433,26 @@ export default function Reportes() {
         estado: elt.estado
       };
     })
-
-    const totalHojas = Math.trunc((Object.keys(dividendosFromAPI).length)/21)+1;
-
-    const title = "Listado de Dividendos";
-
+    //const totalHojas = Math.trunc((Object.keys(dividendosFromAPI).length)/21)+1;
     const headers = [["Periodo", "Secuencial", "Concepto","Dividendo", "Fecha de corte","Fecha de Junta", "Estado"]];
-
     const data = dividendos.map(elt=> [elt.periodo,elt.secuencial,elt.concepto,elt.dividendo,elt.fechaCorte,elt.fechaPago,elt.estado]);
-
+    // Creacion del pdf
+    const unit = "pt";
+    const size = "A4";
+    const orientation = "landscape";
+    const marginLeft = 40;
+    const title = "Listado de Dividendos";
+    const doc = new jsPDF(orientation, unit, size);
+    var totalPagesExp = '{total_pages_count_string}';
     doc.autoTable({
       theme: 'plain',
-      startY: 80,
       head: headers,
       body: data,
       willDrawPage: function () {
         // Logo derecha
-        doc.addImage(logo,"PNG",600,10,150,70);
+        doc.addImage(logo,"PNG",600,0,150,70);
         // Logo degradado centro
-        doc.addImage(logoDegradado,"PNG",330, 200, 180, 180);  
+        doc.addImage(logoDegradado,"PNG",333, 200, 180, 180);  
         // Lineas rojas
         doc.setDrawColor(255, 0, 0);
         doc.setLineWidth(2.5);
@@ -411,11 +460,12 @@ export default function Reportes() {
         // Titulo
         doc.setFontSize(16);
         doc.setFont("helvetica", "bold");
-        doc.text(title, marginLeft, 40);
+        doc.text(title, marginLeft + 10, 50);
       },
       didDrawPage: function () {
         // Fecha
         doc.setFontSize(10);
+        doc.setFont("helvetica", "bold");
         doc.text('Fecha de reporte: '+fechaHora, 580, 580);
         var str = 'Pag ' + doc.internal.getNumberOfPages()
         if (typeof doc.putTotalPages === 'function') {
@@ -424,15 +474,14 @@ export default function Reportes() {
         doc.setDrawColor(255, 0, 0);
         doc.setLineWidth(7);
         doc.line(40, 592, 800, 592);
-        doc.setFontSize(10)
         doc.text(str, marginLeft + 20, 580)
       },
+      margin: { top: 80 },
     })
     if (typeof doc.putTotalPages === 'function') {
       doc.putTotalPages(totalPagesExp)
     }
     doc.save("ReporteDividendos.pdf");
-    console.log("total de hojas: ", totalHojas);
   }
 
   return (
@@ -529,9 +578,6 @@ export default function Reportes() {
                 <MenuItem value={3} >Inactivo</MenuItem>
                 </Select>
             </FormControl>
-
-
-
             <Button                
                 size="small"
                 variant="contained"
@@ -545,9 +591,6 @@ export default function Reportes() {
             </Button>
           </div>
         </Grid>
-
-
-
         <Grid item xs={2} style={{paddingTop:20, paddingRight:40}}>
             <div>
             <Typography variant='body2' color='secondary'>
@@ -588,8 +631,7 @@ export default function Reportes() {
                         shrink: true,
                     }}
                 />
-            </FormControl>                        
-
+            </FormControl>
             <Autocomplete
                 value={valAccionista}
                 size='small'
@@ -601,7 +643,6 @@ export default function Reportes() {
                 renderInput={(params) => <TextField {...params} label="Accionista" margin="normal"  variant="outlined"  />}
                 onChange={(option, value) => handleClickAccionista(option, value)}
               />
-
             <Button                
                 size="small"
                 variant="contained"
@@ -615,7 +656,6 @@ export default function Reportes() {
             </Button>
           </div>
         </Grid>
-
         <Grid item xs={2} style={{paddingTop:20, paddingRight:40}}>
             <div>
             <Typography variant='body2' color='secondary'>
@@ -683,6 +723,7 @@ export default function Reportes() {
                 id="simple-select"
                 value={2}
                 label="Periodo"
+                disabled
                 //onChange={handleChangeEstadoListado}
                 >
                 <MenuItem value={1} >2020</MenuItem>
@@ -704,12 +745,7 @@ export default function Reportes() {
             </Button>
           </div>
         </Grid>
-
-
-
-  
       </Grid>
-
      </Paper>
 
   </main>
