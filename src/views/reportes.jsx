@@ -176,11 +176,11 @@ export default function Reportes() {
       theme: 'plain',
       head: headers,
       body: data,
-      willDrawPage: function () {
+      didDrawPage: function () {
         // Logo derecha
         doc.addImage(logo,"PNG",600,0,150,70);
         // Logo degradado centro
-        doc.addImage(logoDegradado,"PNG",333, 200, 180, 180);  
+        doc.addImage(logoDegradado,"PNG",333, 200, 180, 180);
         // Lineas rojas
         doc.setDrawColor(255, 0, 0);
         doc.setLineWidth(2.5);
@@ -189,8 +189,6 @@ export default function Reportes() {
         doc.setFontSize(16);
         doc.setFont("helvetica", "bold");
         doc.text(title, marginLeft + 10, 50);
-      },
-      didDrawPage: function () {
         // Fecha
         doc.setFontSize(10);
         doc.setFont("helvetica", "bold");
@@ -272,11 +270,11 @@ export default function Reportes() {
       theme: 'plain',
       head: headers,
       body: data,
-      willDrawPage: function () {
+      didDrawPage: function () {
         // Logo derecha
         doc.addImage(logo,"PNG",600,0,150,70);
         // Logo degradado centro
-        doc.addImage(logoDegradado,"PNG",333, 200, 180, 180);  
+        doc.addImage(logoDegradado,"PNG",333, 200, 180, 180);
         // Lineas rojas
         doc.setDrawColor(255, 0, 0);
         doc.setLineWidth(2.5);
@@ -285,8 +283,6 @@ export default function Reportes() {
         doc.setFontSize(16);
         doc.setFont("helvetica", "bold");
         doc.text(title, marginLeft + 10, 50);
-      },
-      didDrawPage: function () {
         // Fecha
         doc.setFontSize(10);
         doc.setFont("helvetica", "bold");
@@ -381,11 +377,11 @@ export default function Reportes() {
       theme: 'plain',
       head: headers,
       body: data,
-      willDrawPage: function () {
+      didDrawPage: function () {
         // Logo derecha
         doc.addImage(logo,"PNG",600,0,150,70);
         // Logo degradado centro
-        doc.addImage(logoDegradado,"PNG",333, 200, 180, 180);  
+        doc.addImage(logoDegradado,"PNG",333, 200, 180, 180);
         // Lineas rojas
         doc.setDrawColor(255, 0, 0);
         doc.setLineWidth(2.5);
@@ -394,8 +390,6 @@ export default function Reportes() {
         doc.setFontSize(16);
         doc.setFont("helvetica", "bold");
         doc.text(title, marginLeft + 10, 50);
-      },
-      didDrawPage: function () {
         // Fecha
         doc.setFontSize(10);
         doc.setFont("helvetica", "bold");
@@ -448,11 +442,11 @@ export default function Reportes() {
       theme: 'plain',
       head: headers,
       body: data,
-      willDrawPage: function () {
+      didDrawPage: function () {
         // Logo derecha
         doc.addImage(logo,"PNG",600,0,150,70);
         // Logo degradado centro
-        doc.addImage(logoDegradado,"PNG",333, 200, 180, 180);  
+        doc.addImage(logoDegradado,"PNG",333, 200, 180, 180);
         // Lineas rojas
         doc.setDrawColor(255, 0, 0);
         doc.setLineWidth(2.5);
@@ -461,8 +455,6 @@ export default function Reportes() {
         doc.setFontSize(16);
         doc.setFont("helvetica", "bold");
         doc.text(title, marginLeft + 10, 50);
-      },
-      didDrawPage: function () {
         // Fecha
         doc.setFontSize(10);
         doc.setFont("helvetica", "bold");
