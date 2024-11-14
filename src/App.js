@@ -2,8 +2,8 @@ import React, { useState, useEffect } from 'react';
 import {AmplifyAuthContainer, AmplifyAuthenticator,AmplifySignIn } from '@aws-amplify/ui-react';
 import { AuthState, onAuthUIStateChange } from '@aws-amplify/ui-components';
 import { Switch, Route, Redirect } from "react-router-dom";
-//import logo from './images/logoUNACEMmedMarco.jpg';
 import logo from './images/logoUNACEMmedMarco2.png';
+import "./components/estilosCustomAmplify.css";
 
 import Accionistas from './views/accionistas';
 import Cesion from './views/cesion'
@@ -131,8 +131,9 @@ function App() {
           </Layout>
         </div>
     ) : (
-      <div style={{backgroundColor:"white",  backgroundImage: `url(${logo})`, backgroundRepeat: "no-repeat", display:'flex', flexDirection:'row',justifyContent:'space-between'}}> 
-        <div style={{marginLeft:70, paddingTop:150, marginRight:100}}>
+      <div style={{backgroundColor:"white", display:'flex', flexDirection:'row',justifyContent:'space-between'}}> 
+        <div style={{marginLeft:70, paddingTop:50, marginRight:100}}>
+          <img src={logo} style="height: 150px;"></img>
           <p style={{textAlign:"justify"}}> Bienvenidos a la plataforma de representación de acciones en formato
             tokenizado de UNACEM ECUADOR S.A. Sus acciones permanecen en estatus
             desmaterializado, conforme lo indica la Ley de Modernización a la Ley de
@@ -161,7 +162,7 @@ function App() {
           tener un canal de acceso a la información amplio y directo.   
           </p>
           <br></br>
-          <p style={{textAlign:"justify", color:"#89221C", fontSize:18}}>
+          <p style={{textAlign:"justify", color:"#ff746c", fontSize:18}}>
            <strong>¡Continuamos construyendo oportunidades juntos!</strong>
           </p>
         </div>

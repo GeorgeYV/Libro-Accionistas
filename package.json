@@ -30,7 +30,8 @@
     "react-scripts": "4.0.3",
     "recharts": "^2.1.2",
     "uuidv4": "^6.2.12",
-    "web-vitals": "^1.1.2"
+    "web-vitals": "^1.1.2",
+    "xlsx": "^0.18.5"
   },
   "scripts": {
     "start": "react-scripts start",
