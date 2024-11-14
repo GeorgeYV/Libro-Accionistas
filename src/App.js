@@ -3,7 +3,7 @@ import {AmplifyAuthContainer, AmplifyAuthenticator,AmplifySignIn } from '@aws-am
 import { AuthState, onAuthUIStateChange } from '@aws-amplify/ui-components';
 import { Switch, Route, Redirect } from "react-router-dom";
 import logo from './images/logoUNACEMmedMarco2.png';
-import "./components/estilosCustomAmplify.css";
+//import "./components/estilosCustomAmplify.css";
 
 import Accionistas from './views/accionistas';
 import Cesion from './views/cesion'
@@ -132,7 +132,7 @@ function App() {
         </div>
     ) : (
       <div style={{backgroundColor:"white", display:'flex', flexDirection:'row',justifyContent:'space-between'}}> 
-        <div style={{marginLeft:70, paddingTop:150, marginRight:100}}>
+        <div style={{marginLeft:70, paddingTop:50, marginRight:100}}>
           <img src={logo} style="height: 150px;"></img>
           <p style={{textAlign:"justify"}}> Bienvenidos a la plataforma de representación de acciones en formato
             tokenizado de UNACEM ECUADOR S.A. Sus acciones permanecen en estatus

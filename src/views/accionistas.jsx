@@ -745,10 +745,10 @@ function QuickSearchToolbar(props) {
 
             <Box sx={{ borderBottom: 1, borderColor: 'divider' }}>
               <Tabs value={value} onChange={handleChangeTab} aria-label="basic tabs example">
-              <Tab label="Info" {...a11yProps(0)} />
-              <Tab label="Documentos" {...a11yProps(1)} />
-              <Tab label="Títulos" {...a11yProps(2)} />
-              <Tab label="Operaciones" {...a11yProps(3)} />
+                <Tab label="Info" {...a11yProps(0)} />
+                <Tab label="Documentos" {...a11yProps(1)} />
+                <Tab label="Títulos" {...a11yProps(2)} />
+                <Tab label="Operaciones" {...a11yProps(3)} />
               </Tabs>
             </Box>
             <TabPanel value={value} index={0}>
