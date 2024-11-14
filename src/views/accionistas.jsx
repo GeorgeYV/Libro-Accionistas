@@ -749,6 +749,7 @@ function QuickSearchToolbar(props) {
               <Tab label="Documentos" {...a11yProps(1)} />
               <Tab label="Títulos" {...a11yProps(2)} />
               <Tab label="Operaciones" {...a11yProps(3)} />
+              <Tab label="Historial" {...a11yProps(4)} />
               </Tabs>
             </Box>
             <TabPanel value={value} index={0}>
