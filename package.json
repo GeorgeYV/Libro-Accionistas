@@ -30,8 +30,7 @@
     "react-scripts": "4.0.3",
     "recharts": "^2.1.2",
     "uuidv4": "^6.2.12",
-    "web-vitals": "^1.1.2",
-    "xlsx": "https://cdn.sheetjs.com/xlsx-0.20.3/xlsx-0.20.3.tgz"
+    "web-vitals": "^1.1.2"
   },
   "scripts": {
     "start": "react-scripts start",
