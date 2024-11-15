@@ -133,7 +133,7 @@ function App() {
     ) : (
       <div style={{backgroundColor:"white", display:'flex', flexDirection:'row',justifyContent:'space-between'}}> 
         <div style={{marginLeft:70, paddingTop:50, marginRight:100}}>
-          <img src={{logo}} style={{height:"150px"}}></img>
+          <img src={logo} style={{height:"150px"}}></img>
           <p style={{textAlign:"justify"}}> Bienvenidos a la plataforma de representación de acciones en formato
             tokenizado de UNACEM ECUADOR S.A. Sus acciones permanecen en estatus
             desmaterializado, conforme lo indica la Ley de Modernización a la Ley de
@@ -162,7 +162,7 @@ function App() {
           tener un canal de acceso a la información amplio y directo.   
           </p>
           <br></br>
-          <p style={{textAlign:"justify", color:"#89221C", fontSize:18}}>
+          <p style={{textAlign:"justify", color:"#dd3f5bd6", fontSize:18}}>
            <strong>¡Continuamos construyendo oportunidades juntos!</strong>
           </p>
         </div>
