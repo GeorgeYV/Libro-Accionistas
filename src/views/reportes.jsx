@@ -22,8 +22,6 @@ import { uuid } from 'uuidv4';
 import jsPDF from "jspdf";
 import "jspdf-autotable";
 
-import * as XLSX from "xlsx";
-
 import logoDegradado from '../images/logoUnacemDegradado.png';
 import logo from '../images/logoUNACEMmedMarco2.png';
 
@@ -478,17 +476,6 @@ export default function Reportes() {
     doc.save("ReporteDividendos.pdf");
   }
 
-  const exportXLSXDividendos = async() => {
-    // Carga de datos
-    const apiData = await API.graphql({ query: listDividendos});
-    const dividendosFromAPI = apiData.data.listDividendos.items;
-    // Crear archivo Xlsx
-    const libro = XLSX.utils.book_new();
-    const hoja = XLSX.utils.json_to_sheet(dividendosFromAPI);
-    XLSX.utils.book_append_sheet(libro, hoja, "Prueba");
-    XLSX.writeFile(libro, "PruebaDefault.xlsx");
-  }
-
   return (
     <main className={classes.content}>
     <div className={classes.appBarSpacer} />
@@ -744,7 +731,7 @@ export default function Reportes() {
                 color="primary"
                 className={classes.button}
                 startIcon={<VisibilityIcon/>}
-                onClick={exportXLSXDividendos}
+                onClick={exportPDFDividendos}
             >
                 Ver Reporte
             </Button>
