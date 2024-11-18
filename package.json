@@ -17,6 +17,7 @@
     "amazon-qldb-driver-nodejs": "^2.2.0",
     "aws-amplify": "^4.2.5",
     "aws-sdk": "^2.1066.0",
+    "exceljs": "^4.4.0",
     "ion-js": "^4.0.0",
     "jsbi": "^3.1.2",
     "jspdf": "^2.5.0",

@@ -25,6 +25,7 @@ import "jspdf-autotable";
 import logoDegradado from '../images/logoUnacemDegradado.png';
 import logo from '../images/logoUNACEMmedMarco2.png';
 
+const ExcelJS = require("exceljs");
 
 function Alert(props) {
   return <MuiAlert elevation={6} variant="filled" {...props} />;
@@ -411,7 +412,7 @@ export default function Reportes() {
     doc.save("ReporteTransferencias.pdf")
   }
 
-  const exportPDFDividendos = async() => {
+  const exportDividendos = async() => {
     // Carga de datos
     const apiData = await API.graphql({ query: listDividendos});
     const dividendosFromAPI = apiData.data.listDividendos.items;
@@ -429,51 +430,91 @@ export default function Reportes() {
     })
     //const totalHojas = Math.trunc((Object.keys(dividendosFromAPI).length)/21)+1;
     const headers = [["Periodo", "Secuencial", "Concepto","Dividendo", "Fecha de corte","Fecha de Junta", "Estado"]];
-    const data = dividendos.map(elt=> [elt.periodo,elt.secuencial,elt.concepto,elt.dividendo,elt.fechaCorte,elt.fechaPago,elt.estado]);
-    // Creacion del pdf
-    const unit = "pt";
-    const size = "A4";
-    const orientation = "landscape";
-    const marginLeft = 40;
-    const title = "Listado de Dividendos";
-    const doc = new jsPDF(orientation, unit, size);
-    var totalPagesExp = '{total_pages_count_string}';
-    doc.autoTable({
-      theme: 'plain',
-      head: headers,
-      body: data,
-      didDrawPage: function () {
-        // Logo derecha
-        doc.addImage(logo,"PNG",600,0,150,70);
-        // Logo degradado centro
-        doc.addImage(logoDegradado,"PNG",333, 200, 180, 180);
-        // Lineas rojas
-        doc.setDrawColor(255, 0, 0);
-        doc.setLineWidth(2.5);
-        doc.line(40, 60, 800, 60);
-        // Titulo
-        doc.setFontSize(16);
-        doc.setFont("helvetica", "bold");
-        doc.text(title, marginLeft + 10, 50);
-        // Fecha
-        doc.setFontSize(10);
-        doc.setFont("helvetica", "bold");
-        doc.text('Fecha de reporte: '+fechaHora, 580, 580);
-        var str = 'Pag ' + doc.internal.getNumberOfPages()
-        if (typeof doc.putTotalPages === 'function') {
-          str = str + ' de ' + totalPagesExp
-        }
-        doc.setDrawColor(255, 0, 0);
-        doc.setLineWidth(7);
-        doc.line(40, 592, 800, 592);
-        doc.text(str, marginLeft + 20, 580)
-      },
-      margin: { top: 80 },
-    })
-    if (typeof doc.putTotalPages === 'function') {
-      doc.putTotalPages(totalPagesExp)
+    // Creacion del Xlsx
+    const letrasColumnas = ['A','B','C','D','E','F','G'];
+    const workbook = new ExcelJS.Workbook();
+    const sheet = workbook.addWorksheet("Dividendos");
+    /*const imageId = workbook.addImage({
+      base64: logoBase64,
+      extension: 'jpeg',
+    });
+
+    sheet.addImage(imageId, {
+      tl: { col: 0, row: 1 },
+      ext: { width: 415, height: 100 },
+    });*/
+    for (let index = 0; index < 7; index++){
+      sheet.addRow();
     }
-    doc.save("ReporteDividendos.pdf");
+    sheet.addRow(headers);
+    sheet.getRow(8).font = {
+      name: "Times New Roman",
+      family: 4,
+      size: 14,
+      bold: true,
+      color: { argb: 'fc0303' },
+    };
+    letrasColumnas.forEach(function(letra) {
+      sheet.getCell(letra+'8').border = {
+        bottom: {style:'thin', color: {argb:'676767'}}
+      };
+    });
+    sheet.mergeCells('C1:E2');
+    sheet.getCell('C1').value = "Reporte de Dividendos";
+    sheet.getCell('C1').alignment = { vertical: 'middle', horizontal: 'center' };
+    sheet.mergeCells('C4:D4');
+    sheet.getCell('C4').value = "Fecha de creación: "+fechaHora;
+    sheet.getRow(1).font = {
+      name: "Times New Roman",
+      family: 4,
+      size: 16,
+      bold: true,
+      color: { argb: 'fc0303' },
+    };
+    sheet.getRow(4).font = {
+      name: "Times New Roman",
+      family: 4,
+      size: 14,
+    };
+    sheet.columns = [
+      {
+        width: 10,
+      },
+      { width: 50 },
+      {
+        width: 20,
+      },
+      {
+        width: 20,
+      },
+      {
+        width: 15,
+      },
+      {
+        width: 10,
+      },
+      {
+        width: 30,
+      },
+    ];
+    const promise = Promise.all(
+      dividendos.map(async (elt) => {
+        sheet.addRow([elt.periodo,elt.secuencial,elt.concepto,elt.dividendo,elt.fechaCorte,elt.fechaPago,elt.estado]);
+      })
+    );
+    promise.then(() => {
+      workbook.xlsx.writeBuffer().then(function (data) {
+        const blob = new Blob([data], {
+          type: "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
+        });
+        const url = window.URL.createObjectURL(blob);
+        const anchor = document.createElement("a");
+        anchor.href = url;
+        anchor.download = "Dividendos.xlsx";
+        anchor.click();
+        window.URL.revokeObjectURL(url);
+      });
+    });
   }
 
   return (
@@ -731,7 +772,7 @@ export default function Reportes() {
                 color="primary"
                 className={classes.button}
                 startIcon={<VisibilityIcon/>}
-                onClick={exportPDFDividendos}
+                onClick={exportDividendos}
             >
                 Ver Reporte
             </Button>
