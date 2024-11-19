@@ -153,13 +153,14 @@ export default function Reportes() {
         tipoAcciones: elt.tipoAcciones, 
         tipoPersona: elt.tipoPersona,
         participacion: elt.participacion, 
-        valor: elt.cantidadAcciones * 40.00,
-        telefono: elt.telefono1,
-        email: elt.email1,
-        fechaCreacion: elt.createdAt
+        valor: elt.cantidadAcciones,
+        telefono1: elt.telefono1,
+        email1: elt.email1,
+        createdAt: elt.createdAt
       };
     })
-    // Creacion del Xlsx
+    // Creacion del Xls
+    const title = "Reporte de Libro de Accionistas";
     const headers = [
       "Identificación", "Nombre", "Nacionalidad", "Acciones", 
       "Tipo", "Persona", "Participación", "Valor", "Teléfono", "Email","Fecha de Creación"];
@@ -171,14 +172,14 @@ export default function Reportes() {
       extension: 'jpeg',
     });
     sheet.addImage(imageId, {
-      tl: { col: 0, row: 1 },
+      tl: { col: 0, row: 0 },
       ext: { width: 415, height: 100 },
     });
-    for (let index = 0; index < 7; index++) {
+    for (let index = 0; index < 5; index++) {
       sheet.addRow();
     }
     sheet.addRow(headers);
-    sheet.getRow(8).font = {
+    sheet.getRow(7).font = {
       name: "Times New Roman",
       family: 4,
       size: 14,
@@ -190,19 +191,19 @@ export default function Reportes() {
         bottom: { style: 'thin', color: { argb: '676767' } }
       };
     });
-    sheet.mergeCells('C1:F2');
-    sheet.getCell('D1').value = "Reporte de Libro de Accionistas";
+    sheet.mergeCells('D1:F2');
+    sheet.getCell('D1').value = title;
     sheet.getCell('D1').alignment = { vertical: 'middle', horizontal: 'center' };
-    sheet.mergeCells('D4:E4');
+    sheet.mergeCells('D4:F4');
     sheet.getCell('D4').value = "Fecha de creación: " + fechaHora;
-    sheet.getRow(1).font = {
+    sheet.getCell('D1').font = {
       name: "Times New Roman",
       family: 4,
       size: 16,
       bold: true,
       color: { argb: 'fc0303' },
     };
-    sheet.getRow(4).font = {
+    sheet.getCell('D4').font = {
       name: "Times New Roman",
       family: 4,
       size: 14,
@@ -272,7 +273,7 @@ export default function Reportes() {
         tipoAcciones: elt.tipoAcciones, 
         tipoPersona: elt.tipoPersona,
         participacion: elt.participacion, 
-        valor: elt.cantidadAcciones * 40.00,
+        valor: elt.cantidadAcciones*40,
         telefono: elt.telefono1,
         email: elt.email1,
         fechaCreacion: elt.createdAt
@@ -291,14 +292,14 @@ export default function Reportes() {
       extension: 'jpeg',
     });
     sheet.addImage(imageId, {
-      tl: { col: 0, row: 1 },
+      tl: { col: 0, row: 0 },
       ext: { width: 415, height: 100 },
     });
-    for (let index = 0; index < 7; index++) {
+    for (let index = 0; index < 5; index++) {
       sheet.addRow();
     }
     sheet.addRow(headers);
-    sheet.getRow(8).font = {
+    sheet.getRow(7).font = {
       name: "Times New Roman",
       family: 4,
       size: 14,
@@ -310,19 +311,19 @@ export default function Reportes() {
         bottom: { style: 'thin', color: { argb: '676767' } }
       };
     });
-    sheet.mergeCells('C1:F2');
+    sheet.mergeCells('D1:F2');
     sheet.getCell('D1').value = title;
     sheet.getCell('D1').alignment = { vertical: 'middle', horizontal: 'center' };
-    sheet.mergeCells('D4:E4');
+    sheet.mergeCells('D4:F4');
     sheet.getCell('D4').value = "Fecha de creación: " + fechaHora;
-    sheet.getRow(1).font = {
+    sheet.getCell('D1').font = {
       name: "Times New Roman",
       family: 4,
       size: 16,
       bold: true,
       color: { argb: 'fc0303' },
     };
-    sheet.getRow(4).font = {
+    sheet.getCell('D4').font = {
       name: "Times New Roman",
       family: 4,
       size: 14,
@@ -403,10 +404,6 @@ export default function Reportes() {
       if (new Date(+a.fecha.split("-")[2], a.fecha.split("-")[1] - 1, +a.fecha.split("-")[0]) < new Date(+b.fecha.split("-")[2], b.fecha.split("-")[1] - 1, +b.fecha.split("-")[0])) return -1;
       return 0;
     });
-
-    const sd = new Date("2021-11-15T00:00:00.000Z").getTime();
-    const ed = new Date("2021-11-16T00:00:00.000Z").getTime();
-
     var dateHasta = new Date(transferenciasHasta);
     dateHasta.setDate(dateHasta.getDate() + 1);
 
@@ -414,52 +411,84 @@ export default function Reportes() {
       var time = new Date(+d.fecha.split("-")[2], d.fecha.split("-")[1] - 1, +d.fecha.split("-")[0]).getTime();
       return (new Date(transferenciasDesde).getTime() < time && time < new Date(dateHasta).getTime());
     });
-    // Creacion de Pdf
-    const unit = "pt";
-    const size = "A4";
-    const orientation = "landscape";
-    const marginLeft = 40;
-    var totalPagesExp = '{total_pages_count_string}';
-    const doc = new jsPDF(orientation, unit, size);
+    // Creacion del Xlsx
     const title = "Reporte de Transferencias";
-    const headers = [["Fecha", "Transferencia", "Cedente", "Acciones", "Cesionario"]];
-    const data = result.map(elt => [elt.fecha, elt.operacion, elt.cedente, elt.operacion == 'Posesión Efectiva' ? elt.cantidad : elt.acciones, elt.operacion == 'Posesión Efectiva' ? elt.nombre : elt.cesionario]);
-    doc.autoTable({
-      theme: 'plain',
-      head: headers,
-      body: data,
-      didDrawPage: function () {
-        // Logo derecha
-        doc.addImage(logo, "PNG", 600, 0, 150, 70);
-        // Logo degradado centro
-        doc.addImage(logoDegradado, "PNG", 333, 200, 180, 180);
-        // Lineas rojas
-        doc.setDrawColor(255, 0, 0);
-        doc.setLineWidth(2.5);
-        doc.line(40, 60, 800, 60);
-        // Titulo
-        doc.setFontSize(16);
-        doc.setFont("helvetica", "bold");
-        doc.text(title, marginLeft + 10, 50);
-        // Fecha
-        doc.setFontSize(10);
-        doc.setFont("helvetica", "bold");
-        doc.text('Fecha de reporte: ' + fechaHora, 580, 580);
-        var str = 'Pag ' + doc.internal.getNumberOfPages()
-        if (typeof doc.putTotalPages === 'function') {
-          str = str + ' de ' + totalPagesExp
-        }
-        doc.setDrawColor(255, 0, 0);
-        doc.setLineWidth(7);
-        doc.line(40, 592, 800, 592);
-        doc.text(str, marginLeft + 20, 580)
-      },
-      margin: { top: 80 },
-    })
-    if (typeof doc.putTotalPages === 'function') {
-      doc.putTotalPages(totalPagesExp)
+    const headers = ["Fecha", "Transferencia", "Cedente", "Acciones", "Cesionario"];
+    const letrasColumnas = ['A', 'B', 'C', 'D', 'E'];
+    const workbook = new ExcelJS.Workbook();
+    const sheet = workbook.addWorksheet("Listado Accionistas");
+    const imageId = workbook.addImage({
+      base64: logoBase64,
+      extension: 'jpeg',
+    });
+    sheet.addImage(imageId, {
+      tl: { col: 0, row: 0 },
+      ext: { width: 415, height: 100 },
+    });
+    for (let index = 0; index < 5; index++) {
+      sheet.addRow();
     }
-    doc.save("ReporteTransferencias.pdf")
+    sheet.addRow(headers);
+    sheet.getRow(7).font = {
+      name: "Times New Roman",
+      family: 4,
+      size: 14,
+      bold: true,
+      color: { argb: 'fc0303' },
+    };
+    letrasColumnas.forEach(function (letra) {
+      sheet.getCell(letra + '8').border = {
+        bottom: { style: 'thin', color: { argb: '676767' } }
+      };
+    });
+    sheet.mergeCells('D1:F2');
+    sheet.getCell('D1').value = title;
+    sheet.getCell('D1').alignment = { vertical: 'middle', horizontal: 'center' };
+    sheet.mergeCells('D4:F4');
+    sheet.getCell('D4').value = "Fecha de creación: " + fechaHora;
+    sheet.getCell('D1').font = {
+      name: "Times New Roman",
+      family: 4,
+      size: 16,
+      bold: true,
+      color: { argb: 'fc0303' },
+    };
+    sheet.getCell('D4').font = {
+      name: "Times New Roman",
+      family: 4,
+      size: 14,
+    };
+    sheet.columns = [
+      { width: 20 },
+      { width: 20 },
+      { width: 20 },
+      { width: 20 },
+      { width: 20 },
+    ];
+    const promise = Promise.all(
+      result.map(async (elt) => {
+        sheet.addRow([
+          elt.fecha, 
+          elt.operacion, 
+          elt.cedente, 
+          elt.operacion == 'Posesión Efectiva' ? elt.cantidad : elt.acciones, 
+          elt.operacion == 'Posesión Efectiva' ? elt.nombre : elt.cesionario
+        ]);
+      })
+    );
+    promise.then(() => {
+      workbook.xlsx.writeBuffer().then(function (data) {
+        const blob = new Blob([data], {
+          type: "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
+        });
+        const url = window.URL.createObjectURL(blob);
+        const anchor = document.createElement("a");
+        anchor.href = url;
+        anchor.download = "ReporteTransferencias.xlsx";
+        anchor.click();
+        window.URL.revokeObjectURL(url);
+      });
+    });
   }
 
   const exportDividendos = async () => {
@@ -474,12 +503,16 @@ export default function Reportes() {
         dividendo: elt.dividendo,
         fechaCorte: elt.fechaCorte,
         fechaPago: elt.fechaPago,
-        estado: elt.estado
+        estado: elt.estado,
+        createdAt: elt.createdAt,
+        updatedAt: elt.updatedAt
       };
     })
     // Creacion del Xlsx
-    const headers = ["Periodo", "Secuencial", "Concepto", "Dividendo", "Fecha de corte", "Fecha de Junta", "Estado"];
-    const letrasColumnas = ['A', 'B', 'C', 'D', 'E', 'F', 'G'];
+    const title = "Reporte de Dividendos";
+    const headers = ["Periodo", "Secuencial", "Concepto", "Dividendo", "Fecha de corte", 
+      "Fecha de Junta", "Estado","Fecha de Creación","Fecha de Modificación"];
+    const letrasColumnas = ['A', 'B', 'C', 'D', 'E', 'F', 'G','H','I'];
     const workbook = new ExcelJS.Workbook();
     const sheet = workbook.addWorksheet("Dividendos");
     const imageId = workbook.addImage({
@@ -487,14 +520,14 @@ export default function Reportes() {
       extension: 'jpeg',
     });
     sheet.addImage(imageId, {
-      tl: { col: 0, row: 1 },
+      tl: { col: 0, row: 0 },
       ext: { width: 415, height: 100 },
     });
-    for (let index = 0; index < 7; index++) {
+    for (let index = 0; index < 5; index++) {
       sheet.addRow();
     }
     sheet.addRow(headers);
-    sheet.getRow(8).font = {
+    sheet.getRow(7).font = {
       name: "Times New Roman",
       family: 4,
       size: 14,
@@ -506,19 +539,19 @@ export default function Reportes() {
         bottom: { style: 'thin', color: { argb: '676767' } }
       };
     });
-    sheet.mergeCells('C1:F2');
-    sheet.getCell('D1').value = "Reporte de Dividendos";
+    sheet.mergeCells('D1:F2');
+    sheet.getCell('D1').value = title;
     sheet.getCell('D1').alignment = { vertical: 'middle', horizontal: 'center' };
-    sheet.mergeCells('D4:E4');
+    sheet.mergeCells('D4:F4');
     sheet.getCell('D4').value = "Fecha de creación: " + fechaHora;
-    sheet.getRow(1).font = {
+    sheet.getCell('D1').font = {
       name: "Times New Roman",
       family: 4,
       size: 16,
       bold: true,
       color: { argb: 'fc0303' },
     };
-    sheet.getRow(4).font = {
+    sheet.getCell('D4').font = {
       name: "Times New Roman",
       family: 4,
       size: 14,
@@ -531,10 +564,21 @@ export default function Reportes() {
       { width: 20 },
       { width: 20 },
       { width: 20 },
+      { width: 20 },
     ];
     const promise = Promise.all(
       dividendos.map(async (elt) => {
-        sheet.addRow([elt.periodo, elt.secuencial, elt.concepto, elt.dividendo, elt.fechaCorte, elt.fechaPago, elt.estado]);
+        sheet.addRow([
+          elt.periodo, 
+          elt.secuencial, 
+          elt.concepto, 
+          elt.dividendo, 
+          elt.fechaCorte, 
+          elt.fechaPago, 
+          elt.estado,
+          elt.createdAt,
+          elt.updatedAt
+        ]);
       })
     );
     promise.then(() => {
@@ -556,7 +600,7 @@ export default function Reportes() {
     <main className={classes.content}>
       <div className={classes.appBarSpacer} />
       <Paper variant="elevation" className={classes.paper}>
-        <Grid container style={{ width: '90%' }}>
+        <Grid container spacing={3}>
           <Grid item xs={12} >
             <Paper elevation={0} style={{ height: 50, display: 'flex', flexDirection: 'row', justifyContent: 'flex-start', alignItems: 'center', width: '100%', padding: 10, }}>
               <Avatar style={{ backgroundColor: '#f9f9f9', height: '30px', width: '30px' }}>
@@ -566,13 +610,13 @@ export default function Reportes() {
                 Reportes
               </Typography>
             </Paper>
-            <Divider />
           </Grid>
-          <Grid item xs={2} style={{ marginTop: 20, marginRight: 40 }}>
+          <Divider />
+          <Grid item sm={6} md={4} lg={3} xl={2} style={{minHeight:250}}>
             <Typography variant='body2' color='secondary' style={{ height: '15%' }}>
               Libro de Accionistas
             </Typography>
-            <FormControl fullWidth style={{ paddingTop: 30, paddingBottom: 50, height: '55%'}}>
+            <FormControl fullWidth style={{ paddingBottom: 5, height: '70%'}}>
               <TextField
                 size='small'
                 id="datetime-local"
@@ -601,11 +645,11 @@ export default function Reportes() {
               Descargar
             </Button>
           </Grid>
-          <Grid item xs={2} style={{ marginTop: 20, marginRight: 40 }}>
+          <Grid item sm={6} md={4} lg={3} xl={2} style={{ minHeight:250 }}>
             <Typography variant='body2' color='secondary' style={{ height: '15%' }}>
               Listado de Accionistas
             </Typography>
-            <FormControl fullWidth style={{ paddingTop: 30, paddingBottom: 5 }}>
+            <FormControl fullWidth style={{ paddingBottom: 5 }}>
               <TextField
                 size='small'
                 id="datetime-local"
@@ -621,7 +665,7 @@ export default function Reportes() {
                 disabled
               />
             </FormControl>
-            <FormControl fullWidth style={{ height: '45%' }}>
+            <FormControl fullWidth style={{ height: '49%' }}>
               <InputLabel id="demo-simple-select-label">Estado</InputLabel>
               <Select
                 labelId="demo-simple-select-label"
@@ -648,12 +692,12 @@ export default function Reportes() {
               Descargar
             </Button>
           </Grid>
-          <Grid item xs={2} style={{ marginTop: 20, marginRight: 40 }}>
+          <Grid item sm={6} md={4} lg={3} xl={2} style={{ minHeight:250 }}>
             <Typography variant='body2' color='secondary' style={{ height: '15%' }}>
               Transferencias
             </Typography>
 
-            <FormControl fullWidth style={{ paddingTop: 30, }}>
+            <FormControl fullWidth style={{ paddingBottom: 5, }}>
               <TextField
                 size='small'
                 id="datetime-local"
@@ -671,7 +715,7 @@ export default function Reportes() {
                 }}
               />
             </FormControl>
-            <FormControl fullWidth style={{ paddingTop: 7, }}>
+            <FormControl fullWidth style={{ paddingBottom: 5 }}>
               <TextField
                 size='small'
                 id="datetime-local"
@@ -695,7 +739,7 @@ export default function Reportes() {
               id="combo-box-accionista"
               options={accionistas}
               getOptionLabel={(option) => option.nombre ? option.nombre : ""}
-              style={{ width: 'calc(100%)', height: '35%' }}
+              style={{ height: '35%' }}
               renderInput={(params) => <TextField {...params} label="Accionista" margin="normal" variant="outlined" />}
               onChange={(option, value) => handleClickAccionista(option, value)}
             />
@@ -712,12 +756,12 @@ export default function Reportes() {
               Descargar
             </Button>
           </Grid>
-          <Grid item xs={2} style={{ marginTop: 20, marginRight: 40 }}>
+          <Grid item sm={6} md={4} lg={3} xl={2} style={{ minHeight:250 }}>
             <Typography variant='body2' color='secondary' style={{ height: '15%' }}>
               Asambleas
             </Typography>
 
-            <FormControl disabled fullWidth style={{ paddingTop: 30, }}>
+            <FormControl disabled fullWidth style={{ paddingBottom: 5, }}>
               <TextField
                 size='small'
                 id="datetime-local"
@@ -733,7 +777,7 @@ export default function Reportes() {
                 disabled
               />
             </FormControl>
-            <FormControl disabled fullWidth style={{ paddingTop: 7, height: '45%'}}>
+            <FormControl disabled fullWidth style={{ height: '49%'}}>
               <TextField
                 size='small'
                 id="datetime-local"
@@ -762,12 +806,11 @@ export default function Reportes() {
               Descargar
             </Button>
           </Grid>
-
-          <Grid item xs={2} style={{ marginTop: 20, marginRight: 40 }}>
+          <Grid item sm={6} md={4} lg={3} xl={2} style={{ minHeight:250 }}>
             <Typography variant='body2' color='secondary' style={{ height: '15%' }}>
               Dividendos
             </Typography>
-            <FormControl fullWidth style={{ height: '55%' }}>
+            <FormControl fullWidth style={{ height: '70%' }}>
               <Select
                 labelId="simple-select-label"
                 id="simple-select"
