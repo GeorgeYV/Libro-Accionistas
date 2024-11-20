@@ -3,29 +3,17 @@ import {
   makeStyles, Paper, Avatar, Grid, Typography, TextField, Button, withStyles, ListItem, ListItemText, ListSubheader, ListItemIcon,
   List, IconButton, Snackbar, CircularProgress, LinearProgress, Divider, FormControl, InputLabel, Select, MenuItem
 } from '@material-ui/core';
-
 import Autocomplete from '@material-ui/lab/Autocomplete';
 import { API, Storage, graphqlOperation, Auth } from 'aws-amplify';
 import { listAccionistas, listOperaciones, listHerederoPorOperacions, listDividendos } from './../graphql/queries';
-
 import CloudUploadOutlinedIcon from '@material-ui/icons/CloudUploadOutlined';
 import SaveIcon from '@material-ui/icons/Save';
 import CheckIcon from '@material-ui/icons/Check';
 import LockOutlinedIcon from '@material-ui/icons/LockOutlined';
 import PrintOutlinedIcon from '@material-ui/icons/PrintOutlined';
-//import PreviewIcon from '@material-ui/icons/Preview';
 import VisibilityIcon from '@material-ui/icons/Visibility';
-
 import MuiAlert from '@material-ui/lab/Alert';
-//import LocalizationProvider from '@material-ui/lab/LocalizationProvider';
-
 import { uuid } from 'uuidv4';
-
-import jsPDF from "jspdf";
-import "jspdf-autotable";
-
-import logoDegradado from '../images/logoUnacemDegradado.png';
-import logo from '../images/logoUNACEMmedMarco2.png';
 import logoBase64 from '../images/logobase64.js';
 const ExcelJS = require("exceljs");
 
@@ -38,7 +26,6 @@ const useStyles = makeStyles((theme) => ({
     padding: theme.spacing(2),
     textAlign: 'left',
     color: theme.palette.text.secondary,
-    //height: '83vh',
     height: 'calc(100%)',
     display: 'flex',
     justifyContent: 'center',
@@ -53,9 +40,8 @@ const useStyles = makeStyles((theme) => ({
 
   },
   button: {
-    margin: theme.spacing(1),
-    marginTop: 35,
     textTransform: 'none',
+    marginLeft: 8
   },
   titulos: {
     flexDirection: 'row',
@@ -104,10 +90,18 @@ export default function Reportes() {
   const handleChangeEstadoDividendo = (event) => {
     setEstadoDividendo(event.target.value);
   };
-
+  // Fechas desde hasta Libro Accionistas
+  const [libroAcciDesde, setLibroAcciDesde] = useState();
+  const [libroAcciHasta, setLibroAcciHasta] = useState();
+  const handleChangeDateLibroAcciDesde = e => {
+    setLibroAcciDesde(e.target.value);
+  };
+  const handleChangeDateLibroAcciHasta = e => {
+    setLibroAcciHasta(e.target.value);
+  };
+  // Fechas desde hasta transferencia
   const [transferenciasDesde, setTransferenciasDesde] = useState(materialDateInput);
   const [transferenciasHasta, setTransferenciasHasta] = useState(materialDateInput);
-
   const handleChangeDateTrasnferenciasDesde = e => {
     setTransferenciasDesde(e.target.value);
   };
@@ -158,7 +152,15 @@ export default function Reportes() {
         email1: elt.email1,
         createdAt: elt.createdAt
       };
-    })
+    });
+    var dateHasta = new Date(libroAcciHasta);
+    dateHasta.setDate(dateHasta.getDate() + 1);
+
+    const result = libroAccionista.filter(d => {
+      var m2 = d.createdAt.split("T");
+      var time = new Date(+m2[0].split("-")[2], m2[0].split("-")[1], +m2[0].split("-")[0]).getTime();
+      return (new Date(libroAcciDesde).getTime() < time && time < new Date(dateHasta).getTime());
+    });
     // Creacion del Xls
     const title = "Reporte de Libro de Accionistas";
     const headers = [
@@ -187,7 +189,7 @@ export default function Reportes() {
       color: { argb: 'fc0303' },
     };
     letrasColumnas.forEach(function (letra) {
-      sheet.getCell(letra + '8').border = {
+      sheet.getCell(letra + '7').border = {
         bottom: { style: 'thin', color: { argb: '676767' } }
       };
     });
@@ -222,7 +224,7 @@ export default function Reportes() {
       { width: 20 },
     ];
     const promise = Promise.all(
-      libroAccionista.map(async (elt) => {
+      result.map(async (elt) => {
         sheet.addRow([
           elt.identificacion, 
           elt.nombre, 
@@ -307,7 +309,7 @@ export default function Reportes() {
       color: { argb: 'fc0303' },
     };
     letrasColumnas.forEach(function (letra) {
-      sheet.getCell(letra + '8').border = {
+      sheet.getCell(letra + '7').border = {
         bottom: { style: 'thin', color: { argb: '676767' } }
       };
     });
@@ -437,7 +439,7 @@ export default function Reportes() {
       color: { argb: 'fc0303' },
     };
     letrasColumnas.forEach(function (letra) {
-      sheet.getCell(letra + '8').border = {
+      sheet.getCell(letra + '7').border = {
         bottom: { style: 'thin', color: { argb: '676767' } }
       };
     });
@@ -535,7 +537,7 @@ export default function Reportes() {
       color: { argb: 'fc0303' },
     };
     letrasColumnas.forEach(function (letra) {
-      sheet.getCell(letra + '8').border = {
+      sheet.getCell(letra + '7').border = {
         bottom: { style: 'thin', color: { argb: '676767' } }
       };
     });
@@ -616,20 +618,34 @@ export default function Reportes() {
             <Typography variant='body2' color='secondary' style={{ height: '15%' }}>
               Libro de Accionistas
             </Typography>
-            <FormControl fullWidth style={{ paddingBottom: 5, height: '70%'}}>
+            <FormControl fullWidth style={{ paddingBottom: 5 }}>
               <TextField
                 size='small'
                 id="datetime-local"
-                label="Fecha"
-                //type="datetime-local"
+                label="Desde"
                 type="date"
-                defaultValue={Date.now()}
-                //className={classes.textField}
+                defaultValue={libroAcciDesde}
+                value={libroAcciDesde}
+                onChange={handleChangeDateLibroAcciDesde}
+                variant="standard"
+                InputLabelProps={{
+                  shrink: true
+                }}
+              />
+            </FormControl>
+            <FormControl fullWidth style={{ paddingBottom: 5 }}>
+              <TextField
+                size='small'
+                id="datetime-local"
+                label="Hasta"
+                type="date"
+                defaultValue={libroAcciHasta}
+                value={libroAcciHasta}
+                onChange={handleChangeDateLibroAcciHasta}
                 variant="standard"
                 InputLabelProps={{
                   shrink: true,
                 }}
-                disabled
               />
             </FormControl>
             <Button
@@ -639,7 +655,6 @@ export default function Reportes() {
               style={{ height: '15%' }}
               className={classes.button}
               startIcon={<VisibilityIcon />}
-              //size='medium'
               onClick={exportLibroAccionistas}
             >
               Descargar
@@ -654,10 +669,8 @@ export default function Reportes() {
                 size='small'
                 id="datetime-local"
                 label="Fecha"
-                //type="datetime-local"
                 type="date"
                 defaultValue={Date.now()}
-                //className={classes.textField}
                 variant="standard"
                 InputLabelProps={{
                   shrink: true,
@@ -686,7 +699,6 @@ export default function Reportes() {
               style={{ height: '15%' }}
               className={classes.button}
               startIcon={<VisibilityIcon />}
-              //size='medium'
               onClick={exportListadoAccionistas}
             >
               Descargar
@@ -696,18 +708,15 @@ export default function Reportes() {
             <Typography variant='body2' color='secondary' style={{ height: '15%' }}>
               Transferencias
             </Typography>
-
             <FormControl fullWidth style={{ paddingBottom: 5, }}>
               <TextField
                 size='small'
                 id="datetime-local"
                 label="Desde"
-                //type="datetime-local"
                 type="date"
                 defaultValue={transferenciasDesde}
                 value={transferenciasDesde}
                 onChange={handleChangeDateTrasnferenciasDesde}
-                //className={classes.textField}
                 variant="standard"
                 InputLabelProps={{
                   shrink: true,
@@ -720,12 +729,10 @@ export default function Reportes() {
                 size='small'
                 id="datetime-local"
                 label="Hasta"
-                //type="datetime-local"
                 type="date"
                 defaultValue={transferenciasHasta}
                 value={transferenciasHasta}
                 onChange={handleChangeDateTrasnferenciasHasta}
-                //className={classes.textField}
                 variant="standard"
                 InputLabelProps={{
                   shrink: true,
@@ -735,11 +742,10 @@ export default function Reportes() {
             <Autocomplete
               value={valAccionista}
               size='small'
-              //key={operacion}
               id="combo-box-accionista"
               options={accionistas}
               getOptionLabel={(option) => option.nombre ? option.nombre : ""}
-              style={{ height: '35%' }}
+              style={{ height: '28%' }}
               renderInput={(params) => <TextField {...params} label="Accionista" margin="normal" variant="outlined" />}
               onChange={(option, value) => handleClickAccionista(option, value)}
             />
@@ -750,7 +756,6 @@ export default function Reportes() {
               style={{ height: '15%' }}
               className={classes.button}
               startIcon={<VisibilityIcon />}
-              //size='medium'
               onClick={exportPDFTransferencias}
             >
               Descargar
@@ -766,10 +771,8 @@ export default function Reportes() {
                 size='small'
                 id="datetime-local"
                 label="Desde"
-                //type="datetime-local"
                 type="date"
                 defaultValue={Date.now()}
-                //className={classes.textField}
                 variant="standard"
                 InputLabelProps={{
                   shrink: true,
@@ -782,10 +785,8 @@ export default function Reportes() {
                 size='small'
                 id="datetime-local"
                 label="Hasta"
-                //type="datetime-local"
                 type="date"
                 defaultValue={Date.now()}
-                //className={classes.textField}
                 variant="standard"
                 InputLabelProps={{
                   shrink: true,
@@ -817,7 +818,6 @@ export default function Reportes() {
                 value={2}
                 label="Periodo"
                 disabled
-              //onChange={handleChangeEstadoListado}
               >
                 <MenuItem value={1} >2020</MenuItem>
                 <MenuItem value={2} >2021</MenuItem>
