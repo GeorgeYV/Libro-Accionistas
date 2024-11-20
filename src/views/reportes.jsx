@@ -91,8 +91,8 @@ export default function Reportes() {
     setEstadoDividendo(event.target.value);
   };
   // Fechas desde hasta Libro Accionistas
-  const [libroAcciDesde, setLibroAcciDesde] = useState();
-  const [libroAcciHasta, setLibroAcciHasta] = useState();
+  const [libroAcciDesde, setLibroAcciDesde] = useState(materialDateInput);
+  const [libroAcciHasta, setLibroAcciHasta] = useState(materialDateInput);
   const handleChangeDateLibroAcciDesde = e => {
     setLibroAcciDesde(e.target.value);
   };
@@ -153,14 +153,20 @@ export default function Reportes() {
         createdAt: elt.createdAt
       };
     });
+    console.log("libroaccionista: ",libroAccionista);
     var dateHasta = new Date(libroAcciHasta);
     dateHasta.setDate(dateHasta.getDate() + 1);
-
+    console.log("dateHasta: ",dateHasta);
+    console.log("libroAcciHasta: ",dateHasta);
     const result = libroAccionista.filter(d => {
       var m2 = d.createdAt.split("T");
-      var time = new Date(+m2[0].split("-")[2], m2[0].split("-")[1], +m2[0].split("-")[0]).getTime();
-      return (new Date(libroAcciDesde).getTime() < time && time < new Date(dateHasta).getTime());
+      var time = new Date(d.createdAt).getTime();
+      console.log("m2: ",m2[0]);
+      console.log("d.createdAt: ",d.createdAt);
+      console.log("time: ",time);
+      return (new Date(libroAcciDesde).getTime() <= time && time <= new Date(dateHasta).getTime());
     });
+    console.log("result: ",result);
     // Creacion del Xls
     const title = "Reporte de Libro de Accionistas";
     const headers = [
@@ -275,7 +281,7 @@ export default function Reportes() {
         tipoAcciones: elt.tipoAcciones, 
         tipoPersona: elt.tipoPersona,
         participacion: elt.participacion, 
-        valor: elt.cantidadAcciones*40,
+        valor: elt.cantidadAcciones,
         telefono: elt.telefono1,
         email: elt.email1,
         fechaCreacion: elt.createdAt
@@ -353,7 +359,7 @@ export default function Reportes() {
           elt.tipoAcciones, 
           elt.tipoPersona, 
           elt.participacion, 
-          elt.valor,
+          elt.valor*40,
           elt.telefono1,
           elt.email1,
           elt.createdAt
@@ -621,7 +627,7 @@ export default function Reportes() {
             <FormControl fullWidth style={{ paddingBottom: 5 }}>
               <TextField
                 size='small'
-                id="datetime-local"
+                id="dateLibroAcciDesde"
                 label="Desde"
                 type="date"
                 defaultValue={libroAcciDesde}
@@ -633,10 +639,10 @@ export default function Reportes() {
                 }}
               />
             </FormControl>
-            <FormControl fullWidth style={{ paddingBottom: 5 }}>
+            <FormControl fullWidth style={{ paddingBottom: 5 , height: '49%'}}>
               <TextField
                 size='small'
-                id="datetime-local"
+                id="dateLibroAcciHasta"
                 label="Hasta"
                 type="date"
                 defaultValue={libroAcciHasta}
