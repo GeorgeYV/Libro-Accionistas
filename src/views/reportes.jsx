@@ -326,45 +326,19 @@ export default function Reportes() {
   }
 
   const exportListadoAccionistas = async () => {
-    if (estadoListado == "0" && tipoPersonaSelect == "0") {
-      const apiData = await API.graphql({ query: listAccionistas});
-    } else{
-      if (estadoListado != "0" && tipoPersonaSelect != "0") {
-        const filter = {
-          estado: {
-            eq: estadoListado == "1" ? "Activo" 
-            : estadoListado == "2" ? "Bloqueado" 
-            : estadoListado == "3" ? "Inactivo" 
-            : null
-          },
-          tipoPersona: {
-            eq: tipoPersonaSelect == "1" ? "PN" 
-            : tipoPersonaSelect == "2" ? "PJ" 
-            : null
-          },
-        }
-      } else {
-        if (tipoPersonaSelect != "0") {
-          const filter = {
-            estado: {
-              eq: tipoPersonaSelect == "1" ? "PN" 
-              : tipoPersonaSelect == "2" ? "PJ" 
-              : null
-            }
-          }
-        }
-        if (tipoPersonaSelect != "0") {
-          const filter = {
-            tipoPersona: {
-              eq: tipoPersonaSelect == "1" ? "PN" 
-              : tipoPersonaSelect == "2" ? "PJ" 
-              : null
-            }
-          }
-        }
-      }
-      const apiData = await API.graphql({ query: listAccionistas, variables: { filter: filter} });
+    let filter = {estado:{},tipoPersona:{}};
+    if (estadoListado !== "0") {
+      filter.estado.eq = estadoListado === "1" ? "Activo" 
+      : estadoListado === "2" ? "Bloqueado" 
+      : estadoListado === "3" ? "Inactivo" 
+      : null;
     }
+    if (tipoPersonaSelect !== "0") {
+      filter.tipoPersona.eq = tipoPersonaSelect === "1" ? "PN" 
+      : tipoPersonaSelect === "2" ? "PJ" 
+      : null;
+    }
+    const apiData = await API.graphql({ query: listAccionistas, variables: { filter: filter} });
     const accionistasFromAPI = apiData.data.listAccionistas.items;
     const libroAccionista = accionistasFromAPI.map(function (elt) {
       return {
@@ -592,7 +566,7 @@ export default function Reportes() {
     if (valAccionista.id) {
       filter.idAccionista.eq = valAccionista;
     }
-    if (periodoDividendo =! "0") {
+    if (periodoDividendo !== "0") {
       filter.periodo.eq = periodoDividendo;
     }
     const apiData = await API.graphql({ query: ListDividendosAccionistas, variables: { filter: filter }});
