@@ -5,7 +5,7 @@ import {
 } from '@material-ui/core';
 import Autocomplete from '@material-ui/lab/Autocomplete';
 import { API, Storage, graphqlOperation, Auth } from 'aws-amplify';
-import { listAccionistas, listOperaciones, listHerederoPorOperacions, ListDividendosAccionistas, } from './../graphql/queries';
+import { listAccionistas, listOperaciones, listHerederoPorOperacions, ListDividendosAccionistas } from './../graphql/queries';
 import CloudUploadOutlinedIcon from '@material-ui/icons/CloudUploadOutlined';
 import SaveIcon from '@material-ui/icons/Save';
 import CheckIcon from '@material-ui/icons/Check';
@@ -564,7 +564,7 @@ export default function Reportes() {
     // Carga de datos
     let filter = {idAccionista:{},periodo:{}};
     if (valAccionista.id) {
-      filter.idAccionista.eq = valAccionista;
+      filter.idAccionista.eq = valAccionista.id;
     }
     if (periodoDividendo !== "0") {
       filter.periodo.eq = periodoDividendo;
