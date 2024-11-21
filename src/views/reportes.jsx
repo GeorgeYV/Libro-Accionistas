@@ -5,7 +5,7 @@ import {
 } from '@material-ui/core';
 import Autocomplete from '@material-ui/lab/Autocomplete';
 import { API, Storage, graphqlOperation, Auth } from 'aws-amplify';
-import { listAccionistas, listOperaciones, listHerederoPorOperacions, ListDividendosAccionistas} from './../graphql/queries';
+import { listAccionistas, listOperaciones, listHerederoPorOperacions, listDividendosAccionistas} from './../graphql/queries';
 import CloudUploadOutlinedIcon from '@material-ui/icons/CloudUploadOutlined';
 import SaveIcon from '@material-ui/icons/Save';
 import CheckIcon from '@material-ui/icons/Check';
@@ -581,8 +581,8 @@ export default function Reportes() {
     } else {
       filter.periodo.ne = "NoEmpty";
     }
-    const apiData = await API.graphql({ query: ListDividendosAccionistas, variables: { filter: filter }});
-    const dividendosFromAPI = apiData.data.ListDividendosAccionistas.items;
+    const apiData = await API.graphql({ query: listDividendosAccionistas, variables: { filter: filter }});
+    const dividendosFromAPI = apiData.data.listDividendosAccionistas.items;
     const dividendos = dividendosFromAPI.map(function (elt) {
       return {
         tipoPersona: elt.tipoPersona,
