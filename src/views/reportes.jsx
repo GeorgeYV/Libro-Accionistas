@@ -122,6 +122,7 @@ export default function Reportes() {
   }
 
   const exportLibroAccionistas = async () => {
+    /*
     const filter = {
       estado: {
         ne: "Inactivo"
@@ -323,9 +324,11 @@ export default function Reportes() {
         window.URL.revokeObjectURL(url);
       });
     });
+    */
   }
 
   const exportListadoAccionistas = async () => {
+    /*
     let filter = {estado:{},tipoPersona:{}};
     if (estadoListado !== "0") {
       filter.estado.eq = estadoListado === "1" ? "Activo" 
@@ -441,6 +444,7 @@ export default function Reportes() {
         window.URL.revokeObjectURL(url);
       });
     });
+    */
   }
 
   const exportPDFTransferencias = async () => {
@@ -561,6 +565,7 @@ export default function Reportes() {
   }
 
   const exportDividendos = async () => {
+    /*
     // Carga de datos
     let filter = {idAccionista:{},periodo:{}};
     if (valAccionista.id) {
@@ -700,7 +705,7 @@ export default function Reportes() {
         anchor.click();
         window.URL.revokeObjectURL(url);
       });
-    });
+    });*/
   }
 
   return (
