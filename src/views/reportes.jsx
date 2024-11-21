@@ -122,12 +122,7 @@ export default function Reportes() {
   }
 
   const exportLibroAccionistas = async () => {
-    const filter = {
-      estado: {
-        ne: "Inactivo"
-      },
-    }
-    const apiData = await API.graphql({ query: listAccionistas, variables: { filter: filter, limit: 10000 } });
+    const apiData = await API.graphql({ query: listAccionistas });
     const accionistasFromAPI = apiData.data.listAccionistas.items;
     const libroAccionista = accionistasFromAPI.map(function (elt) {
       return { 
@@ -327,20 +322,20 @@ export default function Reportes() {
 
   const exportListadoAccionistas = async () => {
     let filter = {estado:{},tipoPersona:{}};
-    if (estadoListado.toString() != "0") {
-      console.log("Filter 1: entro");
-      console.log("estadoListado: ",estadoListado);
-      filter.estado.eq = estadoListado.toString() == "1" ? "Activo" 
+    if (estadoListado != "0") {
+      filter.estado.eq = estadoListado == "1" ? "Activo" 
       : estadoListado == "2" ? "Bloqueado" 
       : estadoListado == "3" ? "Inactivo" 
       : null;
+    } else {
+      filter.estado.ne = "TODOS";
     }
     if (tipoPersonaSelect != "0") {
-      console.log("Filter 2: entro");
-      console.log("tipoPersonaSelect: ",tipoPersonaSelect);
       filter.tipoPersona.eq = tipoPersonaSelect == "1" ? "PN" 
       : tipoPersonaSelect == "2" ? "PJ" 
       : null;
+    } else {
+      filter.tipoPersonaSelect.ne = "TODOS";
     }
     console.log("Filter: ",filter);
     console.log("estadoListado: ",estadoListado);
@@ -360,8 +355,8 @@ export default function Reportes() {
         cantidadAcciones: elt.cantidadAcciones, 
         tipoAcciones: elt.tipoAcciones, 
         tipoPersona: elt.tipoPersona,
-        telefono: elt.telefono1,
-        email: elt.email1,
+        telefono1: elt.telefono1,
+        email1: elt.email1,
         estado: elt.estado,
       };
     })
@@ -574,14 +569,17 @@ export default function Reportes() {
   }
 
   const exportDividendos = async () => {
-    /*
     // Carga de datos
     let filter = {idAccionista:{},periodo:{}};
     if (valAccionista.id) {
-      filter.idAccionista.eq = valAccionista;
+      filter.idAccionista.eq = valAccionista.id;
+    } else {
+      filter.idAccionista.ne = "NoEmpty";
     }
-    if (periodoDividendo !== "0") {
+    if (periodoDividendo != "0") {
       filter.periodo.eq = periodoDividendo;
+    } else {
+      filter.periodo.ne = "NoEmpty";
     }
     const apiData = await API.graphql({ query: ListDividendosAccionistas, variables: { filter: filter }});
     const dividendosFromAPI = apiData.data.ListDividendosAccionistas.items;
@@ -715,7 +713,6 @@ export default function Reportes() {
         window.URL.revokeObjectURL(url);
       });
     });
-    */
   }
 
   return (
