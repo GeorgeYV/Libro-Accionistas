@@ -335,15 +335,7 @@ export default function Reportes() {
       : tipoPersonaSelect == "2" ? "PJ" 
       : null;
     } else {
-      filter.tipoPersonaSelect.ne = "TODOS";
-    }
-    console.log("Filter: ",filter);
-    console.log("estadoListado: ",estadoListado);
-    console.log("tipoPersonaSelect: ",tipoPersonaSelect);
-    if (valAccionista.id) {
-      console.log("valAccionista.id: ",valAccionista);
-    }else{
-      console.log("No valAccionista: ",valAccionista);
+      filter.tipoPersona.ne = "TODOS";
     }
     const apiData = await API.graphql({ query: listAccionistas, variables: { filter: filter} });
     const accionistasFromAPI = apiData.data.listAccionistas.items;
@@ -577,9 +569,22 @@ export default function Reportes() {
       filter.idAccionista.ne = "NoEmpty";
     }
     if (periodoDividendo != "0") {
-      filter.periodo.eq = periodoDividendo;
+      filter.periodo.eq = periodoDividendo == "1" ? "2019" 
+      : periodoDividendo == "2" ? "2020" 
+      : periodoDividendo == "3" ? "2021" 
+      : periodoDividendo == "4" ? "2022" 
+      : periodoDividendo == "5" ? "2023" 
+      : periodoDividendo == "6" ? "2024" 
+      : null;
     } else {
       filter.periodo.ne = "NoEmpty";
+    }
+    console.log("Filter: ",filter)
+    if (valAccionista.id) {
+      console.log("valAccionista: ",valAccionista);
+      console.log("valAccionista.id: ",valAccionista.id)
+    }else{
+      console.log("No valAccionista: ",valAccionista);
     }
     const apiData = await API.graphql({ query: listDividendosAccionistas, variables: { filter: filter }});
     const dividendosFromAPI = apiData.data.listDividendosAccionistas.items;
@@ -910,6 +915,72 @@ export default function Reportes() {
               className={classes.button}
               startIcon={<VisibilityIcon />}
               onClick={exportDividendos}
+            >
+              Descargar
+            </Button>
+          </Grid>
+          <Grid item sm={6} md={4} lg={3} xl={2} style={{ minHeight:250 }}>
+            <Typography variant='body2' color='secondary' style={{ height: '15%' }}>
+              Operaciones
+            </Typography>
+            <FormControl fullWidth style={{ paddingBottom: 5 }}>
+              <TextField
+                size='small'
+                id="datetime-local"
+                label="Desde"
+                type="date"
+                //defaultValue={transferenciasDesde}
+                //value={transferenciasDesde}
+                //onChange={handleChangeDateTrasnferenciasDesde}
+                variant="standard"
+                InputLabelProps={{
+                  shrink: true,
+                  required: true
+                }}
+              />
+            </FormControl>
+            <FormControl fullWidth style={{ paddingBottom: 5 }}>
+              <TextField
+                size='small'
+                id="datetime-local"
+                label="Hasta"
+                type="date"
+                //defaultValue={transferenciasHasta}
+                //value={transferenciasHasta}
+                //onChange={handleChangeDateTrasnferenciasHasta}
+                variant="standard"
+                InputLabelProps={{
+                  shrink: true,
+                }}
+              />
+            </FormControl>
+            <FormControl fullWidth style={{ height: '25%' }}>
+              <InputLabel id="selectDividendos-label">Periodo</InputLabel>
+              <Select
+                labelId="selectDividendos-label"
+                id="selectDividendos"
+                //value={periodoDividendo}
+                //defaultValue={periodoDividendo}
+                label="Periodo"
+                //onChange={handleChangePeriodoDividendo}
+              >
+                <MenuItem value={0} >Todos</MenuItem>
+                <MenuItem value={1} >2019</MenuItem>
+                <MenuItem value={2} >2020</MenuItem>
+                <MenuItem value={3} >2021</MenuItem>
+                <MenuItem value={4} >2022</MenuItem>
+                <MenuItem value={5} >2023</MenuItem>
+                <MenuItem value={6} >2024</MenuItem>
+              </Select>
+            </FormControl>
+            <Button
+              size="small"
+              variant="contained"
+              color="primary"
+              style={{ height: '15%' }}
+              className={classes.button}
+              startIcon={<VisibilityIcon />}
+              //onClick={exportTransferencias}
             >
               Descargar
             </Button>
