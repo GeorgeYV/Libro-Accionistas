@@ -845,16 +845,6 @@ export default function Reportes() {
                 }}
               />
             </FormControl>
-            <Autocomplete
-              value={valAccionista}
-              size='small'
-              id="combo-box-accionista"
-              options={accionistas}
-              getOptionLabel={(option) => option.nombre ? option.nombre : ""}
-              style={{ height: '28%' }}
-              renderInput={(params) => <TextField {...params} label="Accionista" margin="normal" variant="outlined" />}
-              onChange={(option, value) => handleClickAccionista(option, value)}
-            />
             <Button
               size="small"
               variant="contained"
