@@ -588,12 +588,12 @@ export default function Reportes() {
 
   const exportDividendos = async () => {
     // Carga de datos
-    let filter = {};
+    let filter = {idAccionista:{},periodo:{}};
     if (valAccionista.id) {
-      filter.idAccionista = valAccionista;
+      filter.idAccionista.eq = valAccionista;
     }
     if (periodoDividendo =! "0") {
-      filter.periodo = periodoDividendo;
+      filter.periodo.eq = periodoDividendo;
     }
     const apiData = await API.graphql({ query: ListDividendosAccionistas, variables: { filter: filter }});
     const dividendosFromAPI = apiData.data.ListDividendosAccionistas.items;
