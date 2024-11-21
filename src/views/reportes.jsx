@@ -328,15 +328,27 @@ export default function Reportes() {
   const exportListadoAccionistas = async () => {
     let filter = {estado:{},tipoPersona:{}};
     if (estadoListado !== "0") {
+      console.log("Filter 1: entro");
+      console.log("estadoListado: ",estadoListado);
       filter.estado.eq = estadoListado === "1" ? "Activo" 
       : estadoListado === "2" ? "Bloqueado" 
       : estadoListado === "3" ? "Inactivo" 
       : null;
     }
     if (tipoPersonaSelect !== "0") {
+      console.log("Filter 2: entro");
+      console.log("tipoPersonaSelect: ",tipoPersonaSelect);
       filter.tipoPersona.eq = tipoPersonaSelect === "1" ? "PN" 
       : tipoPersonaSelect === "2" ? "PJ" 
       : null;
+    }
+    console.log("Filter: ",filter);
+    console.log("estadoListado: ",estadoListado);
+    console.log("tipoPersonaSelect: ",tipoPersonaSelect);
+    if (valAccionista.id) {
+      console.log("valAccionista.id: ",valAccionista);
+    }else{
+      console.log("No valAccionista: ",valAccionista);
     }
     const apiData = await API.graphql({ query: listAccionistas, variables: { filter: filter} });
     const accionistasFromAPI = apiData.data.listAccionistas.items;
