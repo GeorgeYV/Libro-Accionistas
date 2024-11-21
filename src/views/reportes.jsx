@@ -326,7 +326,6 @@ export default function Reportes() {
   }
 
   const exportListadoAccionistas = async () => {
-    /*
     let filter = {estado:{},tipoPersona:{}};
     if (estadoListado !== "0") {
       filter.estado.eq = estadoListado === "1" ? "Activo" 
@@ -442,10 +441,9 @@ export default function Reportes() {
         window.URL.revokeObjectURL(url);
       });
     });
-    */
   }
 
-  const exportPDFTransferencias = async () => {
+  const exportTransferencias = async () => {
     let filter = {
       estado: {
         eq: 'Aprobada' // filter priority = 1
@@ -856,7 +854,7 @@ export default function Reportes() {
               style={{ height: '15%' }}
               className={classes.button}
               startIcon={<VisibilityIcon />}
-              onClick={exportPDFTransferencias}
+              onClick={exportTransferencias}
             >
               Descargar
             </Button>
