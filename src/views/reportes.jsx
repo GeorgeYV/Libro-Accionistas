@@ -327,19 +327,19 @@ export default function Reportes() {
 
   const exportListadoAccionistas = async () => {
     let filter = {estado:{},tipoPersona:{}};
-    if (estadoListado !== "0") {
+    if (estadoListado.toString() != "0") {
       console.log("Filter 1: entro");
       console.log("estadoListado: ",estadoListado);
-      filter.estado.eq = estadoListado === "1" ? "Activo" 
-      : estadoListado === "2" ? "Bloqueado" 
-      : estadoListado === "3" ? "Inactivo" 
+      filter.estado.eq = estadoListado.toString() == "1" ? "Activo" 
+      : estadoListado == "2" ? "Bloqueado" 
+      : estadoListado == "3" ? "Inactivo" 
       : null;
     }
-    if (tipoPersonaSelect !== "0") {
+    if (tipoPersonaSelect != "0") {
       console.log("Filter 2: entro");
       console.log("tipoPersonaSelect: ",tipoPersonaSelect);
-      filter.tipoPersona.eq = tipoPersonaSelect === "1" ? "PN" 
-      : tipoPersonaSelect === "2" ? "PJ" 
+      filter.tipoPersona.eq = tipoPersonaSelect == "1" ? "PN" 
+      : tipoPersonaSelect == "2" ? "PJ" 
       : null;
     }
     console.log("Filter: ",filter);
@@ -461,7 +461,8 @@ export default function Reportes() {
         eq: 'Aprobada' // filter priority = 1
       },
 
-      or: [{ operacion: { eq: 'Cesión' } },
+      or: [
+        { operacion: { eq: 'Cesión' } },
       { operacion: { eq: 'Posesión Efectiva' } },
       { operacion: { eq: 'Donación' } },
       { operacion: { eq: 'Testamento' } }]
