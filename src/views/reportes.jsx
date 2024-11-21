@@ -5,7 +5,7 @@ import {
 } from '@material-ui/core';
 import Autocomplete from '@material-ui/lab/Autocomplete';
 import { API, Storage, graphqlOperation, Auth } from 'aws-amplify';
-import { listAccionistas, listOperaciones, listHerederoPorOperacions, ListDividendosAccionistas } from './../graphql/queries';
+import { listAccionistas, listOperaciones, listHerederoPorOperacions, ListDividendosAccionistas} from './../graphql/queries';
 import CloudUploadOutlinedIcon from '@material-ui/icons/CloudUploadOutlined';
 import SaveIcon from '@material-ui/icons/Save';
 import CheckIcon from '@material-ui/icons/Check';
@@ -122,7 +122,6 @@ export default function Reportes() {
   }
 
   const exportLibroAccionistas = async () => {
-    /*
     const filter = {
       estado: {
         ne: "Inactivo"
@@ -324,7 +323,6 @@ export default function Reportes() {
         window.URL.revokeObjectURL(url);
       });
     });
-    */
   }
 
   const exportListadoAccionistas = async () => {
@@ -569,7 +567,7 @@ export default function Reportes() {
     // Carga de datos
     let filter = {idAccionista:{},periodo:{}};
     if (valAccionista.id) {
-      filter.idAccionista.eq = valAccionista.id;
+      filter.idAccionista.eq = valAccionista;
     }
     if (periodoDividendo !== "0") {
       filter.periodo.eq = periodoDividendo;
@@ -705,7 +703,8 @@ export default function Reportes() {
         anchor.click();
         window.URL.revokeObjectURL(url);
       });
-    });*/
+    });
+    */
   }
 
   return (
@@ -788,7 +787,7 @@ export default function Reportes() {
                 <MenuItem value={2} >Persona Juridica</MenuItem>
               </Select>
             </FormControl>
-            <FormControl fullWidth style={{ paddingBottom: 5, height: '49%' }}>
+            <FormControl fullWidth style={{ paddingBottom: 5, height: '48%' }}>
               <InputLabel id="selectEstadoListAcci-label">Estado</InputLabel>
               <Select
                 labelId="selectEstadoListAcci-label"
@@ -835,7 +834,7 @@ export default function Reportes() {
                 }}
               />
             </FormControl>
-            <FormControl fullWidth style={{ paddingBottom: 5 }}>
+            <FormControl fullWidth style={{ paddingBottom: 5, height: '49%' }}>
               <TextField
                 size='small'
                 id="datetime-local"
@@ -866,16 +865,6 @@ export default function Reportes() {
             <Typography variant='body2' color='secondary' style={{ height: '15%' }}>
               Dividendos
             </Typography>
-            <Autocomplete
-              value={valAccionista}
-              size='small'
-              id="comboBoxAccionistaDividendo"
-              options={accionistas}
-              getOptionLabel={(option) => option.nombre ? option.nombre : ""}
-              style={{ height: '28%' }}
-              renderInput={(params) => <TextField {...params} label="Accionista" margin="normal" variant="outlined" />}
-              onChange={(option, value) => handleClickAccionista(option, value)}
-            />
             <FormControl fullWidth style={{ height: '' }}>
               <InputLabel id="selectDividendos-label">Periodo</InputLabel>
               <Select
@@ -895,6 +884,16 @@ export default function Reportes() {
                 <MenuItem value={6} >2024</MenuItem>
               </Select>
             </FormControl>
+            <Autocomplete
+              value={valAccionista}
+              size='small'
+              id="comboBoxAccionistaDividendo"
+              options={accionistas}
+              getOptionLabel={(option) => option.nombre ? option.nombre : ""}
+              style={{ height: '50%' }}
+              renderInput={(params) => <TextField {...params} label="Accionista" margin="normal" variant="outlined" />}
+              onChange={(option, value) => handleClickAccionista(option, value)}
+            />
             <Button
               size="small"
               variant="contained"
