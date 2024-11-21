@@ -5,7 +5,7 @@ import {
 } from '@material-ui/core';
 import Autocomplete from '@material-ui/lab/Autocomplete';
 import { API, Storage, graphqlOperation, Auth } from 'aws-amplify';
-import { listAccionistas, listOperaciones, listHerederoPorOperacions, listDividendos } from './../graphql/queries';
+import { listAccionistas, listOperaciones, listHerederoPorOperacions, ListDividendosAccionistas, } from './../graphql/queries';
 import CloudUploadOutlinedIcon from '@material-ui/icons/CloudUploadOutlined';
 import SaveIcon from '@material-ui/icons/Save';
 import CheckIcon from '@material-ui/icons/Check';
@@ -55,60 +55,51 @@ const useStyles = makeStyles((theme) => ({
 
 }));
 
-
-const today = new Date();
-const fechaHora = today.getFullYear() + '-' + (today.getMonth() + 1) + '-' + today.getDate() + ' ' + today.getHours() + ':' + today.getMinutes();
-
-
-const dateNow = new Date(); // Creating a new date object with the current date and time
-const year = dateNow.getFullYear(); // Getting current year from the created Date object
-const monthWithOffset = dateNow.getUTCMonth() + 1; // January is 0 by default in JS. Offsetting +1 to fix date for calendar.
-const month = // Setting current Month number from current Date object
-  monthWithOffset.toString().length < 2 // Checking if month is < 10 and pre-prending 0 to adjust for date input.
+const dateNow = new Date();
+const year = dateNow.getFullYear();
+const monthWithOffset = dateNow.getUTCMonth() + 1;
+const month = 
+  monthWithOffset.toString().length < 2
     ? `0${monthWithOffset}`
     : monthWithOffset;
 const date =
-  dateNow.getUTCDate().toString().length < 2 // Checking if date is < 10 and pre-prending 0 if not to adjust for date input.
+  dateNow.getUTCDate().toString().length < 2 
     ? `0${dateNow.getUTCDate()}`
     : dateNow.getUTCDate();
-
-const materialDateInput = `${year}-${month}-${date}`; // combining to format for defaultValue or value attribute of material <TextField>
-
+const fechaAMD = `${year}-${month}-${date}`;
 
 export default function Reportes() {
 
   const classes = useStyles();
 
-  const [estadoListado, setEstadoListado] = useState('1');
-
+  const [tipoPersonaSelect, setTipoPersonaSelect] = useState('0');
+  const handleChangeTipoPersonaSelect = (event) => {
+    setTipoPersonaSelect(event.target.value);
+  };
+  const [estadoListado, setEstadoListado] = useState('0');
   const handleChangeEstadoListado = (event) => {
     setEstadoListado(event.target.value);
   };
-
-  const [estadoDividendo, setEstadoDividendo] = useState('1');
-
-  const handleChangeEstadoDividendo = (event) => {
-    setEstadoDividendo(event.target.value);
+  const [periodoDividendo, setPeriodoDividendo] = useState('0');
+  const handleChangePeriodoDividendo = (event) => {
+    setPeriodoDividendo(event.target.value);
   };
-  // Fechas desde hasta Libro Accionistas
-  const [libroAcciDesde, setLibroAcciDesde] = useState(materialDateInput);
-  const [libroAcciHasta, setLibroAcciHasta] = useState(materialDateInput);
+  const [libroAcciDesde, setLibroAcciDesde] = useState(fechaAMD);
+  const [libroAcciHasta, setLibroAcciHasta] = useState(fechaAMD);
   const handleChangeDateLibroAcciDesde = e => {
     setLibroAcciDesde(e.target.value);
   };
   const handleChangeDateLibroAcciHasta = e => {
     setLibroAcciHasta(e.target.value);
   };
-  // Fechas desde hasta transferencia
-  const [transferenciasDesde, setTransferenciasDesde] = useState(materialDateInput);
-  const [transferenciasHasta, setTransferenciasHasta] = useState(materialDateInput);
+  const [transferenciasDesde, setTransferenciasDesde] = useState(fechaAMD);
+  const [transferenciasHasta, setTransferenciasHasta] = useState(fechaAMD);
   const handleChangeDateTrasnferenciasDesde = e => {
     setTransferenciasDesde(e.target.value);
   };
   const handleChangeDateTrasnferenciasHasta = e => {
     setTransferenciasHasta(e.target.value);
   };
-
   const [accionistas, setAccionistas] = useState([]);
   const [valAccionista, setValAccionista] = useState({})
 
@@ -140,39 +131,69 @@ export default function Reportes() {
     const accionistasFromAPI = apiData.data.listAccionistas.items;
     const libroAccionista = accionistasFromAPI.map(function (elt) {
       return { 
+        tipoIdentificacion: elt.tipoIdentificacion,
         identificacion: elt.identificacion, 
         nombre: elt.nombre, 
         paisNacionalidad: elt.paisNacionalidad, 
-        cantidadAcciones: elt.cantidadAcciones, 
-        tipoAcciones: elt.tipoAcciones, 
+        direccionPais: elt.direccionPais,
+        direccionProvincia: elt.direccionProvincia,
+        direccionCiudad: elt.direccionCiudad,
+        direccionCalle: elt.direccionCalle,
+        direccionNumero: elt.direccionNumero,
+        nombreBanco: elt.nombreBanco,
+        tipoCuenta: elt.tipoCuenta,
+        cuentaBancaria: elt.cuentaBancaria,
+        cantidadAcciones: elt.cantidadAcciones,
+        participacion: elt.participacion,
+        tipoAcciones: elt.tipoAcciones,
+        estado: elt.estado,
         tipoPersona: elt.tipoPersona,
-        participacion: elt.participacion, 
-        valor: elt.cantidadAcciones,
+        pn_primerNombre: elt.pn_primerNombre,
+        pn_segundoNombre: elt.pn_segundoNombre,
+        pn_apellidoPaterno: elt.pn_apellidoPaterno,
+        pn_apellidoMaterno: elt.pn_apellidoMaterno,
+        pn_estadoCivil: elt.pn_estadoCivil,
+        conyugue_tipoIdentificacion: elt.conyugue_tipoIdentificacion,
+        conyugue_identificacion: elt.conyugue_identificacion,
+        conyugue_nombre: elt.conyugue_nombre,
+        conyugue_nacionalidad: elt.conyugue_nacionalidad,
+        repLegal_tipoIdentificacion: elt.repLegal_tipoIdentificacion,
+        repLegal_identificacion: elt.repLegal_identificacion,
+        repLegal_nombre: elt.repLegal_nombre,
+        repLegal_nacionalidad: elt.repLegal_nacionalidad,
+        repLegal_telefono: elt.repLegal_telefono,
+        repLegal_email: elt.repLegal_email,
         telefono1: elt.telefono1,
+        obs1: elt.obs1,
+        telefono2: elt.telefono2,
+        obs2: elt.obs2,
+        telefono3: elt.telefono3,
+        obs3: elt.obs3,
         email1: elt.email1,
-        createdAt: elt.createdAt
+        email2: elt.email2,
+        email3: elt.email3,
+        createdAt: elt.createdAt,
+        updatedAt: elt.updatedAt
       };
     });
-    console.log("libroaccionista: ",libroAccionista);
     var dateHasta = new Date(libroAcciHasta);
     dateHasta.setDate(dateHasta.getDate() + 1);
-    console.log("dateHasta: ",dateHasta);
-    console.log("libroAcciHasta: ",dateHasta);
     const result = libroAccionista.filter(d => {
-      var m2 = d.createdAt.split("T");
       var time = new Date(d.createdAt).getTime();
-      console.log("m2: ",m2[0]);
-      console.log("d.createdAt: ",d.createdAt);
-      console.log("time: ",time);
       return (new Date(libroAcciDesde).getTime() <= time && time <= new Date(dateHasta).getTime());
     });
-    console.log("result: ",result);
     // Creacion del Xls
     const title = "Reporte de Libro de Accionistas";
     const headers = [
-      "Identificación", "Nombre", "Nacionalidad", "Acciones", 
-      "Tipo", "Persona", "Participación", "Valor", "Teléfono", "Email","Fecha de Creación"];
-    const letrasColumnas = ['A', 'B', 'C', 'D', 'E', 'F', 'G','H','I','J','K'];
+      "Tipo Identificacion","Identificación", "Nombre", "Nacionalidad", "País","Provincia","Ciudad",
+      "Calle","Número","Banco","Tipo de Cuenta","Cuenta Bancaria","Acciones", "Participación", 
+      "Tipo Acciones", "Estado", "Tipo Persona", "Pn Primer Nombre", "Pn Segundo nombre", "Pn Apellido Paterno",
+      "Pn Apellido Materno", "Pn Estado Civil", "Conyuge Tipo Identificación","Conyuge Identificación","Conyuge Nombre",
+      "Conyuge Nacionalidad", "RepLegal Tipo Identificacion", "RepLegal Identificacion", "RepLegal nombre", "RepLegal Nacionalidad",
+      "RepLegal Telefono", "RepLegal Email", "Telefono1", "Observación1", "Telefono2", "Observación2", "Telefono3", "Observación3",
+      "Email1", "Email2", "Email3","Fecha de Registro", "Fecha de Modificación"
+    ];
+    const letrasColumnas = ['A', 'B', 'C', 'D', 'E', 'F', 'G','H','I','J','K','L','M','N','O','P','Q','R','S','T','U','V','W','X','Y','Z'];
     const workbook = new ExcelJS.Workbook();
     const sheet = workbook.addWorksheet("Accionistas");
     const imageId = workbook.addImage({
@@ -203,7 +224,7 @@ export default function Reportes() {
     sheet.getCell('D1').value = title;
     sheet.getCell('D1').alignment = { vertical: 'middle', horizontal: 'center' };
     sheet.mergeCells('D4:F4');
-    sheet.getCell('D4').value = "Fecha de creación: " + fechaHora;
+    sheet.getCell('D4').value = "Fecha de creación: " + fechaAMD;
     sheet.getCell('D1').font = {
       name: "Times New Roman",
       family: 4,
@@ -228,21 +249,64 @@ export default function Reportes() {
       { width: 20 },
       { width: 20 },
       { width: 20 },
+      { width: 20 },
+      { width: 20 },
+      { width: 20 },
+      { width: 20 },
+      { width: 20 },
+      { width: 20 },
+      { width: 20 },
+      { width: 20 },
+      { width: 20 },
+      { width: 20 },
+      { width: 20 },
     ];
     const promise = Promise.all(
       result.map(async (elt) => {
         sheet.addRow([
+          elt.tipoIdentificacion,
           elt.identificacion, 
           elt.nombre, 
           elt.paisNacionalidad, 
-          elt.cantidadAcciones, 
-          elt.tipoAcciones, 
-          elt.tipoPersona, 
-          elt.participacion, 
-          elt.valor,
+          elt.direccionPais,
+          elt.direccionProvincia,
+          elt.direccionCiudad,
+          elt.direccionCalle,
+          elt.direccionNumero,
+          elt.nombreBanco,
+          elt.tipoCuenta,
+          elt.cuentaBancaria,
+          elt.cantidadAcciones,
+          elt.participacion,
+          elt.tipoAcciones,
+          elt.estado,
+          elt.tipoPersona,
+          elt.pn_primerNombre,
+          elt.pn_segundoNombre,
+          elt.pn_apellidoPaterno,
+          elt.pn_apellidoMaterno,
+          elt.pn_estadoCivil,
+          elt.conyugue_tipoIdentificacion,
+          elt.conyugue_identificacion,
+          elt.conyugue_nombre,
+          elt.conyugue_nacionalidad,
+          elt.repLegal_tipoIdentificacion,
+          elt.repLegal_identificacion,
+          elt.repLegal_nombre,
+          elt.repLegal_nacionalidad,
+          elt.repLegal_telefono,
+          elt.repLegal_email,
           elt.telefono1,
+          elt.obs1,
+          elt.telefono2,
+          elt.obs2,
+          elt.telefono3,
+          elt.obs3,
           elt.email1,
-          elt.createdAt
+          elt.email2,
+          elt.email3,
+          elt.createdAt,
+          elt.updatedAt
         ]);
       })
     );
@@ -262,37 +326,65 @@ export default function Reportes() {
   }
 
   const exportListadoAccionistas = async () => {
-    const filter = {
-      estado: {
-        eq: estadoListado == "1" ? "Activo" : estadoListado == "2" ? "Bloqueado" : estadoListado == "3" ? "Inactivo" : null
-      },
+    if (estadoListado == "0" && tipoPersonaSelect == "0") {
+      const apiData = await API.graphql({ query: listAccionistas});
+    } else{
+      if (estadoListado != "0" && tipoPersonaSelect != "0") {
+        const filter = {
+          estado: {
+            eq: estadoListado == "1" ? "Activo" 
+            : estadoListado == "2" ? "Bloqueado" 
+            : estadoListado == "3" ? "Inactivo" 
+            : null
+          },
+          tipoPersona: {
+            eq: tipoPersonaSelect == "1" ? "PN" 
+            : tipoPersonaSelect == "2" ? "PJ" 
+            : null
+          },
+        }
+      } else {
+        if (tipoPersonaSelect != "0") {
+          const filter = {
+            estado: {
+              eq: tipoPersonaSelect == "1" ? "PN" 
+              : tipoPersonaSelect == "2" ? "PJ" 
+              : null
+            }
+          }
+        }
+        if (tipoPersonaSelect != "0") {
+          const filter = {
+            tipoPersona: {
+              eq: tipoPersonaSelect == "1" ? "PN" 
+              : tipoPersonaSelect == "2" ? "PJ" 
+              : null
+            }
+          }
+        }
+      }
+      const apiData = await API.graphql({ query: listAccionistas, variables: { filter: filter} });
     }
-    const apiData = await API.graphql({ query: listAccionistas, variables: { filter: filter, limit: 10000 } });
     const accionistasFromAPI = apiData.data.listAccionistas.items;
-    const apiData2 = await API.graphql({ query: listAccionistas, variables: { limit: 10 }, items: ['cantidadAcciones'] });
-    const accionistasFromAPI2 = apiData2.data.listAccionistas.items;
-    console.log("Cantidad de acciones:", accionistasFromAPI2);
     const libroAccionista = accionistasFromAPI.map(function (elt) {
-      return { 
+      return {
         identificacion: elt.identificacion, 
         nombre: elt.nombre, 
         paisNacionalidad: elt.paisNacionalidad, 
         cantidadAcciones: elt.cantidadAcciones, 
         tipoAcciones: elt.tipoAcciones, 
         tipoPersona: elt.tipoPersona,
-        participacion: elt.participacion, 
-        valor: elt.cantidadAcciones,
         telefono: elt.telefono1,
         email: elt.email1,
-        fechaCreacion: elt.createdAt
+        estado: elt.estado,
       };
     })
     // Creacion del Xlsx
-    const title = "Listado de Accionistas (".concat(estadoListado == "1" ? "Activos)" : estadoListado == "2" ? "Bloqueados)" : "Inactivos)");
+    const title = "Listado de Accionistas";
     const headers = [
-      "Identificación", "Nombre", "Nacionalidad", "Acciones","Tipo", 
-      "Persona", "Participación", "Valor", "Teléfono", "Email","Fecha de Creación"];
-    const letrasColumnas = ['A', 'B', 'C', 'D', 'E', 'F', 'G','H','I','J','K'];
+      "Tipo de Persona", "Identificación", "Nombre", "Nacionalidad", "Teléfono", "Email",
+      "Tipo de Acción","Acciones","Estado"];
+    const letrasColumnas = ['A', 'B', 'C', 'D', 'E', 'F', 'G','H','I'];
     const workbook = new ExcelJS.Workbook();
     const sheet = workbook.addWorksheet("Listado Accionistas");
     const imageId = workbook.addImage({
@@ -323,7 +415,7 @@ export default function Reportes() {
     sheet.getCell('D1').value = title;
     sheet.getCell('D1').alignment = { vertical: 'middle', horizontal: 'center' };
     sheet.mergeCells('D4:F4');
-    sheet.getCell('D4').value = "Fecha de creación: " + fechaHora;
+    sheet.getCell('D4').value = "Fecha de creación: " + fechaAMD;
     sheet.getCell('D1').font = {
       name: "Times New Roman",
       family: 4,
@@ -346,23 +438,19 @@ export default function Reportes() {
       { width: 20 },
       { width: 20 },
       { width: 20 },
-      { width: 20 },
-      { width: 20 },
     ];
     const promise = Promise.all(
       libroAccionista.map(async (elt) => {
         sheet.addRow([
+          elt.tipoPersona, 
           elt.identificacion, 
           elt.nombre, 
           elt.paisNacionalidad, 
-          elt.cantidadAcciones, 
-          elt.tipoAcciones, 
-          elt.tipoPersona, 
-          elt.participacion, 
-          elt.valor*40,
           elt.telefono1,
           elt.email1,
-          elt.createdAt
+          elt.tipoAcciones,
+          elt.cantidadAcciones, 
+          elt.estado
         ]);
       })
     );
@@ -404,7 +492,6 @@ export default function Reportes() {
     let finalmente = [...operacionesSinPosesionEfectivas, ...posisionEfectiva]
     if (valAccionista.id) {
       const finalmente3 = finalmente.filter((id) => id.idCedente == valAccionista.id || id.idCesionario == valAccionista.id);
-      console.log("Operaciones", finalmente3);
       finalmente = finalmente3;
     }
     finalmente.sort(function (a, b) {
@@ -424,7 +511,7 @@ export default function Reportes() {
     const headers = ["Fecha", "Transferencia", "Cedente", "Acciones", "Cesionario"];
     const letrasColumnas = ['A', 'B', 'C', 'D', 'E'];
     const workbook = new ExcelJS.Workbook();
-    const sheet = workbook.addWorksheet("Listado Accionistas");
+    const sheet = workbook.addWorksheet("Transferencias");
     const imageId = workbook.addImage({
       base64: logoBase64,
       extension: 'jpeg',
@@ -453,7 +540,7 @@ export default function Reportes() {
     sheet.getCell('D1').value = title;
     sheet.getCell('D1').alignment = { vertical: 'middle', horizontal: 'center' };
     sheet.mergeCells('D4:F4');
-    sheet.getCell('D4').value = "Fecha de creación: " + fechaHora;
+    sheet.getCell('D4').value = "Fecha de creación: " + fechaAMD;
     sheet.getCell('D1').font = {
       name: "Times New Roman",
       family: 4,
@@ -501,26 +588,45 @@ export default function Reportes() {
 
   const exportDividendos = async () => {
     // Carga de datos
-    const apiData = await API.graphql({ query: listDividendos });
-    const dividendosFromAPI = apiData.data.listDividendos.items;
+    let filter = {};
+    if (valAccionista.id) {
+      filter.idAccionista = valAccionista;
+    }
+    if (periodoDividendo =! "0") {
+      filter.periodo = periodoDividendo;
+    }
+    const apiData = await API.graphql({ query: ListDividendosAccionistas, variables: { filter: filter }});
+    const dividendosFromAPI = apiData.data.ListDividendosAccionistas.items;
     const dividendos = dividendosFromAPI.map(function (elt) {
       return {
-        periodo: elt.periodo,
-        secuencial: elt.secuencial,
-        concepto: elt.concepto,
-        dividendo: elt.dividendo,
-        fechaCorte: elt.fechaCorte,
-        fechaPago: elt.fechaPago,
+        tipoPersona: elt.tipoPersona,
+        tipoIdentificacion: elt.tipoIdentificacion,
+        identificacion: elt.identificacion,
+        paisNacionalidad: elt.paisNacionalidad,
+        cantidadAcciones: elt.cantidadAcciones,
+        tipoAcciones: elt.tipoAcciones,
         estado: elt.estado,
-        createdAt: elt.createdAt,
-        updatedAt: elt.updatedAt
+        decevale: elt.decevale,
+        periodo: elt.periodo,
+        dividendo: elt.dividendo,
+        baseImponible: elt.baseImponible,
+        nombre: elt.nombre,
+        retencion: elt.retencion,
+        dividendoRecibido: elt.dividendoRecibido,
+        estadoDividendo: elt.estadoDividendo,
+        documento: elt.documento,
+        solicitado: elt.solicitado,
+        fechaSolicitud: elt.fechaSolicitud,
+        HoraSolicitud: elt.HoraSolicitud,
+        fechaPago: elt.fechaPago,
       };
-    })
+    });
     // Creacion del Xlsx
     const title = "Reporte de Dividendos";
-    const headers = ["Periodo", "Secuencial", "Concepto", "Dividendo", "Fecha de corte", 
-      "Fecha de Junta", "Estado","Fecha de Creación","Fecha de Modificación"];
-    const letrasColumnas = ['A', 'B', 'C', 'D', 'E', 'F', 'G','H','I'];
+    const headers = ["Tipo Persona","Tipo Identificacion","Identificación", "Nombre", "Nacionalidad",
+      "Tipo Acciones","Acciones", "estado","decevale","periodo","dividendo","baseImponible",
+      "nombre", "retencion", "dividendoRecibido", "estadoDividendo", "documento", "solicitado", "fechaSolicitud", "HoraSolicitud", "fechaPago"];
+      const letrasColumnas = ['A', 'B', 'C', 'D', 'E', 'F', 'G','H','I','J','K','L','M','N','O','P','Q','R','S','T'];
     const workbook = new ExcelJS.Workbook();
     const sheet = workbook.addWorksheet("Dividendos");
     const imageId = workbook.addImage({
@@ -551,7 +657,7 @@ export default function Reportes() {
     sheet.getCell('D1').value = title;
     sheet.getCell('D1').alignment = { vertical: 'middle', horizontal: 'center' };
     sheet.mergeCells('D4:F4');
-    sheet.getCell('D4').value = "Fecha de creación: " + fechaHora;
+    sheet.getCell('D4').value = "Fecha de creación: " + fechaAMD;
     sheet.getCell('D1').font = {
       name: "Times New Roman",
       family: 4,
@@ -573,19 +679,38 @@ export default function Reportes() {
       { width: 20 },
       { width: 20 },
       { width: 20 },
+      { width: 20 },
+      { width: 20 },
+      { width: 20 },
+      { width: 20 },
+      { width: 20 },
+      { width: 20 },
+      { width: 20 },
+      { width: 20 },
     ];
     const promise = Promise.all(
       dividendos.map(async (elt) => {
         sheet.addRow([
-          elt.periodo, 
-          elt.secuencial, 
-          elt.concepto, 
-          elt.dividendo, 
-          elt.fechaCorte, 
-          elt.fechaPago, 
+          elt.tipoPersona,
+          elt.tipoIdentificacion,
+          elt.identificacion,
+          elt.nombre,
+          elt.paisNacionalidad,
+          elt.tipoAcciones,
+          elt.cantidadAcciones,
           elt.estado,
-          elt.createdAt,
-          elt.updatedAt
+          elt.decevale,
+          elt.periodo,
+          elt.dividendo,
+          elt.baseImponible,
+          elt.retencion,
+          elt.dividendoRecibido,
+          elt.estadoDividendo,
+          elt.documento,
+          elt.solicitado,
+          elt.fechaSolicitud,
+          elt.HoraSolicitud,
+          elt.fechaPago,
         ]);
       })
     );
@@ -671,28 +796,29 @@ export default function Reportes() {
               Listado de Accionistas
             </Typography>
             <FormControl fullWidth style={{ paddingBottom: 5 }}>
-              <TextField
-                size='small'
-                id="datetime-local"
-                label="Fecha"
-                type="date"
-                defaultValue={Date.now()}
-                variant="standard"
-                InputLabelProps={{
-                  shrink: true,
-                }}
-                disabled
-              />
-            </FormControl>
-            <FormControl fullWidth style={{ height: '49%' }}>
-              <InputLabel id="demo-simple-select-label">Estado</InputLabel>
+              <InputLabel id="selectTipoListAcci-label">Tipo de Persona</InputLabel>
               <Select
-                labelId="demo-simple-select-label"
-                id="demo-simple-select"
+                labelId="selectTipoListAcci-label"
+                id="selectTipoListAcci"
+                value={tipoPersonaSelect}
+                label="Estado"
+                onChange={handleChangeTipoPersonaSelect}
+              >
+                <MenuItem value={0} >Todos</MenuItem>
+                <MenuItem value={1} >Persona Natural</MenuItem>
+                <MenuItem value={2} >Persona Juridica</MenuItem>
+              </Select>
+            </FormControl>
+            <FormControl fullWidth style={{ paddingBottom: 5, height: '49%' }}>
+              <InputLabel id="selectEstadoListAcci-label">Estado</InputLabel>
+              <Select
+                labelId="selectEstadoListAcci-label"
+                id="selectEstadoListAcci"
                 value={estadoListado}
                 label="Estado"
                 onChange={handleChangeEstadoListado}
               >
+                <MenuItem value={0} >Todos</MenuItem>
                 <MenuItem value={1} >Activo</MenuItem>
                 <MenuItem value={2} >Bloqueado</MenuItem>
                 <MenuItem value={3} >Inactivo</MenuItem>
@@ -769,66 +895,35 @@ export default function Reportes() {
           </Grid>
           <Grid item sm={6} md={4} lg={3} xl={2} style={{ minHeight:250 }}>
             <Typography variant='body2' color='secondary' style={{ height: '15%' }}>
-              Asambleas
-            </Typography>
-
-            <FormControl disabled fullWidth style={{ paddingBottom: 5, }}>
-              <TextField
-                size='small'
-                id="datetime-local"
-                label="Desde"
-                type="date"
-                defaultValue={Date.now()}
-                variant="standard"
-                InputLabelProps={{
-                  shrink: true,
-                }}
-                disabled
-              />
-            </FormControl>
-            <FormControl disabled fullWidth style={{ height: '49%'}}>
-              <TextField
-                size='small'
-                id="datetime-local"
-                label="Hasta"
-                type="date"
-                defaultValue={Date.now()}
-                variant="standard"
-                InputLabelProps={{
-                  shrink: true,
-                }}
-                disabled
-              />
-            </FormControl>
-            <Button
-              size="small"
-              variant="contained"
-              color="primary"
-              style={{ height: '15%' }}
-              className={classes.button}
-              startIcon={<VisibilityIcon />}
-              disabled
-              onClick={exportPDFTransferencias}
-            >
-              Descargar
-            </Button>
-          </Grid>
-          <Grid item sm={6} md={4} lg={3} xl={2} style={{ minHeight:250 }}>
-            <Typography variant='body2' color='secondary' style={{ height: '15%' }}>
               Dividendos
             </Typography>
-            <FormControl fullWidth style={{ height: '70%' }}>
+            <Autocomplete
+              value={valAccionista}
+              size='small'
+              id="comboBoxAccionistaDividendo"
+              options={accionistas}
+              getOptionLabel={(option) => option.nombre ? option.nombre : ""}
+              style={{ height: '28%' }}
+              renderInput={(params) => <TextField {...params} label="Accionista" margin="normal" variant="outlined" />}
+              onChange={(option, value) => handleClickAccionista(option, value)}
+            />
+            <FormControl fullWidth style={{ height: '' }}>
+              <InputLabel id="selectDividendos-label">Periodo</InputLabel>
               <Select
-                labelId="simple-select-label"
-                id="simple-select"
-                value={2}
+                labelId="selectDividendos-label"
+                id="selectDividendos"
+                value={periodoDividendo}
+                defaultValue={periodoDividendo}
                 label="Periodo"
-                disabled
+                onChange={handleChangePeriodoDividendo}
               >
-                <MenuItem value={1} >2020</MenuItem>
-                <MenuItem value={2} >2021</MenuItem>
-                <MenuItem value={3} >2022</MenuItem>
-                <MenuItem value={4} >2023</MenuItem>
+                <MenuItem value={0} >Todos</MenuItem>
+                <MenuItem value={1} >2019</MenuItem>
+                <MenuItem value={2} >2020</MenuItem>
+                <MenuItem value={3} >2021</MenuItem>
+                <MenuItem value={4} >2022</MenuItem>
+                <MenuItem value={5} >2023</MenuItem>
+                <MenuItem value={6} >2024</MenuItem>
               </Select>
             </FormControl>
             <Button
