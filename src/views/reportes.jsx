@@ -80,10 +80,6 @@ export default function Reportes() {
   const handleChangeEstadoListado = (event) => {
     setEstadoListado(event.target.value);
   };
-  const [periodoDividendo, setPeriodoDividendo] = useState('0');
-  const handleChangePeriodoDividendo = (event) => {
-    setPeriodoDividendo(event.target.value);
-  };
   const [libroAcciDesde, setLibroAcciDesde] = useState(fechaAMD);
   const [libroAcciHasta, setLibroAcciHasta] = useState(fechaAMD);
   const handleChangeDateLibroAcciDesde = e => {
@@ -100,9 +96,18 @@ export default function Reportes() {
   const handleChangeDateTrasnferenciasHasta = e => {
     setTransferenciasHasta(e.target.value);
   };
+  const [operacionesDesde, setOperacionesDesde] = useState(fechaAMD);
+  const [operacionesHasta, setOperacionesHasta] = useState(fechaAMD);
+  const handleChangeDateOperacionesDesde = e => {
+    setOperacionesDesde(e.target.value);
+  };
+  const handleChangeDateOperacionesHasta = e => {
+    setOperacionesHasta(e.target.value);
+  };
   const [accionistas, setAccionistas] = useState([]);
   const [valAccionista, setValAccionista] = useState({})
-
+  const [periodosDividendos, setPeriodosDividendos] = useState([]);
+  const [periodoDividendo, setPeriodoDividendo] = useState([]);
   const handleClickAccionista = (option, value) => {
     if (value) {
       setValAccionista(value)
@@ -111,69 +116,36 @@ export default function Reportes() {
       setValAccionista({})
     }
   }
-
-  useEffect(() => {
-    fetchAccionistas();
-  }, [])
+  const handleClickPeriodoDividendo = (option, value) => {
+    if (value) {
+      setPeriodoDividendo(value)
+    }
+    else {
+      setPeriodoDividendo({})
+    }
+  }
 
   async function fetchAccionistas() {
     const apiData = await API.graphql({ query: listAccionistas, variables: { limit: 1000 } });
     setAccionistas(apiData.data.listAccionistas.items);
   }
 
+  async function fetchPeriodosDividendos() {
+    const apiData = await API.graphql({ query: listDividendosAccionistas});
+    setPeriodosDividendos(apiData.data.listDividendosAccionistas.items);
+  }
+
+  useEffect(() => {
+    fetchAccionistas();
+    fetchPeriodosDividendos();
+  }, [])
+  
   const exportLibroAccionistas = async () => {
     const apiData = await API.graphql({ query: listAccionistas });
     const accionistasFromAPI = apiData.data.listAccionistas.items;
-    const libroAccionista = accionistasFromAPI.map(function (elt) {
-      return { 
-        tipoIdentificacion: elt.tipoIdentificacion,
-        identificacion: elt.identificacion, 
-        nombre: elt.nombre, 
-        paisNacionalidad: elt.paisNacionalidad, 
-        direccionPais: elt.direccionPais,
-        direccionProvincia: elt.direccionProvincia,
-        direccionCiudad: elt.direccionCiudad,
-        direccionCalle: elt.direccionCalle,
-        direccionNumero: elt.direccionNumero,
-        nombreBanco: elt.nombreBanco,
-        tipoCuenta: elt.tipoCuenta,
-        cuentaBancaria: elt.cuentaBancaria,
-        cantidadAcciones: elt.cantidadAcciones,
-        participacion: elt.participacion,
-        tipoAcciones: elt.tipoAcciones,
-        estado: elt.estado,
-        tipoPersona: elt.tipoPersona,
-        pn_primerNombre: elt.pn_primerNombre,
-        pn_segundoNombre: elt.pn_segundoNombre,
-        pn_apellidoPaterno: elt.pn_apellidoPaterno,
-        pn_apellidoMaterno: elt.pn_apellidoMaterno,
-        pn_estadoCivil: elt.pn_estadoCivil,
-        conyugue_tipoIdentificacion: elt.conyugue_tipoIdentificacion,
-        conyugue_identificacion: elt.conyugue_identificacion,
-        conyugue_nombre: elt.conyugue_nombre,
-        conyugue_nacionalidad: elt.conyugue_nacionalidad,
-        repLegal_tipoIdentificacion: elt.repLegal_tipoIdentificacion,
-        repLegal_identificacion: elt.repLegal_identificacion,
-        repLegal_nombre: elt.repLegal_nombre,
-        repLegal_nacionalidad: elt.repLegal_nacionalidad,
-        repLegal_telefono: elt.repLegal_telefono,
-        repLegal_email: elt.repLegal_email,
-        telefono1: elt.telefono1,
-        obs1: elt.obs1,
-        telefono2: elt.telefono2,
-        obs2: elt.obs2,
-        telefono3: elt.telefono3,
-        obs3: elt.obs3,
-        email1: elt.email1,
-        email2: elt.email2,
-        email3: elt.email3,
-        createdAt: elt.createdAt,
-        updatedAt: elt.updatedAt
-      };
-    });
     var dateHasta = new Date(libroAcciHasta);
     dateHasta.setDate(dateHasta.getDate() + 1);
-    const result = libroAccionista.filter(d => {
+    const result = accionistasFromAPI.filter(d => {
       var time = new Date(d.createdAt).getTime();
       return (new Date(libroAcciDesde).getTime() <= time && time <= new Date(dateHasta).getTime());
     });
@@ -338,20 +310,7 @@ export default function Reportes() {
       filter.tipoPersona.ne = "TODOS";
     }
     const apiData = await API.graphql({ query: listAccionistas, variables: { filter: filter} });
-    const accionistasFromAPI = apiData.data.listAccionistas.items;
-    const libroAccionista = accionistasFromAPI.map(function (elt) {
-      return {
-        identificacion: elt.identificacion, 
-        nombre: elt.nombre, 
-        paisNacionalidad: elt.paisNacionalidad, 
-        cantidadAcciones: elt.cantidadAcciones, 
-        tipoAcciones: elt.tipoAcciones, 
-        tipoPersona: elt.tipoPersona,
-        telefono1: elt.telefono1,
-        email1: elt.email1,
-        estado: elt.estado,
-      };
-    })
+    const libroAccionista = apiData.data.listAccionistas.items;
     // Creacion del Xlsx
     const title = "Listado de Accionistas";
     const headers = [
@@ -447,7 +406,6 @@ export default function Reportes() {
       estado: {
         eq: 'Aprobada' // filter priority = 1
       },
-
       or: [
         { operacion: { eq: 'Cesión' } },
       { operacion: { eq: 'Posesión Efectiva' } },
@@ -480,10 +438,11 @@ export default function Reportes() {
       var time = new Date(+d.fecha.split("-")[2], d.fecha.split("-")[1] - 1, +d.fecha.split("-")[0]).getTime();
       return (new Date(transferenciasDesde).getTime() < time && time < new Date(dateHasta).getTime());
     });
+    console.log("const result: ",result)
     // Creacion del Xlsx
     const title = "Reporte de Transferencias";
-    const headers = ["Fecha", "Transferencia", "Cedente", "Acciones", "Cesionario"];
-    const letrasColumnas = ['A', 'B', 'C', 'D', 'E'];
+    const headers = ["Fecha", "Transferencia", "Cedente","Documento Identidad Cedente", "Acciones", "Cesionario","Documento Identidad Cesionario"];
+    const letrasColumnas = ['A', 'B', 'C', 'D', 'E','F','G'];
     const workbook = new ExcelJS.Workbook();
     const sheet = workbook.addWorksheet("Transferencias");
     const imageId = workbook.addImage({
@@ -528,11 +487,7 @@ export default function Reportes() {
       size: 14,
     };
     sheet.columns = [
-      { width: 20 },
-      { width: 20 },
-      { width: 20 },
-      { width: 20 },
-      { width: 20 },
+      { width: 20 },{ width: 20 },{ width: 20 },{ width: 20 },{ width: 20 },
     ];
     const promise = Promise.all(
       result.map(async (elt) => {
@@ -568,56 +523,25 @@ export default function Reportes() {
     } else {
       filter.idAccionista.ne = "NoEmpty";
     }
-    if (periodoDividendo != "0") {
-      filter.periodo.eq = periodoDividendo == "1" ? "2019" 
-      : periodoDividendo == "2" ? "2020" 
-      : periodoDividendo == "3" ? "2021" 
-      : periodoDividendo == "4" ? "2022" 
-      : periodoDividendo == "5" ? "2023" 
-      : periodoDividendo == "6" ? "2024" 
-      : null;
+    if (periodoDividendo.periodo) {
+      filter.periodo.eq = periodoDividendo.periodo;
     } else {
       filter.periodo.ne = "NoEmpty";
     }
     console.log("Filter: ",filter)
-    if (valAccionista.id) {
-      console.log("valAccionista: ",valAccionista);
-      console.log("valAccionista.id: ",valAccionista.id)
-    }else{
-      console.log("No valAccionista: ",valAccionista);
-    }
+    console.log("valAccionista: ",valAccionista);
+    console.log("valAccionista.id: ",valAccionista.id);
+    console.log("periodoDividendo: ",periodoDividendo);
+    console.log("periodoDividendo.periodo: ",periodoDividendo.periodo);
     const apiData = await API.graphql({ query: listDividendosAccionistas, variables: { filter: filter }});
     const dividendosFromAPI = apiData.data.listDividendosAccionistas.items;
-    const dividendos = dividendosFromAPI.map(function (elt) {
-      return {
-        tipoPersona: elt.tipoPersona,
-        tipoIdentificacion: elt.tipoIdentificacion,
-        identificacion: elt.identificacion,
-        paisNacionalidad: elt.paisNacionalidad,
-        cantidadAcciones: elt.cantidadAcciones,
-        tipoAcciones: elt.tipoAcciones,
-        estado: elt.estado,
-        decevale: elt.decevale,
-        periodo: elt.periodo,
-        dividendo: elt.dividendo,
-        baseImponible: elt.baseImponible,
-        nombre: elt.nombre,
-        retencion: elt.retencion,
-        dividendoRecibido: elt.dividendoRecibido,
-        estadoDividendo: elt.estadoDividendo,
-        documento: elt.documento,
-        solicitado: elt.solicitado,
-        fechaSolicitud: elt.fechaSolicitud,
-        HoraSolicitud: elt.HoraSolicitud,
-        fechaPago: elt.fechaPago,
-      };
-    });
+    console.log("DividendosFromApi: ",dividendosFromAPI);
     // Creacion del Xlsx
     const title = "Reporte de Dividendos";
-    const headers = ["Tipo Persona","Tipo Identificacion","Identificación", "Nombre", "Nacionalidad",
-      "Tipo Acciones","Acciones", "estado","decevale","periodo","dividendo","baseImponible",
-      "nombre", "retencion", "dividendoRecibido", "estadoDividendo", "documento", "solicitado", "fechaSolicitud", "HoraSolicitud", "fechaPago"];
-      const letrasColumnas = ['A', 'B', 'C', 'D', 'E', 'F', 'G','H','I','J','K','L','M','N','O','P','Q','R','S','T'];
+    const headers = ["Identificación", "Nombre", "Nacionalidad",
+      "Acciones", "Estado","Periodo","Dividendo","Base Imponible",
+      "Retencion", "Dividendo Recibido"];
+    const letrasColumnas = ['A', 'B', 'C', 'D', 'E', 'F', 'G','H','I','J'];
     const workbook = new ExcelJS.Workbook();
     const sheet = workbook.addWorksheet("Dividendos");
     const imageId = workbook.addImage({
@@ -662,46 +586,22 @@ export default function Reportes() {
       size: 14,
     };
     sheet.columns = [
-      { width: 20 },
-      { width: 20 },
-      { width: 20 },
-      { width: 20 },
-      { width: 20 },
-      { width: 20 },
-      { width: 20 },
-      { width: 20 },
-      { width: 20 },
-      { width: 20 },
-      { width: 20 },
-      { width: 20 },
-      { width: 20 },
-      { width: 20 },
-      { width: 20 },
-      { width: 20 },
+      { width: 20 },{ width: 20 },{ width: 20 },{ width: 20 },{ width: 20 },
+      { width: 20 },{ width: 20 },{ width: 20 },{ width: 20 },{ width: 20 },
     ];
     const promise = Promise.all(
-      dividendos.map(async (elt) => {
+      dividendosFromAPI.map(async (elt) => {
         sheet.addRow([
-          elt.tipoPersona,
-          elt.tipoIdentificacion,
           elt.identificacion,
           elt.nombre,
           elt.paisNacionalidad,
-          elt.tipoAcciones,
           elt.cantidadAcciones,
           elt.estado,
-          elt.decevale,
           elt.periodo,
           elt.dividendo,
           elt.baseImponible,
           elt.retencion,
-          elt.dividendoRecibido,
-          elt.estadoDividendo,
-          elt.documento,
-          elt.solicitado,
-          elt.fechaSolicitud,
-          elt.HoraSolicitud,
-          elt.fechaPago,
+          elt.dividendoRecibido
         ]);
       })
     );
@@ -714,6 +614,132 @@ export default function Reportes() {
         const anchor = document.createElement("a");
         anchor.href = url;
         anchor.download = "Dividendos.xlsx";
+        anchor.click();
+        window.URL.revokeObjectURL(url);
+      });
+    });
+  }
+
+  const exportOperaciones = async () => {
+    // Carga de datos
+    let filter = {idAccionista:{},periodo:{}};
+    if (valAccionista.id) {
+      filter.idAccionista.eq = valAccionista.id;
+    } else {
+      filter.idAccionista.ne = "NoEmpty";
+    }
+    if (periodoDividendo.periodo) {
+      filter.periodo.eq = periodoDividendo.periodo;
+    } else {
+      filter.periodo.ne = "NoEmpty";
+    }
+    console.log("Filter: ",filter)
+    const apiData = await API.graphql({ query: listOperaciones, variables: { filter: filter }});
+    const operacionesFromAPI = apiData.data.listOperaciones.items;
+    console.log("DividendosFromApi: ",operacionesFromAPI);
+    var dateHasta = new Date(operacionesHasta);
+    dateHasta.setDate(dateHasta.getDate() + 1);
+    const result = operacionesFromAPI.filter(d => {
+      var time = new Date(+d.fecha.split("-")[2], d.fecha.split("-")[1] - 1, +d.fecha.split("-")[0]).getTime();
+      return (new Date(operacionesDesde).getTime() < time && time < new Date(dateHasta).getTime());
+    });
+    console.log("const result: ",result)
+    // Creacion del Xlsx
+    const title = "Reporte de Operaciones";
+    const headers = ["id","Fecha", "Operación", "cedente",
+      "titulo", "acciones","idCesionario","cesionario","estado",
+      "usuarioIngreso", "usuarioAprobador","cs","cg","ci","es","cp","ced","cb","nom","fechaAprobacion","motivoRechazo",
+      "observacion","valorNominal","capital","fechaValor"
+    ];
+    const letrasColumnas = ['A', 'B', 'C', 'D', 'E', 'F', 'G','H','I','J'];
+    const workbook = new ExcelJS.Workbook();
+    const sheet = workbook.addWorksheet("Dividendos");
+    const imageId = workbook.addImage({
+      base64: logoBase64,
+      extension: 'jpeg',
+    });
+    sheet.addImage(imageId, {
+      tl: { col: 0, row: 0 },
+      ext: { width: 415, height: 100 },
+    });
+    for (let index = 0; index < 5; index++) {
+      sheet.addRow();
+    }
+    sheet.addRow(headers);
+    sheet.getRow(7).font = {
+      name: "Times New Roman",
+      family: 4,
+      size: 14,
+      bold: true,
+      color: { argb: 'fc0303' },
+    };
+    letrasColumnas.forEach(function (letra) {
+      sheet.getCell(letra + '7').border = {
+        bottom: { style: 'thin', color: { argb: '676767' } }
+      };
+    });
+    sheet.mergeCells('D1:F2');
+    sheet.getCell('D1').value = title;
+    sheet.getCell('D1').alignment = { vertical: 'middle', horizontal: 'center' };
+    sheet.mergeCells('D4:F4');
+    sheet.getCell('D4').value = "Fecha de creación: " + fechaAMD;
+    sheet.getCell('D1').font = {
+      name: "Times New Roman",
+      family: 4,
+      size: 16,
+      bold: true,
+      color: { argb: 'fc0303' },
+    };
+    sheet.getCell('D4').font = {
+      name: "Times New Roman",
+      family: 4,
+      size: 14,
+    };
+    sheet.columns = [
+      { width: 20 },{ width: 20 },{ width: 20 },{ width: 20 },{ width: 20 },
+      { width: 20 },{ width: 20 },{ width: 20 },{ width: 20 },{ width: 20 },
+    ];
+    const promise = Promise.all(
+      result.map(async (elt) => {
+        sheet.addRow([
+          elt.id,
+          elt.fecha,
+          elt.operacion,
+          elt.idCedente,
+          elt.cedente,
+          elt.titulo,
+          elt.acciones,
+          elt.idCesionario,
+          elt.cesionario,
+          elt.estado,
+          elt.usuarioIngreso,
+          elt.usuarioAprobador,
+          elt.cs,
+          elt.cg,
+          elt.ci,
+          elt.es,
+          elt.cp,
+          elt.ced,
+          elt.cb,
+          elt.nom,
+          elt.fechaAprobacion,
+          elt.motivoRechazo,
+          elt.observacion,
+          elt.valorNominal,
+          elt.capital,
+          elt.fechaValor,
+        ]);
+      })
+    );
+    promise.then(() => {
+      workbook.xlsx.writeBuffer().then(function (data) {
+        const blob = new Blob([data], {
+          type: "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
+        });
+        const url = window.URL.createObjectURL(blob);
+        const anchor = document.createElement("a");
+        anchor.href = url;
+        anchor.download = "Operaciones.xlsx";
         anchor.click();
         window.URL.revokeObjectURL(url);
       });
@@ -842,8 +868,7 @@ export default function Reportes() {
                 onChange={handleChangeDateTrasnferenciasDesde}
                 variant="standard"
                 InputLabelProps={{
-                  shrink: true,
-                  required: true
+                  shrink: true
                 }}
               />
             </FormControl>
@@ -878,25 +903,16 @@ export default function Reportes() {
             <Typography variant='body2' color='secondary' style={{ height: '15%' }}>
               Dividendos
             </Typography>
-            <FormControl fullWidth style={{ height: '' }}>
-              <InputLabel id="selectDividendos-label">Periodo</InputLabel>
-              <Select
-                labelId="selectDividendos-label"
-                id="selectDividendos"
-                value={periodoDividendo}
-                defaultValue={periodoDividendo}
-                label="Periodo"
-                onChange={handleChangePeriodoDividendo}
-              >
-                <MenuItem value={0} >Todos</MenuItem>
-                <MenuItem value={1} >2019</MenuItem>
-                <MenuItem value={2} >2020</MenuItem>
-                <MenuItem value={3} >2021</MenuItem>
-                <MenuItem value={4} >2022</MenuItem>
-                <MenuItem value={5} >2023</MenuItem>
-                <MenuItem value={6} >2024</MenuItem>
-              </Select>
-            </FormControl>
+            <Autocomplete
+              value={periodoDividendo}
+              size='small'
+              id="comboBoxPeriodoDividendo"
+              options={periodosDividendos}
+              getOptionLabel={(option) => option.periodo ? option.periodo : ""}
+              style={{ height: '50%' }}
+              renderInput={(params) => <TextField {...params} label="Periodo" margin="normal" variant="outlined" />}
+              onChange={(option, value) => handleClickPeriodoDividendo(option, value)}
+            />
             <Autocomplete
               value={valAccionista}
               size='small'
@@ -929,13 +945,12 @@ export default function Reportes() {
                 id="datetime-local"
                 label="Desde"
                 type="date"
-                //defaultValue={transferenciasDesde}
-                //value={transferenciasDesde}
-                //onChange={handleChangeDateTrasnferenciasDesde}
+                defaultValue={operacionesDesde}
+                value={operacionesDesde}
+                onChange={handleChangeDateOperacionesDesde}
                 variant="standard"
                 InputLabelProps={{
-                  shrink: true,
-                  required: true
+                  shrink: true
                 }}
               />
             </FormControl>
@@ -945,9 +960,9 @@ export default function Reportes() {
                 id="datetime-local"
                 label="Hasta"
                 type="date"
-                //defaultValue={transferenciasHasta}
-                //value={transferenciasHasta}
-                //onChange={handleChangeDateTrasnferenciasHasta}
+                defaultValue={operacionesHasta}
+                value={operacionesHasta}
+                onChange={handleChangeDateOperacionesHasta}
                 variant="standard"
                 InputLabelProps={{
                   shrink: true,
@@ -965,12 +980,12 @@ export default function Reportes() {
                 //onChange={handleChangePeriodoDividendo}
               >
                 <MenuItem value={0} >Todos</MenuItem>
-                <MenuItem value={1} >2019</MenuItem>
-                <MenuItem value={2} >2020</MenuItem>
-                <MenuItem value={3} >2021</MenuItem>
-                <MenuItem value={4} >2022</MenuItem>
-                <MenuItem value={5} >2023</MenuItem>
-                <MenuItem value={6} >2024</MenuItem>
+                <MenuItem value={1} >Testamento</MenuItem>
+                <MenuItem value={2} >Donación</MenuItem>
+                <MenuItem value={3} >Canje</MenuItem>
+                <MenuItem value={4} >Bloqueo</MenuItem>
+                <MenuItem value={5} >Desbloqueo</MenuItem>
+                <MenuItem value={6} >Aumento de Capital</MenuItem>
               </Select>
             </FormControl>
             <Button
@@ -980,7 +995,7 @@ export default function Reportes() {
               style={{ height: '15%' }}
               className={classes.button}
               startIcon={<VisibilityIcon />}
-              //onClick={exportTransferencias}
+              onClick={exportOperaciones}
             >
               Descargar
             </Button>
