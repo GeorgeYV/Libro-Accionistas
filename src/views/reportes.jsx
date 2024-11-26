@@ -76,6 +76,10 @@ export default function Reportes() {
   const handleChangeTipoPersonaSelect = (event) => {
     setTipoPersonaSelect(event.target.value);
   };
+  const [tipoOperacion, setTipoOperacion] = useState('0');
+  const handleChangeTipoOperacion = (event) => {
+    setTipoOperacion(event.target.value);
+  };
   const [estadoListado, setEstadoListado] = useState('0');
   const handleChangeEstadoListado = (event) => {
     setEstadoListado(event.target.value);
@@ -438,7 +442,6 @@ export default function Reportes() {
       var time = new Date(+d.fecha.split("-")[2], d.fecha.split("-")[1] - 1, +d.fecha.split("-")[0]).getTime();
       return (new Date(transferenciasDesde).getTime() < time && time < new Date(dateHasta).getTime());
     });
-    console.log("const result: ",result)
     // Creacion del Xlsx
     const title = "Reporte de Transferencias";
     const headers = ["Fecha", "Transferencia", "Cedente","Documento Identidad Cedente", "Acciones", "Cesionario","Documento Identidad Cesionario"];
@@ -517,25 +520,19 @@ export default function Reportes() {
 
   const exportDividendos = async () => {
     // Carga de datos
-    let filter = {idAccionista:{},periodo:{}};
+    let filter = {decevale:{},periodo:{}};
     if (valAccionista.id) {
-      filter.idAccionista.eq = valAccionista.id;
+      filter.decevale.eq = valAccionista.id;
     } else {
-      filter.idAccionista.ne = "NoEmpty";
+      filter.decevale.ne = "NoEmpty";
     }
     if (periodoDividendo.periodo) {
       filter.periodo.eq = periodoDividendo.periodo;
     } else {
       filter.periodo.ne = "NoEmpty";
     }
-    console.log("Filter: ",filter)
-    console.log("valAccionista: ",valAccionista);
-    console.log("valAccionista.id: ",valAccionista.id);
-    console.log("periodoDividendo: ",periodoDividendo);
-    console.log("periodoDividendo.periodo: ",periodoDividendo.periodo);
     const apiData = await API.graphql({ query: listDividendosAccionistas, variables: { filter: filter }});
     const dividendosFromAPI = apiData.data.listDividendosAccionistas.items;
-    console.log("DividendosFromApi: ",dividendosFromAPI);
     // Creacion del Xlsx
     const title = "Reporte de Dividendos";
     const headers = ["Identificación", "Nombre", "Nacionalidad",
@@ -622,21 +619,16 @@ export default function Reportes() {
 
   const exportOperaciones = async () => {
     // Carga de datos
-    let filter = {idAccionista:{},periodo:{}};
-    if (valAccionista.id) {
-      filter.idAccionista.eq = valAccionista.id;
+    let filter = {operacion:{}};
+    if (tipoOperacion) {
+      filter.operacion.eq = tipoOperacion;
     } else {
-      filter.idAccionista.ne = "NoEmpty";
-    }
-    if (periodoDividendo.periodo) {
-      filter.periodo.eq = periodoDividendo.periodo;
-    } else {
-      filter.periodo.ne = "NoEmpty";
+      filter.operacion.ne = "NoEmpty";
     }
     console.log("Filter: ",filter)
     const apiData = await API.graphql({ query: listOperaciones, variables: { filter: filter }});
     const operacionesFromAPI = apiData.data.listOperaciones.items;
-    console.log("DividendosFromApi: ",operacionesFromAPI);
+    console.log("operacionesFromAPI: ",operacionesFromAPI);
     var dateHasta = new Date(operacionesHasta);
     dateHasta.setDate(dateHasta.getDate() + 1);
     const result = operacionesFromAPI.filter(d => {
@@ -909,7 +901,6 @@ export default function Reportes() {
               id="comboBoxPeriodoDividendo"
               options={periodosDividendos}
               getOptionLabel={(option) => option.periodo ? option.periodo : ""}
-              style={{ height: '50%' }}
               renderInput={(params) => <TextField {...params} label="Periodo" margin="normal" variant="outlined" />}
               onChange={(option, value) => handleClickPeriodoDividendo(option, value)}
             />
@@ -919,7 +910,7 @@ export default function Reportes() {
               id="comboBoxAccionistaDividendo"
               options={accionistas}
               getOptionLabel={(option) => option.nombre ? option.nombre : ""}
-              style={{ height: '50%' }}
+              style={{ height: '43%' }}
               renderInput={(params) => <TextField {...params} label="Accionista" margin="normal" variant="outlined" />}
               onChange={(option, value) => handleClickAccionista(option, value)}
             />
@@ -970,22 +961,22 @@ export default function Reportes() {
               />
             </FormControl>
             <FormControl fullWidth style={{ height: '25%' }}>
-              <InputLabel id="selectDividendos-label">Periodo</InputLabel>
+              <InputLabel id="selectDividendos-label">Tipo</InputLabel>
               <Select
                 labelId="selectDividendos-label"
                 id="selectDividendos"
-                //value={periodoDividendo}
-                //defaultValue={periodoDividendo}
-                label="Periodo"
-                //onChange={handleChangePeriodoDividendo}
+                value={tipoOperacion}
+                defaultValue={tipoOperacion}
+                label="Tipo"
+                onChange={handleChangeTipoOperacion}
               >
                 <MenuItem value={0} >Todos</MenuItem>
-                <MenuItem value={1} >Testamento</MenuItem>
-                <MenuItem value={2} >Donación</MenuItem>
+                <MenuItem value={1} >Aumento de Capital</MenuItem>
+                <MenuItem value={2} >Bloqueo</MenuItem>
                 <MenuItem value={3} >Canje</MenuItem>
-                <MenuItem value={4} >Bloqueo</MenuItem>
-                <MenuItem value={5} >Desbloqueo</MenuItem>
-                <MenuItem value={6} >Aumento de Capital</MenuItem>
+                <MenuItem value={4} >Desbloqueo</MenuItem>
+                <MenuItem value={5} >Donación</MenuItem>
+                <MenuItem value={6} >Testamento</MenuItem>
               </Select>
             </FormControl>
             <Button
