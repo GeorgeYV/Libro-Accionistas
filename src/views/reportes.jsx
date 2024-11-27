@@ -136,7 +136,12 @@ export default function Reportes() {
 
   async function fetchPeriodosDividendos() {
     const apiData = await API.graphql({ query: listDividendosAccionistas});
-    setPeriodosDividendos(apiData.data.listDividendosAccionistas.items);
+    function onlyUnique(value, index, array) {
+      return array.indexOf(value) === index;
+    }
+    var unique = apiData.data.listDividendosAccionistas.items.periodo.filter(onlyUnique);
+    setPeriodosDividendos(unique);
+    console.log("unique: ",unique);
   }
 
   useEffect(() => {
@@ -642,12 +647,12 @@ export default function Reportes() {
     console.log("const result: ",result)
     // Creacion del Xlsx
     const title = "Reporte de Operaciones";
-    const headers = ["id","Fecha", "Operación", "cedente",
-      "titulo", "acciones","idCesionario","cesionario","estado",
-      "usuarioIngreso", "usuarioAprobador","cs","cg","ci","es","cp","ced","cb","nom","fechaAprobacion","motivoRechazo",
-      "observacion","valorNominal","capital","fechaValor"
+    const headers = ["Fecha", "Operación", "Cedente",
+      "Titulo", "Acciones","Cesionario","Estado",
+      "Usuario Ingreso", "Usuario Aprobador","Fecha Aprobación","Motivo Rechazo",
+      "Observación","Valor Nominal","Capital","Fecha Valor"
     ];
-    const letrasColumnas = ['A', 'B', 'C', 'D', 'E', 'F', 'G','H','I','J'];
+    const letrasColumnas = ['A','B','C','D','E', 'F','G','H','I','J', 'K','L','M','N','O'];
     const workbook = new ExcelJS.Workbook();
     const sheet = workbook.addWorksheet("Dividendos");
     const imageId = workbook.addImage({
@@ -694,30 +699,20 @@ export default function Reportes() {
     sheet.columns = [
       { width: 20 },{ width: 20 },{ width: 20 },{ width: 20 },{ width: 20 },
       { width: 20 },{ width: 20 },{ width: 20 },{ width: 20 },{ width: 20 },
+      { width: 20 },{ width: 20 },{ width: 20 },{ width: 20 },{ width: 20 },
     ];
     const promise = Promise.all(
       result.map(async (elt) => {
         sheet.addRow([
-          elt.id,
           elt.fecha,
           elt.operacion,
-          elt.idCedente,
           elt.cedente,
           elt.titulo,
           elt.acciones,
-          elt.idCesionario,
           elt.cesionario,
           elt.estado,
           elt.usuarioIngreso,
           elt.usuarioAprobador,
-          elt.cs,
-          elt.cg,
-          elt.ci,
-          elt.es,
-          elt.cp,
-          elt.ced,
-          elt.cb,
-          elt.nom,
           elt.fechaAprobacion,
           elt.motivoRechazo,
           elt.observacion,
@@ -975,12 +970,12 @@ export default function Reportes() {
                 onChange={handleChangeTipoOperacion}
               >
                 <MenuItem value={0} >Todos</MenuItem>
-                <MenuItem value={1} >Aumento de Capital</MenuItem>
-                <MenuItem value={2} >Bloqueo</MenuItem>
-                <MenuItem value={3} >Canje</MenuItem>
-                <MenuItem value={4} >Desbloqueo</MenuItem>
-                <MenuItem value={5} >Donación</MenuItem>
-                <MenuItem value={6} >Testamento</MenuItem>
+                <MenuItem value={"Aumento Capital"} >Aumento de Capital</MenuItem>
+                <MenuItem value={"Bloqueo"} >Bloqueo</MenuItem>
+                <MenuItem value={"Canje"} >Canje</MenuItem>
+                <MenuItem value={"Desbloqueo"} >Desbloqueo</MenuItem>
+                <MenuItem value={"Donación"} >Donación</MenuItem>
+                <MenuItem value={"Testamento"} >Testamento</MenuItem>
               </Select>
             </FormControl>
             <Button
