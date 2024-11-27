@@ -419,13 +419,17 @@ export default function Reportes() {
     // Procesamiento de datos
     const apiData = await API.graphql({ query: listOperaciones, variables: { filter: filter, limit: 10000 }, });
     const operacionesFromAPI = apiData.data.listOperaciones.items;
+    console.log("Operacionesfromapi: ",operacionesFromAPI);
     const apiData2 = await API.graphql({ query: listHerederoPorOperacions, variables: { limit: 10000 }, });
     const operacionesFromAPI2 = apiData2.data.listHerederoPorOperacions.items;
+    console.log("Operacionesfromapi2: ",operacionesFromAPI2);
     const posisionEfectiva = operacionesFromAPI2.map(t1 => ({ ...t1, ...operacionesFromAPI.find(t2 => t2.id === t1.operacionId) }))
+    console.log("posisionEfectiva: ",posisionEfectiva);
     const operacionesSinPosesionEfectivas = operacionesFromAPI.filter((el) =>
       el.operacion != 'Posesión Efectiva'
     );
     let finalmente = [...operacionesSinPosesionEfectivas, ...posisionEfectiva]
+    console.log("finalmente: ",finalmente);
     if (valAccionista.id) {
       const finalmente3 = finalmente.filter((id) => id.idCedente == valAccionista.id || id.idCesionario == valAccionista.id);
       finalmente = finalmente3;
@@ -620,7 +624,7 @@ export default function Reportes() {
   const exportOperaciones = async () => {
     // Carga de datos
     let filter = {operacion:{}};
-    if (tipoOperacion) {
+    if (tipoOperacion != "0") {
       filter.operacion.eq = tipoOperacion;
     } else {
       filter.operacion.ne = "NoEmpty";

@@ -739,7 +739,8 @@ export default function PersonaNatural() {
     docPosesionEfectiva: location.state ?  location.state.preloadedValue.docPosesionEfectiva != null ? location.state.preloadedValue.docPosesionEfectiva : '' : '', 
     docIdentidadPrincipal: location.state ?  location.state.preloadedValue.docIdentidadPrincipal != null ? location.state.preloadedValue.docIdentidadPrincipal : '' : '', 
     docCertificadoBancario: location.state ?  location.state.preloadedValue.docCertificadoBancario != null ? location.state.preloadedValue.docCertificadoBancario : '' :'', 
-    docIdentidadConyugue: location.state ?  location.state.preloadedValue.docIdentidadConyugue != null ? location.state.preloadedValue.docIdentidadConyugue : '' : ''});
+    docIdentidadConyugue: location.state ?  location.state.preloadedValue.docIdentidadConyugue != null ? location.state.preloadedValue.docIdentidadConyugue : '' : ''
+  });
   
   const [openSnack, setOpenSnack] = useState(false);
 
@@ -1406,11 +1407,25 @@ export default function PersonaNatural() {
                                     <Button component="span" color="primary" size='small' >Certificado Bancario</Button>
                                     {formData.docCertificadoBancario.length > 0 && <CheckIcon />}
                                 </label>
+                                </div>
+                                <div className={classes.formSection}>   
+                                <label htmlFor="upload-photo3">
+                                    <input style={{ display: 'none' }} id="upload-photo3" name="upload-photo3" type="file" />
+                                    <Button component="span" color="primary" size='small'>Carta de actualización de datos</Button>
+                                    {formData.docIdentidadPrincipal.length > 0 && <CheckIcon />}
+                                </label>
+                                </div>  
+                                <div className={classes.formSection}>   
+                                <label htmlFor="upload-photo4">
+                                    <input style={{ display: 'none' }} id="upload-photo4" name="upload-photo4" type="file" />
+                                    <Button component="span" color="primary" size='small' >Autorización para uso de datos</Button>
+                                    {formData.docCertificadoBancario.length > 0 && <CheckIcon />}
+                                </label>
                                 </div>  
                                 { conyugue &&
                                 <div className={classes.formSection}>   
-                                <label htmlFor="upload-photo3">
-                                    <input style={{ display: 'none' }} id="upload-photo3" name="upload-photo3" type="file" onChange={onChangeDIC} />
+                                <label htmlFor="upload-photo5">
+                                    <input style={{ display: 'none' }} id="upload-photo5" name="upload-photo5" type="file" onChange={onChangeDIC} />
                                     <Button component="span" color="primary" size='small' >Documento de Identidad Cónyugue</Button>
                                     {formData.docIdentidadConyugue.length > 0 && <CheckIcon />}
                                 </label>
