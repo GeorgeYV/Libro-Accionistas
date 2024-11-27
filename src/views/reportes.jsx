@@ -620,12 +620,12 @@ export default function Reportes() {
   const exportOperaciones = async () => {
     // Carga de datos
     let filter = {operacion:{}};
-    if (tipoOperacion) {
+    if (tipoOperacion != "0") {
       filter.operacion.eq = tipoOperacion;
     } else {
       filter.operacion.ne = "NoEmpty";
     }
-    console.log("Filter: ",filter)
+    console.log("Filter: ",filter);
     const apiData = await API.graphql({ query: listOperaciones, variables: { filter: filter }});
     const operacionesFromAPI = apiData.data.listOperaciones.items;
     console.log("operacionesFromAPI: ",operacionesFromAPI);
