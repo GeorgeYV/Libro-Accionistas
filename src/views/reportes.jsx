@@ -139,7 +139,9 @@ export default function Reportes() {
     function onlyUnique(value, index, array) {
       return array.indexOf(value) === index;
     }
-    var unique = apiData.data.listDividendosAccionistas.items.periodo.filter(onlyUnique);
+    const periodos = apiData.data.listDividendosAccionistas.items.periodo;
+    console.log("periodos: ",periodos);
+    var unique = periodos.filter(onlyUnique);
     setPeriodosDividendos(unique);
     console.log("unique: ",unique);
   }
@@ -428,6 +430,12 @@ export default function Reportes() {
     const apiData2 = await API.graphql({ query: listHerederoPorOperacions, variables: { limit: 10000 }, });
     const operacionesFromAPI2 = apiData2.data.listHerederoPorOperacions.items;
     console.log("Operacionesfromapi2: ",operacionesFromAPI2);
+    
+    const apiData3 = await API.graphql({ query: listAccionistas });
+    const listaAccionistas = apiData3.data.listAccionistas.items;
+    const operacionesAccionistas = operacionesFromAPI.map(t1 => ({ ...t1, ...listaAccionistas.find(t2 => t2.decevale === t1.idCedente)}));
+    console.log("operacionesAccionistas: ",operacionesAccionistas);
+
     const posisionEfectiva = operacionesFromAPI2.map(t1 => ({ ...t1, ...operacionesFromAPI.find(t2 => t2.id === t1.operacionId) }))
     console.log("posisionEfectiva: ",posisionEfectiva);
     const operacionesSinPosesionEfectivas = operacionesFromAPI.filter((el) =>
