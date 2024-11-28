@@ -139,11 +139,17 @@ export default function Reportes() {
     function onlyUnique(value, index, array) {
       return array.indexOf(value) === index;
     }
-    const periodos = apiData.data.listDividendosAccionistas.items.periodo;
+    const periodos = apiData.data.listDividendosAccionistas.items.map(function (elt) {
+      return { 
+        periodo: elt.periodo,
+      };
+    });
     console.log("periodos: ",periodos);
     var unique = periodos.filter(onlyUnique);
+    var unique2 = periodos.periodo.filter(onlyUnique);
     setPeriodosDividendos(unique);
     console.log("unique: ",unique);
+    console.log("unique2: ",unique2);
   }
 
   useEffect(() => {
@@ -434,7 +440,21 @@ export default function Reportes() {
     const apiData3 = await API.graphql({ query: listAccionistas });
     const listaAccionistas = apiData3.data.listAccionistas.items;
     const operacionesAccionistas = operacionesFromAPI.map(t1 => ({ ...t1, ...listaAccionistas.find(t2 => t2.decevale === t1.idCedente)}));
-    console.log("operacionesAccionistas: ",operacionesAccionistas);
+    const operacionesAccionistas2 = operacionesAccionistas.items.map(function (elt) {
+      return { 
+        id: elt.id,
+        fecha: elt.fecha, 
+        operacion: elt.operacion,
+        idCedente: elt.idCedente,
+        cedente: elt.cedente,
+        identificacionCedente: elt.identificacion,
+        titulo: elt.titulo,
+        acciones: elt.acciones,
+        idCesionario: elt.idCesionario,
+        cesionario: elt.cesionario,
+      };
+    });
+    console.log("operacionesAccionistas: ",operacionesAccionistas2);
 
     const posisionEfectiva = operacionesFromAPI2.map(t1 => ({ ...t1, ...operacionesFromAPI.find(t2 => t2.id === t1.operacionId) }))
     console.log("posisionEfectiva: ",posisionEfectiva);
@@ -515,6 +535,7 @@ export default function Reportes() {
           elt.fecha, 
           elt.operacion, 
           elt.cedente, 
+
           elt.operacion == 'Posesión Efectiva' ? elt.cantidad : elt.acciones, 
           elt.operacion == 'Posesión Efectiva' ? elt.nombre : elt.cesionario
         ]);
