@@ -306,8 +306,8 @@ async function onChangeCS(e) {
               Documentación
             </Typography>
             <label htmlFor="upload-photo1">
-              <input style={{ display: 'none' }} id="upload-photo1" name="upload-photo1" type="file" onChange={onChangeCS} />
-              <Button startIcon={<CloudUploadOutlinedIcon />} variant='outlined' component="span" color="primary" size='medium' style={{textTransform: 'none',}}>Titulo Ordinario</Button>
+              <input style={{ display: 'none' }} id="upload-photo1" name="upload-photo1" type="file" accept="application/pdf" onChange={onChangeCS} />
+              <Button startIcon={<CloudUploadOutlinedIcon />} variant='outlined' component="span" color="primary" size='medium' style={{textTransform: 'none',}}>Título Ordinario</Button>
               {formData.cs.length > 0 && <IconButton ><CheckIcon /></IconButton>}
             </label>
           </div>       

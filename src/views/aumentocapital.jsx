@@ -306,7 +306,7 @@ const handleCantidadEmitidoChange = (event) => {
           </BlaclTextTypography>
 
           <label htmlFor="upload-photo4" style={{marginTop:'10px',display:'flex', flexDirection:'row', alignItems:'center'}}>
-            <input style={{ display: 'none' }} id="upload-photo4" name="upload-photo4" type="file" onChange={onChangeES} />
+            <input style={{ display: 'none' }} id="upload-photo4" name="upload-photo4" type="file" accept="application/pdf" onChange={onChangeES} />
             <Button startIcon={<CloudUploadOutlinedIcon />} variant='outlined' component="span" color="primary" size='small' style={{textTransform: 'none',}}>Escrituras</Button>
             {formData.es.length > 0 && <div style={{display:'flex', flexDirection:'row', alignItems:'center'}}>  <IconButton onClick={() => setFormData({ ...formData, 'es': ''}) }><DeleteOutlineIcon color='disabled'/></IconButton> <IconButton onClick={getPictureES} ><VisibilityIcon color='primary'/></IconButton> </div>}
           </label>          
