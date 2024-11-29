@@ -440,7 +440,7 @@ export default function Reportes() {
     const apiData3 = await API.graphql({ query: listAccionistas });
     const listaAccionistas = apiData3.data.listAccionistas.items;
     const operacionesAccionistas = operacionesFromAPI.map(t1 => ({ ...t1, ...listaAccionistas.find(t2 => t2.decevale === t1.idCedente)}));
-    const operacionesAccionistas2 = operacionesAccionistas.data.items.map(function (elt) {
+    const operacionesAccionistas2 = operacionesAccionistas.map(function (elt) {
       return { 
         id: elt.id,
         fecha: elt.fecha, 
