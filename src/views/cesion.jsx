@@ -670,27 +670,27 @@ const getPictureCP = e => {
           </BlaclTextTypography>
 
           <label htmlFor="upload-photo1" style={{marginTop:'10px',display:'flex', flexDirection:'row', alignItems:'center'}}>
-            <input style={{ display: 'none' }} id="upload-photo1" name="upload-photo1" type="file" onChange={onChangeCS} />            
+            <input style={{ display: 'none' }} id="upload-photo1" name="upload-photo1" type="file" accept="application/pdf" onChange={onChangeCS} />            
             <Button startIcon={<CloudUploadOutlinedIcon />} variant='outlined' component="span" color="primary" size='small' style={{textTransform: 'none',}}>Carta de Cesión y Gerente</Button>
             {formData.cs.length > 0 && <div style={{display:'flex', flexDirection:'row', alignItems:'center'}}> <IconButton onClick={() => setFormData({ ...formData, 'cs': ''})} ><DeleteOutlineIcon color='disabled'/></IconButton> <IconButton onClick={getPictureCS} ><VisibilityIcon color='primary'/></IconButton> </div>}
           </label>
           <label htmlFor="upload-photo2" style={{marginTop:'10px',display:'flex', flexDirection:'row', alignItems:'center'}}>
-            <input style={{ display: 'none' }} id="upload-photo2" name="upload-photo2" type="file" onChange={onChangeCG} />            
+            <input style={{ display: 'none' }} id="upload-photo2" name="upload-photo2" type="file" accept="application/pdf" onChange={onChangeCG} />            
             <Button startIcon={<CloudUploadOutlinedIcon />} variant='outlined' component="span" color="primary" size='small' style={{textTransform: 'none',}}>Documentos de Identidad</Button>
             {formData.cg.length > 0 && <div style={{display:'flex', flexDirection:'row', alignItems:'center'}}> <IconButton onClick={() => setFormData({ ...formData, 'cg': ''}) }><DeleteOutlineIcon color='disabled'/></IconButton> <IconButton onClick={getPictureCG} ><VisibilityIcon color='primary'/></IconButton> </div>}
           </label>
           <label htmlFor="upload-photo3" style={{marginTop:'10px',display:'flex', flexDirection:'row', alignItems:'center'}}>
-            <input style={{ display: 'none' }} id="upload-photo3" name="upload-photo3" type="file" onChange={onChangeCI} />
+            <input style={{ display: 'none' }} id="upload-photo3" name="upload-photo3" type="file" accept="application/pdf" onChange={onChangeCI} />
             <Button startIcon={<CloudUploadOutlinedIcon />} variant='outlined' component="span" color="primary" size='small' style={{textTransform: 'none',}}>Carta de Instrucciones</Button>
             {formData.ci.length > 0 && <div style={{display:'flex', flexDirection:'row', alignItems:'center'}}> <IconButton onClick={() => setFormData({ ...formData, 'ci': ''}) }><DeleteOutlineIcon color='disabled'/></IconButton> <IconButton onClick={getPictureCI} ><VisibilityIcon color='primary'/></IconButton> </div>}
           </label>
           <label htmlFor="upload-photo5" style={{marginTop:'10px',display:'flex', flexDirection:'row', alignItems:'center'}}>
-            <input style={{ display: 'none' }} id="upload-photo5" name="upload-photo5" type="file" onChange={onChangeCP} />
+            <input style={{ display: 'none' }} id="upload-photo5" name="upload-photo5" type="file" accept="application/pdf" onChange={onChangeCP} />
             <Button startIcon={<CloudUploadOutlinedIcon />} variant='outlined' component="span" color="primary" size='small' style={{textTransform: 'none',}}>Poderes</Button>
             {formData.cp.length > 0 && <div style={{display:'flex', flexDirection:'row', alignItems:'center'}}>  <IconButton onClick={() => setFormData({ ...formData, 'cp': ''}) }><DeleteOutlineIcon color='disabled'/></IconButton> <IconButton onClick={getPictureCP} ><VisibilityIcon color='primary'/></IconButton> </div>}
           </label>
           <label htmlFor="upload-photo4" style={{marginTop:'10px',display:'flex', flexDirection:'row', alignItems:'center'}}>
-            <input style={{ display: 'none' }} id="upload-photo4" name="upload-photo4" type="file" onChange={onChangeES} />
+            <input style={{ display: 'none' }} id="upload-photo4" name="upload-photo4" type="file" accept="application/pdf" onChange={onChangeES} />
             <Button startIcon={<CloudUploadOutlinedIcon />} variant='outlined' component="span" color="primary" size='small' style={{textTransform: 'none',}}>Respaldo de Adquisición</Button>
             {formData.es.length > 0 && <div style={{display:'flex', flexDirection:'row', alignItems:'center'}}>  <IconButton onClick={() => setFormData({ ...formData, 'es': ''}) }><DeleteOutlineIcon color='disabled'/></IconButton> <IconButton onClick={getPictureES} ><VisibilityIcon color='primary'/></IconButton> </div>}
           </label>          

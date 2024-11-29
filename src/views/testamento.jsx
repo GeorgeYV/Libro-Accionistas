@@ -538,27 +538,27 @@ const handleChangeCantidad = (event, item) => {
           </BlaclTextTypography>
 
           <label htmlFor="upload-photo1">
-            <input style={{ display: 'none' }} id="upload-photo1" name="upload-photo1" type="file" onChange={onChangeCS} />
+            <input style={{ display: 'none' }} id="upload-photo1" name="upload-photo1" type="file" accept="application/pdf" onChange={onChangeCS} />
             <Button component="span" color="primary" size='small' style={{marginTop:20}}>Carta de Testamento</Button>
             {formData.cs.length > 0 && <IconButton ><CheckIcon /></IconButton>}
           </label>
           <label htmlFor="upload-photo2">
-            <input style={{ display: 'none' }} id="upload-photo2" name="upload-photo2" type="file" onChange={onChangeCG} />
+            <input style={{ display: 'none' }} id="upload-photo2" name="upload-photo2" type="file" accept="application/pdf" onChange={onChangeCG} />
             <Button component="span" color="primary" size='small' >Escritura de Testamento</Button>
             {formData.cg.length > 0 && <IconButton ><CheckIcon /></IconButton>}
           </label>
           <label htmlFor="upload-photo3">
-            <input style={{ display: 'none' }} id="upload-photo3" name="upload-photo3" type="file" onChange={onChangeCI} />
+            <input style={{ display: 'none' }} id="upload-photo3" name="upload-photo3" type="file" accept="application/pdf" onChange={onChangeCI} />
             <Button component="span" color="primary" size='small' >Pago de Impuestos</Button>
             {formData.ci.length > 0 && <IconButton ><CheckIcon /></IconButton>}
           </label>
           <label htmlFor="upload-photo4">
-            <input style={{ display: 'none' }} id="upload-photo4" name="upload-photo4" type="file" onChange={onChangeES} />
+            <input style={{ display: 'none' }} id="upload-photo4" name="upload-photo4" type="file" accept="application/pdf" onChange={onChangeES} />
             <Button component="span" color="primary" size='small' >Declaración Jurada</Button>
             {formData.es.length > 0 && <IconButton ><CheckIcon /></IconButton>}
           </label>
           <label htmlFor="upload-photo5">
-            <input style={{ display: 'none' }} id="upload-photo5" name="upload-photo5" type="file" onChange={onChangeCP} />
+            <input style={{ display: 'none' }} id="upload-photo5" name="upload-photo5" type="file" accept="application/pdf" onChange={onChangeCP} />
             <Button component="span" color="primary" size='small' >Poder</Button>
             {formData.cp.length > 0 && <IconButton ><CheckIcon /></IconButton>}
           </label>

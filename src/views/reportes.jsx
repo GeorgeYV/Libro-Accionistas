@@ -436,7 +436,7 @@ export default function Reportes() {
     const apiData2 = await API.graphql({ query: listHerederoPorOperacions, variables: { limit: 10000 }, });
     const operacionesFromAPI2 = apiData2.data.listHerederoPorOperacions.items;
     console.log("Operacionesfromapi2: ",operacionesFromAPI2);
-    
+    /*
     const apiData3 = await API.graphql({ query: listAccionistas });
     const listaAccionistas = apiData3.data.listAccionistas.items;
     const operacionesAccionistas = operacionesFromAPI.map(t1 => ({ ...t1, ...listaAccionistas.find(t2 => t2.decevale === t1.idCedente)}));
@@ -454,7 +454,7 @@ export default function Reportes() {
         cesionario: elt.cesionario,
       };
     });
-    console.log("operacionesAccionistas2: ",operacionesAccionistas2);
+    console.log("operacionesAccionistas2: ",operacionesAccionistas2);*/
 
     const posisionEfectiva = operacionesFromAPI2.map(t1 => ({ ...t1, ...operacionesFromAPI.find(t2 => t2.id === t1.operacionId) }))
     console.log("posisionEfectiva: ",posisionEfectiva);
