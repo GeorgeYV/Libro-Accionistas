@@ -454,7 +454,7 @@ export default function Reportes() {
         cesionario: elt.cesionario,
       };
     });
-    console.log("operacionesAccionistas: ",operacionesAccionistas2);
+    console.log("operacionesAccionistas2: ",operacionesAccionistas2);
 
     const posisionEfectiva = operacionesFromAPI2.map(t1 => ({ ...t1, ...operacionesFromAPI.find(t2 => t2.id === t1.operacionId) }))
     console.log("posisionEfectiva: ",posisionEfectiva);
@@ -822,7 +822,7 @@ export default function Reportes() {
               color="primary"
               style={{ height: '15%' }}
               className={classes.button}
-              startIcon={<VisibilityIcon />}
+              startIcon={<SaveIcon />}
               onClick={exportLibroAccionistas}
             >
               Descargar
@@ -867,7 +867,7 @@ export default function Reportes() {
               color="primary"
               style={{ height: '15%' }}
               className={classes.button}
-              startIcon={<VisibilityIcon />}
+              startIcon={<SaveIcon />}
               onClick={exportListadoAccionistas}
             >
               Descargar
@@ -913,7 +913,7 @@ export default function Reportes() {
               color="primary"
               style={{ height: '15%' }}
               className={classes.button}
-              startIcon={<VisibilityIcon />}
+              startIcon={<SaveIcon />}
               onClick={exportTransferencias}
             >
               Descargar
@@ -948,7 +948,7 @@ export default function Reportes() {
               color="primary"
               style={{ height: '15%' }}
               className={classes.button}
-              startIcon={<VisibilityIcon />}
+              startIcon={<SaveIcon />}
               onClick={exportDividendos}
             >
               Descargar
@@ -1013,7 +1013,7 @@ export default function Reportes() {
               color="primary"
               style={{ height: '15%' }}
               className={classes.button}
-              startIcon={<VisibilityIcon />}
+              startIcon={<SaveIcon />}
               onClick={exportOperaciones}
             >
               Descargar
