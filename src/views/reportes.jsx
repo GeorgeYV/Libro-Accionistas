@@ -136,7 +136,7 @@ export default function Reportes() {
 
   async function fetchPeriodosDividendos() {
     const apiData = await API.graphql({ query: listDividendosAccionistas});
-    const periodos = apiData.data.listDividendosAccionistas.items.map(function (elt) {
+    /*const periodos = apiData.data.listDividendosAccionistas.items.map(function (elt) {
       return { 
         periodo: elt.periodo
       }
@@ -148,7 +148,7 @@ export default function Reportes() {
     var unique = periodos.filter(onlyUnique);
     var unique2 = periodos.periodo.filter(onlyUnique);
     console.log("unique: ",unique);
-    console.log("unique2: ",unique2);
+    console.log("unique2: ",unique2);*/
     setPeriodosDividendos(apiData.data.listDividendosAccionistas.items);
   }
 
