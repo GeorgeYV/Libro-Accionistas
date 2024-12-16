@@ -1305,19 +1305,32 @@ export default function PersonaJuridica() {
                                 
                                 <div className={classes.formSection}>   
                                 <label htmlFor="upload-photo1">
-                                    <input style={{ display: 'none' }} id="upload-photo1" name="upload-photo1" type="file" onChange={onChangeDI} />
+                                    <input style={{ display: 'none' }} id="upload-photo1" name="upload-photo1" type="file" accept="application/pdf" onChange={onChangeDI} />
                                     <Button component="span" color="primary" size='small'>Nombramiento</Button>
                                     {formData.docIdentidadPrincipal.length > 0 && <CheckIcon />}
                                 </label>
                                 </div>  
                                 <div className={classes.formSection}>   
                                 <label htmlFor="upload-photo2">
-                                    <input style={{ display: 'none' }} id="upload-photo2" name="upload-photo2" type="file" onChange={onChangeCB} />
+                                    <input style={{ display: 'none' }} id="upload-photo2" name="upload-photo2" type="file" accept="application/pdf" onChange={onChangeCB} />
                                     <Button component="span" color="primary" size='small' >Certificado Bancario</Button>
                                     {formData.docCertificadoBancario.length > 0 && <CheckIcon />}
                                 </label>
                                 </div>  
-                                
+                                <div className={classes.formSection}>   
+                                <label htmlFor="upload-photo3">
+                                    <input style={{ display: 'none' }} id="upload-photo3" name="upload-photo3" type="file" accept="application/pdf" />
+                                    <Button component="span" color="primary" size='small'>Carta de actualización de datos</Button>
+                                    {formData.docIdentidadPrincipal.length > 0 && <CheckIcon />}
+                                </label>
+                                </div>  
+                                <div className={classes.formSection}>   
+                                <label htmlFor="upload-photo4">
+                                    <input style={{ display: 'none' }} id="upload-photo4" name="upload-photo4" type="file" accept="application/pdf" />
+                                    <Button component="span" color="primary" size='small' >Autorización para uso de datos</Button>
+                                    {formData.docCertificadoBancario.length > 0 && <CheckIcon />}
+                                </label>
+                                </div>  
                                 <div style={{marginTop: 10}}>
                                     <Typography variant='subtitle1' style={{color:"#000000"}}>Beneficiario</Typography>
                                 </div>  

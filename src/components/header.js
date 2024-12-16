@@ -343,9 +343,10 @@ export default function Header(props){
       open={openPerfil}
       onClose={handleClose}
     >
-      <MenuItem onClick={handleClose}>Mi perfil</MenuItem>
       <MenuItem >
-      <AmplifySignOut />
+      <AmplifySignOut 
+        buttonText={"Cerrar Sesión"}
+      />
       </MenuItem>
     </Menu>
 

@@ -136,10 +136,10 @@ export default function Reportes() {
 
   async function fetchPeriodosDividendos() {
     const apiData = await API.graphql({ query: listDividendosAccionistas});
-    /*const periodos = apiData.data.listDividendosAccionistas.items.map(function (elt) {
+    const periodos = apiData.data.listDividendosAccionistas.items.map(function (elt) {
       return { 
         periodo: elt.periodo
-      }
+      };
     });
     function onlyUnique(value, index, array) {
       return array.indexOf(value) === index;
@@ -148,7 +148,7 @@ export default function Reportes() {
     var unique = periodos.filter(onlyUnique);
     var unique2 = periodos.periodo.filter(onlyUnique);
     console.log("unique: ",unique);
-    console.log("unique2: ",unique2);*/
+    console.log("unique2: ",unique2);
     setPeriodosDividendos(apiData.data.listDividendosAccionistas.items);
   }
 
@@ -439,7 +439,7 @@ export default function Reportes() {
     const apiData3 = await API.graphql({ query: listAccionistas });
     const listaAccionistas = apiData3.data.listAccionistas.items;
     const operacionesAccionistas = operacionesFromAPI.map(t1 => ({ ...t1, ...listaAccionistas.find(t2 => t2.decevale === t1.idCedente)}));
-    /*const operacionesAccionistas2 = operacionesAccionistas.map(function (elt) {
+    const operacionesAccionistas2 = operacionesAccionistas.map(function (elt) {
       return { 
         id: elt.id,
         fecha: elt.fecha, 
@@ -452,8 +452,8 @@ export default function Reportes() {
         idCesionario: elt.idCesionario,
         cesionario: elt.cesionario,
       };
-    });*/
-    console.log("operacionesAccionistas: ",operacionesAccionistas);
+    });
+    console.log("operacionesAccionistas2: ",operacionesAccionistas2);
 
     const posisionEfectiva = operacionesFromAPI2.map(t1 => ({ ...t1, ...operacionesFromAPI.find(t2 => t2.id === t1.operacionId) }))
     console.log("posisionEfectiva: ",posisionEfectiva);

@@ -1552,7 +1552,7 @@ export default function Operaciones() {
                 <div>
                 {(estado == 'Rechazada' || estado == 'Aprobada') && !anular &&
                   <label htmlFor="icon-button-fileCS">
-                    <Input id="icon-button-fileCS" type="file" onChange={onChangeCS}/>
+                    <Input id="icon-button-fileCS" type="file" accept="application/pdf" onChange={onChangeCS}/>
                     <IconButton color="primary" aria-label="upload picture" component="span">
                       <EditIcon fontSize="small" color='secondary' />
                     </IconButton>
@@ -1568,7 +1568,7 @@ export default function Operaciones() {
                 <div>
                   {(estado == 'Rechazada' || estado == 'Aprobada') && !anular && 
                   <label htmlFor="icon-button-fileCG">
-                    <Input id="icon-button-fileCG" type="file" onChange={onChangeCG}/>
+                    <Input id="icon-button-fileCG" type="file" accept="application/pdf" onChange={onChangeCG}/>
                     <IconButton color="primary" aria-label="upload picture" component="span">
                       <EditIcon fontSize="small" color='secondary' />
                     </IconButton>
@@ -1586,7 +1586,7 @@ export default function Operaciones() {
                 <div>
                   {(estado == 'Rechazada' || estado == 'Aprobada') && !anular && 
                   <label htmlFor="icon-button-fileCI">
-                    <Input id="icon-button-fileCI" type="file" onChange={onChangeCI}/>
+                    <Input id="icon-button-fileCI" type="file" accept="application/pdf" onChange={onChangeCI}/>
                     <IconButton color="primary" aria-label="upload picture" component="span">
                       <EditIcon fontSize="small" color='secondary' />
                     </IconButton>
@@ -1602,7 +1602,7 @@ export default function Operaciones() {
                 <div>
                   {(estado == 'Rechazada' || estado == 'Aprobada') && !anular && 
                   <label htmlFor="icon-button-fileES">
-                    <Input id="icon-button-fileES" type="file" onChange={onChangeES}/>
+                    <Input id="icon-button-fileES" type="file" accept="application/pdf" onChange={onChangeES}/>
                     <IconButton color="primary" aria-label="upload picture" component="span">
                       <EditIcon fontSize="small" color='secondary' />
                     </IconButton>
@@ -1619,7 +1619,7 @@ export default function Operaciones() {
                 <div>
                   {(estado == 'Rechazada' || estado == 'Aprobada') && !anular && 
                   <label htmlFor="icon-button-fileCP">
-                    <Input id="icon-button-fileCP" type="file" onChange={onChangeCP}/>
+                    <Input id="icon-button-fileCP" type="file" accept="application/pdf" onChange={onChangeCP}/>
                     <IconButton color="primary" aria-label="upload picture" component="span">
                       <EditIcon fontSize="small" color='secondary' />
                     </IconButton>

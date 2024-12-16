@@ -27,11 +27,6 @@ import { uuid } from 'uuidv4';
 import { createDividendos, createDividendosAccionista, updateDividendos, updateDividendosAccionista } from '../graphql/mutations';
 import MuiAlert from '@material-ui/lab/Alert';
 
-import jsPDF from "jspdf";
-import "jspdf-autotable";
-
-import logo from '../images/logoUNACEMmedMarco.jpg';
-
 function Alert(props) {
   return <MuiAlert elevation={6} variant="filled" {...props} />;
 }
@@ -1247,58 +1242,6 @@ export default function Dividendos() {
 
   const classes = useStyles();
 
-  // Reportes
-  /*const exportPDFDetalleDividendo = async() => {
-    const unit = "pt";
-    const size = "A4"; // Use A1, A2, A3 or A4
-    //const orientation = "portrait"; // portrait or landscape
-    const orientation = "landscape"; // portrait or landscape
-
-    const marginLeft = 40;
-    const doc = new jsPDF(orientation, unit, size);
-
-    doc.setFontSize(12);
-
-    const filter = {
-        estado: {
-          //eq: estadoLibro == "1" ? "Activo" : estadoLibro == "2" ? "Bloqueado" : estadoLibro == "3" ? "Inactivo" : null
-          ne: "Inactivo"
-        },
-      }      
-    const apiData = await API.graphql({ query: listAccionistas, variables: { filter: filter, limit: 10000} });
-    const accionistasFromAPI = apiData.data.listAccionistas.items;
-
-    //calcular participacion
-    //calcular valor (Q*P)
-    const libroAccionista = accionistasFromAPI.map(function(elt) {
-        return {identificacion : elt.identificacion, nombre : elt.nombre, paisNacionalidad: elt.paisNacionalidad, cantidadAcciones : elt.cantidadAcciones, tipoAcciones : elt.tipoAcciones, tipoPersona : elt.tipoPersona, participacion : elt.cantidadAcciones * 100.00 / 42930108.00, valor : elt.cantidadAcciones * 40.00 };
-      })
-   
-    const totalAccionistas = Object.keys(accionistasFromAPI).length;
-    const totalAcciones = accionistasFromAPI.reduce((a, b) => a + (b["cantidadAcciones"] || 0), 0)
-
-    var val = Math.round(Number(totalAcciones) *100) / 100;
-    var parts = val.toString().split(".");
-    var num = parts[0].replace(/\B(?=(\d{3})+(?!\d))/g, ",") + (parts[1] ? "." + parts[1] : "");
-
-    const title = "Libro de Accionistas";
-    const headers = [["Identificacion", "Nombre", "Nacionalidad", "Acciones","Tipo","Persona","Participación","Valor"]];
-
-    const data = libroAccionista.map(elt=> [elt.identificacion, elt.nombre, elt.paisNacionalidad, elt.cantidadAcciones,elt.tipoAcciones,elt.tipoPersona, elt.participacion, elt.valor]);
-
-    let content = {
-      theme: 'plain',
-      startY: 50,
-      head: headers,
-      body: data
-    };
-
-    doc.addImage(logo,"JPEG",700,20,80,30)
-    doc.text(title, marginLeft, 40);
-    doc.autoTable(content);
-
-    doc.save("LibroAccionistas.pdf")
-  }*/
   return (
 
     <main className={classes.content}>
