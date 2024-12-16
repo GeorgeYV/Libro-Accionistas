@@ -146,9 +146,7 @@ export default function Reportes() {
     }
     console.log("periodos: ",periodos);
     var unique = periodos.filter(onlyUnique);
-    var unique2 = periodos.periodo.filter(onlyUnique);
     console.log("unique: ",unique);
-    console.log("unique2: ",unique2);
     setPeriodosDividendos(apiData.data.listDividendosAccionistas.items);
   }
 
