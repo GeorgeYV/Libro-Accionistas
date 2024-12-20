@@ -7,7 +7,6 @@ import ShoppingCartIcon from '@material-ui/icons/ShoppingCart';
 import PeopleIcon from '@material-ui/icons/People';
 import BarChartIcon from '@material-ui/icons/BarChart';
 import LayersIcon from '@material-ui/icons/Layers';
-import DescriptionIcon from '@material-ui/icons/Description';
 
 export const mainListItems = (
   <div>
