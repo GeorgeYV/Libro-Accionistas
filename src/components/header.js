@@ -72,7 +72,7 @@ const useStyles = makeStyles((theme) => ({
 const theme = createTheme({
   palette: {
     primary: {
-      main: 'ff4545',
+      main: '#ff4545',
     },
     secondary: {
       main: '#818181',
