@@ -293,28 +293,27 @@ export default function Parametros(){
              } catch (err) {
             console.log('error creating transaction:', err)
         }   
-      }
+    }
     
-      const handleCloseSnack = (event, reason) => {
-        if (reason === 'clickaway') {
-          return;
-        }
-        setOpenSnack(false);
-      };
+    const handleCloseSnack = (event, reason) => {
+    if (reason === 'clickaway') {
+        return;
+    }
+    setOpenSnack(false);
+    };
       
 
-      async function onChangeCartaCesion(e) {
+    async function onChangeCartaCesion(e) {
         if (!e.target.files[0]){
           console.log('entro al cancelar')
           return
         }
         const file = e.target.files[0];
-        //const filename = file.name + uuid();
         const filename = uuid() + file.name ;
         setCartaCesion({ filename });
         console.log('entro al carta cesion', cartaCesion)
         await Storage.put(filename, file);
-        }
+    }
 
     async function onChangeCartaGerente(e) {
         if (!e.target.files[0]){
@@ -322,10 +321,10 @@ export default function Parametros(){
             return
         }
         const file = e.target.files[0];
-        const filename = file.name + uuid();
+        const filename = uuid() + file.name;
         setCartaGerente({ filename });
         await Storage.put(filename, file);
-        }
+    }
 
     async function onChangeCartaInstrucciones(e) {
         if (!e.target.files[0]){
@@ -333,11 +332,21 @@ export default function Parametros(){
             return
         }
         const file = e.target.files[0];
-        const filename = file.name + uuid();
+        const filename = uuid() + file.name;
         setCartaInstrucciones({ filename });
         await Storage.put(filename, file);
-        }
+    }
                     
+    async function onChangeSolicitudDividendos(e) {
+        if (!e.target.files[0]){
+            console.log('entro al cancelar')
+            return
+        }
+        const file = e.target.files[0];
+        const filename = uuid() + file.name;
+        setCartaInstrucciones({ filename });
+        await Storage.put(filename, file);
+    }
 
 return(
     <main className={classes.content}>
@@ -379,7 +388,7 @@ return(
                         onChange={handleRetencionMinimaChange}
                         style={{marginRight:20}}
                         type="number"
-                    />                                         
+                    />
                     <TextField
                         id="outlined-required4"
                         label="Máxima Retención (%)"
@@ -387,22 +396,26 @@ return(
                         onChange={handleRetencionMaximaChange}
                         style={{marginRight:20}}
                         type="number"
-                    />                                         
+                    />
                 </Grid>  
 
                 <Grid item xs={12} style={{display:'flex', flexDirection:'row', alignItems:'flex-start', justifyContent:'normal', marginTop:'50px'}}>
                     <Typography variant="body2">Modelos de Cartas</Typography>
                     <label htmlFor="upload-photo101">
-                        <input style={{ display: 'none' }} id="upload-photo101" name="upload-photo101" type="file" onChange={onChangeCartaCesion} />
-                        <Button startIcon={<CloudUploadOutlinedIcon />} variant='outlined' component="span" color="primary" size='small' style={{textTransform: 'none',marginLeft:10}}>Carta de Cesión</Button>                                         
+                        <input style={{ display: 'none' }} id="upload-photo101" name="upload-photo101" type="file" accept='.doc,.docx,.xml,application/msword,application/vnd.openxmlformats-officedocument.wordprocessingml.document' onChange={onChangeCartaCesion} />
+                        <Button startIcon={<CloudUploadOutlinedIcon />} variant='outlined' component="span" color="primary" size='small' style={{textTransform: 'none',marginLeft:10}}>Carta de Cesión</Button>
                     </label>
                     <label htmlFor="upload-photo102">
-                        <input style={{ display: 'none' }} id="upload-photo102" name="upload-photo102" type="file" onChange={onChangeCartaGerente} />
-                        <Button startIcon={<CloudUploadOutlinedIcon />} variant='outlined' component="span" color="primary" size='small' style={{textTransform: 'none',marginLeft:10}}>Carta de Gerente</Button>                                         
+                        <input style={{ display: 'none' }} id="upload-photo102" name="upload-photo102" type="file" accept='.doc,.docx,.xml,application/msword,application/vnd.openxmlformats-officedocument.wordprocessingml.document' onChange={onChangeCartaGerente} />
+                        <Button startIcon={<CloudUploadOutlinedIcon />} variant='outlined' component="span" color="primary" size='small' style={{textTransform: 'none',marginLeft:10}}>Carta de Gerente</Button>
                     </label>
                     <label htmlFor="upload-photo103">
-                        <input style={{ display: 'none' }} id="upload-photo103" name="upload-photo103" type="file" onChange={onChangeCartaInstrucciones} />
-                        <Button startIcon={<CloudUploadOutlinedIcon />} variant='outlined' component="span" color="primary" size='small' style={{textTransform: 'none',marginLeft:10}}>Carta de Instrucciones</Button>                                         
+                        <input style={{ display: 'none' }} id="upload-photo103" name="upload-photo103" type="file" accept='.doc,.docx,.xml,application/msword,application/vnd.openxmlformats-officedocument.wordprocessingml.document' onChange={onChangeCartaInstrucciones} />
+                        <Button startIcon={<CloudUploadOutlinedIcon />} variant='outlined' component="span" color="primary" size='small' style={{textTransform: 'none',marginLeft:10}}>Carta de Instrucciones</Button>
+                    </label>
+                    <label htmlFor="upload-photo104">
+                        <input style={{ display: 'none' }} id="upload-photo104" name="upload-photo104" type="file" accept='.doc,.docx,.xml,application/msword,application/vnd.openxmlformats-officedocument.wordprocessingml.document' onChange={onChangeSolicitudDividendos} />
+                        <Button startIcon={<CloudUploadOutlinedIcon />} variant='outlined' component="span" color="primary" size='small' style={{textTransform: 'none',marginLeft:10}}>Solicitud de dividendos</Button>
                     </label>
                 </Grid>  
 
@@ -418,7 +431,7 @@ return(
                         label="Residencia Fiscal"
                         value={'Ecuador'}
                         style={{marginRight:20}}
-                    />                                            
+                    />   
                     <FormControl style={{width:'180px'}}>
                         <InputLabel id="demo-simple-select-label">Retención Asignada</InputLabel>
                         <Select
@@ -447,7 +460,7 @@ return(
                         //label="Residencia Fiscal"
                         value={'No Paraíso Fiscal'}
                         style={{marginRight:20}}
-                    />                                         
+                    />
                     <FormControl style={{width:'180px'}}>
                         <Select
                         labelId="demo-simple-select-label"
@@ -475,7 +488,7 @@ return(
                         //label="Residencia Fiscal"
                         value={'Paraíso Fiscal'}
                         style={{marginRight:20}}
-                    />                                         
+                    />
                     <FormControl style={{width:'180px'}}>
                         <Select
                         labelId="demo-simple-select-label"
@@ -504,7 +517,7 @@ return(
                         label="Residencia Fiscal"
                         value={'Ecuador'}
                         style={{marginRight:20}}
-                    />                                         
+                    />
                     <TextField
                         id="outlined-required4"
                         label="Residencia Beneficiario"
@@ -539,7 +552,7 @@ return(
                         //label="Residencia Fiscal"
                         value={'Ecuador'}
                         style={{marginRight:20}}
-                    />                                         
+                    />
                     <TextField
                         id="outlined-required4"
                         //label="Residencia Beneficiario"
@@ -573,7 +586,7 @@ return(
                         //label="Residencia Fiscal"
                         value={'Ecuador'}
                         style={{marginRight:20}}
-                    />                                         
+                    />
                     <TextField
                         id="outlined-required4"
                         //label="Residencia Beneficiario"
@@ -607,7 +620,7 @@ return(
                         //label="Residencia Fiscal"
                         value={'Paraíso Fiscal'}
                         style={{marginRight:20}}
-                    />                                         
+                    />
                     <TextField
                         id="outlined-required4"
                         //label="Residencia Beneficiario"
@@ -641,7 +654,7 @@ return(
                         //label="Residencia Fiscal"
                         value={'Paraíso Fiscal'}
                         style={{marginRight:20}}
-                    />                                         
+                    />
                     <TextField
                         id="outlined-required4"
                         //label="Residencia Beneficiario"
@@ -675,7 +688,7 @@ return(
                         //label="Residencia Fiscal"
                         value={'Paraíso Fiscal'}
                         style={{marginRight:20}}
-                    />                                         
+                    />
                     <TextField
                         id="outlined-required4"
                         //label="Residencia Beneficiario"
@@ -709,7 +722,7 @@ return(
                         //label="Residencia Fiscal"
                         value={'No Paraíso Fiscal'}
                         style={{marginRight:20}}
-                    />                                         
+                    />
                     <TextField
                         id="outlined-required4"
                         //label="Residencia Beneficiario"
@@ -743,7 +756,7 @@ return(
                         //label="Residencia Fiscal"
                         value={'No Paraíso Fiscal'}
                         style={{marginRight:20}}
-                    />                                         
+                    />
                     <TextField
                         id="outlined-required4"
                         //label="Residencia Beneficiario"
@@ -777,7 +790,7 @@ return(
                         //label="Residencia Fiscal"
                         value={'No Paraíso Fiscal'}
                         style={{marginRight:20}}
-                    />                                         
+                    />
                     <TextField
                         id="outlined-required4"
                         //label="Residencia Beneficiario"
@@ -832,7 +845,7 @@ return(
                         onChange={handleRFE1Change}
                         style={{marginRight:20}}
                         type="number"
-                    />                                         
+                    />
                 </Grid>  
 
                 <Grid item xs={12} style={{display:'flex', flexDirection:'row', alignItems:'flex-start', justifyContent:'normal', marginTop:'50px'}}>
@@ -867,7 +880,7 @@ return(
                         onChange={handleRFE2Change}
                         style={{marginRight:20}}
                         type="number"
-                    />                                         
+                    />
                 </Grid>  
 
                 <Grid item xs={12} style={{display:'flex', flexDirection:'row', alignItems:'flex-start', justifyContent:'normal', marginTop:'50px'}}>
@@ -902,7 +915,7 @@ return(
                         onChange={handleRFE3Change}
                         style={{marginRight:20}}
                         type="number"
-                    />                                         
+                    />
                 </Grid>  
 
                 <Grid item xs={12} style={{display:'flex', flexDirection:'row', alignItems:'flex-start', justifyContent:'normal', marginTop:'50px'}}>
@@ -937,7 +950,7 @@ return(
                         onChange={handleRFE4Change}
                         style={{marginRight:20}}
                         type="number"
-                    />                                         
+                    />
                 </Grid>  
 
                 <Grid item xs={12} style={{display:'flex', flexDirection:'row', alignItems:'flex-start', justifyContent:'normal', marginTop:'50px'}}>
@@ -972,7 +985,7 @@ return(
                         onChange={handleRFE5Change}
                         style={{marginRight:20}}
                         type="number"
-                    />                                         
+                    />
                 </Grid>  
 
                 <Grid item xs={12} style={{display:'flex', flexDirection:'row', alignItems:'flex-start', justifyContent:'normal', marginTop:'50px'}}>
@@ -1007,7 +1020,7 @@ return(
                         onChange={handleRFE6Change}
                         style={{marginRight:20}}
                         type="number"
-                    />                                         
+                    />
                 </Grid>  
 
 

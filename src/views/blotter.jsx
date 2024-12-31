@@ -226,7 +226,6 @@ export default function Operaciones() {
 
   ];
 
-
   const motivoRechazo = [
     {
       label: "Falta documentación",
@@ -241,16 +240,12 @@ export default function Operaciones() {
       value: "3",
     },
     {
-      label: "Falta de Habilitantes",
+      label: "Error en acciones",
       value: "4",
     },
     {
-      label: "Operación Duplicada",
+      label: "Error en valor",
       value: "5",
-    },
-    {
-      label: "Accionista no hábil",
-      value: "6",
     },
   ];
 

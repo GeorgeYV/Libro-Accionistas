@@ -15,6 +15,8 @@ import LockOpenOutlinedIcon from '@material-ui/icons/LockOpenOutlined';
 import PersonAddOutlinedIcon from '@material-ui/icons/PersonAddOutlined';
 import BusinessOutlinedIcon from '@material-ui/icons/BusinessOutlined';
 import FunctionsIcon from '@material-ui/icons/Functions';
+import { createTheme } from '@material-ui/core/styles';
+import { ThemeProvider } from '@material-ui/styles';
 
 import { Auth } from 'aws-amplify';
 import { AmplifySignOut } from '@aws-amplify/ui-react';
@@ -67,6 +69,16 @@ const useStyles = makeStyles((theme) => ({
   }
 }));
 
+const theme = createTheme({
+  palette: {
+    primary: {
+      main: 'ff4545',
+    },
+    secondary: {
+      main: '#818181',
+    },
+  },
+});
 
 export default function Header(props) {
 
@@ -122,12 +134,9 @@ export default function Header(props) {
     setPerfil(Auth.user ? Auth.user.signInUserSession.accessToken.payload['cognito:groups'][0] : "");
   }, [userName]);
 
-
-
   return (
-
+    <ThemeProvider theme={theme}>
     <div className={classes.root}>
-
       <AppBar position="absolute" className={clsx(classes.appBar, props.open && classes.appBarShift)}>
         <Toolbar className={classes.toolBar}>
           {perfil != "Accionista" &&
@@ -169,7 +178,7 @@ export default function Header(props) {
                 onClick={() => history.push('/cesion')}
                 style={{ textTransform: 'none' }}
               >
-                +  Cesión
+                + Cesión
               </Button>
             }
 
@@ -309,6 +318,7 @@ export default function Header(props) {
         </Toolbar>
       </AppBar>
     </div>
+    </ThemeProvider>
   )
 }
 
