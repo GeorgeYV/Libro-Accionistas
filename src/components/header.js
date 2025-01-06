@@ -15,8 +15,6 @@ import LockOpenOutlinedIcon from '@material-ui/icons/LockOpenOutlined';
 import PersonAddOutlinedIcon from '@material-ui/icons/PersonAddOutlined';
 import BusinessOutlinedIcon from '@material-ui/icons/BusinessOutlined';
 import FunctionsIcon from '@material-ui/icons/Functions';
-import { createTheme } from '@material-ui/core/styles';
-import { ThemeProvider } from '@material-ui/styles';
 
 import { Auth } from 'aws-amplify';
 import { AmplifySignOut } from '@aws-amplify/ui-react';
@@ -68,17 +66,6 @@ const useStyles = makeStyles((theme) => ({
     borderRadius: 20,
   }
 }));
-
-const theme = createTheme({
-  palette: {
-    primary: {
-      main: '#ff4545',
-    },
-    secondary: {
-      main: '#818181',
-    },
-  },
-});
 
 export default function Header(props) {
 
@@ -135,7 +122,6 @@ export default function Header(props) {
   }, [userName]);
 
   return (
-    <ThemeProvider theme={theme}>
     <div className={classes.root}>
       <AppBar position="absolute" className={clsx(classes.appBar, props.open && classes.appBarShift)}>
         <Toolbar className={classes.toolBar}>
@@ -183,7 +169,7 @@ export default function Header(props) {
             }
 
             {perfil != "Accionista" &&
-              <Button aria-controls="menu-operaciones" aria-haspopup="true" onClick={handleClickOperaciones} color='primary' size='small' style={{ textTransform: 'none' }}>
+              <Button aria-controls="menu-operaciones" aria-haspopup="true" onClick={handleClickOperaciones} color='secondary' size='small' style={{ textTransform: 'none' }}>
                 +  Operaciones
               </Button>
             }
@@ -254,7 +240,7 @@ export default function Header(props) {
             </Menu>
 
             {perfil != "Accionista" &&
-              <Button aria-controls="menu-accionista" aria-haspopup="true" onClick={handleClickAccionistas} color='primary' size='small' style={{ textTransform: 'none' }}>
+              <Button aria-controls="menu-accionista" aria-haspopup="true" onClick={handleClickAccionistas} color='secondary' size='small' style={{ textTransform: 'none' }}>
                 +  Accionista
               </Button>
             }
@@ -312,13 +298,12 @@ export default function Header(props) {
             </Menu>
 
             {perfil != "Accionista" &&
-              <div><Typography color='primary'> <small> {userName} </small> </Typography></div>
+              <div><Typography color='secondary'> <small> {userName} </small> </Typography></div>
             }
           </div>
         </Toolbar>
       </AppBar>
     </div>
-    </ThemeProvider>
   )
 }
 

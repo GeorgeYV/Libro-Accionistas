@@ -5,8 +5,6 @@ import {BrowserRouter} from "react-router-dom"
 
 
 import { createTheme,ThemeProvider } from '@material-ui/core/styles';
-import cyan from '@material-ui/core/colors/cyan';
-import orange from '@material-ui/core/colors/orange';
 import CssBaseline from "@material-ui/core/CssBaseline";
 
 import Amplify from 'aws-amplify';
@@ -17,15 +15,13 @@ Amplify.configure(config);
 const myTheme = createTheme({
   palette: {
     primary: {
-      main: cyan[500],
-      contrastText: '#fff',
-    },    
+      main: '#ed5761',
+    },
     secondary: {
-      main: orange[300],
-    }, 
+      main: '#404b62',
+    },
     background: {
       default: '#f9f9f9',
-
     }
   },
   typography: {
@@ -37,9 +33,9 @@ const myTheme = createTheme({
 ReactDOM.render(
   <React.StrictMode>
     <ThemeProvider theme={myTheme}>
-      <CssBaseline />
+      <CssBaseline/>
       <BrowserRouter>
-        <App />
+        <App/>
       </BrowserRouter>
     </ThemeProvider>
   </React.StrictMode>,
