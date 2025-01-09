@@ -11,7 +11,6 @@ import Amplify from 'aws-amplify';
 import config from './aws-exports';
 Amplify.configure(config);
 
-
 const myTheme = createTheme({
   palette: {
     primary: {
@@ -28,7 +27,6 @@ const myTheme = createTheme({
     fontSize: 12,
   },
 });
-
 
 ReactDOM.render(
   <React.StrictMode>

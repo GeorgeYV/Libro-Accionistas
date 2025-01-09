@@ -15,7 +15,6 @@ import QRcode from 'qrcode.react'
 
 import logo from '../images/logoUNACEMmedMarco.jpg';
 import fondo from '../images/Cert1.jpg';
-//import QRcode from '../images/QRcode.png';
 import marco from '../images/Recurso 1.png'
 import fondoUnacem from '../images/Recurso 2.png'
 import logoSolo from '../images/Recurso 3.png'
@@ -889,7 +888,6 @@ export default function Accionistadashboard() {
     doc.addImage(fondoUnacem, "JPEG", 90, 90, 663, 413)
     doc.addImage(logoSolo, "JPEG", 420, 120, 30, 30)
 
-    //doc.addImage(QRcode,"PNG",95,430,80,80)
     doc.addImage(base64Image, "png", 95, 430, 80, 80)
     doc.addImage(logoCompleto, "PNG", 590, 450, 150, 50)
 
@@ -962,37 +960,15 @@ export default function Accionistadashboard() {
             const texto9 = "https://main.d1uap272r7bnzf.amplifyapp.com/"
             doc.text(texto9, 195, 500);            
     */
-
-
     const texto7 = "Fuente de Información Plataforma de Accionistas Unacem"
     doc.text(texto7, 195, 460);
-
     const texto8 = "https://main.d1uap272r7bnzf.amplifyapp.com/"
     doc.text(texto8, 195, 470);
-
     const texto9 = "El código QR lo direccionará a la página de verificación";
     doc.text(texto9, 195, 490);
-
-    //const texto10 = "prueba";
     const texto10 = data[0].hash;
     doc.text(texto10, 195, 500);
-
-
-
-    //        doc.autoTable(content);
-
-    /*
-            doc.addPage("A4","l");
-            doc.text("Total accionistas :     " + totalAccionistas.toString(), marginLeft, 50);
-            doc.text("Total acciones    :     " + num.toString(), marginLeft, 80);
-    */
-
-    doc.save("CertificadoAccionistas.pdf")
-
-    //const pdf = new File([doc.output("blob")], "filename.pdf", {  type: "pdf" }),
-    //data = new FormData();      
-    //data.append("file", pdf);        
-
+    doc.save("CertificadoAccionistas.pdf")   
   }
 
   function numberWithCommas(x) {
