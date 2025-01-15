@@ -21,6 +21,7 @@ import PageviewIcon from '@material-ui/icons/Pageview';
 import DevicesOutlinedIcon from '@material-ui/icons/DevicesOutlined';
 import DescriptionOutlinedIcon from '@material-ui/icons/DescriptionOutlined';
 import CheckIcon from '@material-ui/icons/Check';
+import PrintIcon from '@material-ui/icons/Print';
 
 import BorderAllIcon from '@material-ui/icons/BorderAll';
 import ViewColumnIcon from '@material-ui/icons/ViewColumn';

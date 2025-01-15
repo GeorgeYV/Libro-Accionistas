@@ -3,8 +3,7 @@ import { API, Storage, Auth, graphqlOperation } from 'aws-amplify';
 
 import { makeStyles } from '@material-ui/core/styles';
 import { createTheme } from '@material-ui/core/styles';
-import { Link } from "react-router-dom";
-import { listAsambleas, listDividendos, listAccionistas, listAccionistasxJuntas, listOperaciones, getParametro, listHerederos, listSolicitudes } from '../graphql/queries';
+import { listAsambleas, listDividendos, listAccionistas, listAccionistasxJuntas, getParametro, listSolicitudes } from '../graphql/queries';
 import { createAccionistasxJunta, updateAsamblea, updateAccionistasxJunta, createSolicitudes } from '../graphql/mutations';
 
 import { DataGrid } from '@mui/x-data-grid';
@@ -35,9 +34,8 @@ import CloudDownloadIcon from '@material-ui/icons/CloudDownload';
 import Grid from '@material-ui/core/Grid';
 
 import {
-  Card, CardContent, Typography, Button, ListItem, ListItemText, ListSubheader, List, Tooltip, Chip,
-  FormControl, RadioGroup, FormControlLabel, Radio, Box, Tabs, Tab, Snackbar,
-  Dialog, DialogActions, DialogContent, DialogContentText, DialogTitle, ListItemIcon,
+  Card, CardContent, Typography, Button, Box, Snackbar,
+  Dialog, DialogActions, DialogContent, DialogTitle
 } from '@material-ui/core';
 
 import { uuid } from 'uuidv4';
