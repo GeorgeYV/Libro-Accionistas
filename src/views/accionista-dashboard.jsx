@@ -7,14 +7,12 @@ import { Link } from "react-router-dom";
 import { listAsambleas, listDividendos, listAccionistas, listAccionistasxJuntas, listOperaciones, getParametro, listHerederos, listSolicitudes } from '../graphql/queries';
 import { createAccionistasxJunta, updateAsamblea, updateAccionistasxJunta, createSolicitudes } from '../graphql/mutations';
 
-import { DataGrid, GridToolbarContainer, GridToolbarExport } from '@mui/x-data-grid';
+import { DataGrid } from '@mui/x-data-grid';
 
 import jsPDF from "jspdf";
 import "jspdf-autotable";
 import QRcode from 'qrcode.react'
 
-import logo from '../images/logoUNACEMmedMarco.jpg';
-import fondo from '../images/Cert1.jpg';
 import marco from '../images/Recurso 1.png'
 import fondoUnacem from '../images/Recurso 2.png'
 import logoSolo from '../images/Recurso 3.png'
@@ -26,24 +24,12 @@ import IconButton from '@material-ui/core/IconButton';
 import TextField from '@material-ui/core/TextField';
 
 import HowToRegIcon from '@material-ui/icons/HowToReg';
-//import ThumbUpOffAltIcon from '@material-ui/icons/ThumbUpOffAlt';
 import ThumbUpAltIcon from '@material-ui/icons/ThumbUpAlt';
 import CloudUploadOutlinedIcon from '@material-ui/icons/CloudUploadOutlined';
 import PrintIcon from '@material-ui/icons/Print';
 
 import ClearIcon from '@material-ui/icons/Clear';
 import SearchIcon from '@material-ui/icons/Search';
-import PageviewIcon from '@material-ui/icons/Pageview';
-import GroupOutlinedIcon from '@material-ui/icons/GroupOutlined';
-import FaceOutlinedIcon from '@material-ui/icons/FaceOutlined';
-import NotInterestedOutlinedIcon from '@material-ui/icons/NotInterestedOutlined';
-import DevicesOutlinedIcon from '@material-ui/icons/DevicesOutlined';
-import DescriptionOutlinedIcon from '@material-ui/icons/DescriptionOutlined';
-import EditIcon from '@material-ui/icons/Edit';
-import CheckIcon from '@material-ui/icons/Check';
-import FiberNewOutlined from '@material-ui/icons/FiberNewOutlined';
-
-import PanToolIcon from '@material-ui/icons/PanTool';
 import CloudDownloadIcon from '@material-ui/icons/CloudDownload';
 
 import Grid from '@material-ui/core/Grid';
@@ -932,7 +918,6 @@ export default function Accionistadashboard() {
     doc.setLineWidth(0.5);
     doc.line(250, 382, 590, 382);
 
-    //const texto5 = "Expedido el 08 de Junio del 2022" ;
     const months = ["ENERO", "FEBRERO", "MARZO", "ABRIL", "MAYO", "JUNIO", "JULIO", "AGOSTO", "SEPTIEMBRE", "OCTUBRE", "NOVIEMBRE", "DICIEMBRE"];
 
     const d = new Date();
@@ -950,19 +935,10 @@ export default function Accionistadashboard() {
     doc.setFont("helvetica", "normal");
     doc.setFontSize(8);
     doc.setTextColor(150);
-    /*
-            const texto7 = data[0].hash;
-            doc.text(texto7,195, 480);            
-            
-            const texto8 = "Fuente de Información plataforma de accionistas Unacem"
-            doc.text(texto8, 195, 490);            
-    
-            const texto9 = "https://main.d1uap272r7bnzf.amplifyapp.com/"
-            doc.text(texto9, 195, 500);            
-    */
+
     const texto7 = "Fuente de Información Plataforma de Accionistas Unacem"
     doc.text(texto7, 195, 460);
-    const texto8 = "https://main.d1uap272r7bnzf.amplifyapp.com/"
+    const texto8 = "https://develop.d1uap272r7bnzf.amplifyapp.com/"
     doc.text(texto8, 195, 470);
     const texto9 = "El código QR lo direccionará a la página de verificación";
     doc.text(texto9, 195, 490);

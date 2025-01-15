@@ -179,7 +179,7 @@ export default function Parametros() {
         setCartaCesion(parametrosFromAPI.modeloCartaCesion);
         setCartaGerente(parametrosFromAPI.modeloCartaGerente);
         setCartaInstrucciones(parametrosFromAPI.modeloCartaInstrucciones);
-        setSolicitudDividendos(parametrosFromAPI.modeloSolicitudDividendos)
+        setSolicitudDividendos(parametrosFromAPI.modeloSolicitudDividendos);
 
         setFB1(parametrosFromAPI.IGdesde1);
         setFB2(parametrosFromAPI.IGdesde2);
