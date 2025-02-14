@@ -657,6 +657,7 @@ export default function Dividendos() {
     const dividendosRelacionados = apiData2.data.listDetalleDividendos.items.map(function (e) {
       aux = apiData.data.listDividendoNuevos.items.find(({ id }) => id === e.dividendoID);
       return {
+        id: e.id,
         ddiv_usuario: e.ddiv_usuario,
         ddiv_secuencial: e.ddiv_secuencial,
         ddiv_fecha_junta: e.ddiv_fecha_junta,
