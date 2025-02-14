@@ -298,9 +298,8 @@ export default function Dividendos() {
       width: 100,
     },
     {
-      field: 'secuencial',
+      field: 'ddiv_secuencial',
       headerName: 'Secuencial',
-      width: 60,
     },
     {
       field: 'div_concepto',
@@ -326,26 +325,23 @@ export default function Dividendos() {
       width: 120,
     },
     {
-      field: 'fechaCorte',
+      field: 'ddiv_fecha_pago',
       headerName: 'Pago',
       width: 90,
     },
     {
-      field: 'fechaPago',
+      field: 'ddiv_fecha_junta',
       headerName: 'Junta',
       width: 90,
     },
     {
-      field: 'saldoDividendo',
+      field: 'ddiv_dividendo',
       headerName: 'Saldo Div',
       type: 'number',
       width: 120,
     },
-
     {
-      //field: "Quorum",
       field: "Detalle",
-      width: 120,
       renderCell: (cellValues) => {
 
         //setPeriodoSeleccionado(cellValues.row);
@@ -670,11 +666,11 @@ export default function Dividendos() {
         ddiv_titulos: e.ddiv_titulos,
         ddiv_dividendo: e.ddiv_dividendo,
         dividendoID: e.dividendoID,
-        div_periodo: "aux.div_periodo",
-        div_concepto: "aux.div_concepto",
-        div_dividendo: "aux.div_dividendo",
-        div_porcentaje: "aux.div_porcentaje",
-        div_repartido: "aux.div_repartido",
+        div_periodo: aux.div_periodo,
+        div_concepto: aux.div_concepto,
+        div_dividendo: aux.div_dividendo,
+        div_porcentaje: aux.div_porcentaje,
+        div_repartido: aux.div_repartido,
       };
     })
     console.log("dividendosRelacionados: ",dividendosRelacionados);
@@ -699,22 +695,6 @@ export default function Dividendos() {
     //console.log("FILTRO", filter, row.fechaCorte);
     const apiData3 = await API.graphql({ query: listAccionistaArchives, variables: { filter: filter, limit: 20000 } });
     let accionistasFromAPI3 = apiData3.data.listAccionistaArchives.items;
-
-    let nexttoken4 = null
-    if (apiData3.data.listAccionistaArchives.nextToken != null) {
-      const apiData4 = await API.graphql({ query: listAccionistaArchives, variables: { filter: filter, limit: 20000, nextToken: apiData3.data.listAccionistaArchives.nextToken } });
-      const accionistasFromAPI4 = apiData4.data.listAccionistaArchives.items;
-      accionistasFromAPI3 = accionistasFromAPI3.concat(accionistasFromAPI4);
-      if (apiData4.data.listAccionistaArchives.nextToken != null) nexttoken4 = apiData4.data.listAccionistaArchives.nextToken
-    }
-
-    if (nexttoken4 != null) {
-      const apiData5 = await API.graphql({ query: listAccionistaArchives, variables: { filter: filter, limit: 20000, nextToken: nexttoken4 } });
-      const accionistasFromAPI5 = apiData5.data.listAccionistaArchives.items;
-      accionistasFromAPI3 = accionistasFromAPI3.concat(accionistasFromAPI5);
-    }
-
-
     let numero2 = 1;
     let nombre_aux2 = '';
     let cantidadTotal = 0;
@@ -748,10 +728,10 @@ export default function Dividendos() {
         decevale: e.decevale,
         idDividendo: row.id,
         periodo: row.periodo,
-        dividendo: (row.dividendoRepartir * ((e.cantidadAcciones / cantidadTotal) * 100.00).toFixed(16) / 100.00).toFixed(2),
-        baseImponible: (baseImponible * (row.dividendoRepartir * ((e.cantidadAcciones / cantidadTotal) * 100.00).toFixed(16) / 100.00).toFixed(2) / 100.00).toFixed(2),
-        retencion: getRetencion1((baseImponible * (row.dividendoRepartir * ((e.cantidadAcciones / cantidadTotal) * 100.00).toFixed(16) / 100.00).toFixed(2) / 100.00).toFixed(2), e.tipoPersona, e.direccionPais, e.direccionPaisBeneficiario1 == null ? 'Ecuador' : e.direccionPaisBeneficiario1),
-        dividendoRecibido: ((row.dividendoRepartir * ((e.cantidadAcciones / cantidadTotal) * 100.00).toFixed(16) / 100.00).toFixed(2) - getRetencion1((baseImponible * (row.dividendoRepartir * ((e.cantidadAcciones / cantidadTotal) * 100.00).toFixed(16) / 100.00).toFixed(2) / 100.00).toFixed(2), e.tipoPersona, e.direccionPais, e.direccionPaisBeneficiario1 == null ? 'Ecuador' : e.direccionPaisBeneficiario1)).toFixed(2),
+        dividendo: (row.div_repartido * ((e.cantidadAcciones / cantidadTotal) * 100.00).toFixed(16) / 100.00).toFixed(2),
+        baseImponible: (baseImponible * (row.div_repartido * ((e.cantidadAcciones / cantidadTotal) * 100.00).toFixed(16) / 100.00).toFixed(2) / 100.00).toFixed(2),
+        retencion: getRetencion1((baseImponible * (row.div_repartido * ((e.cantidadAcciones / cantidadTotal) * 100.00).toFixed(16) / 100.00).toFixed(2) / 100.00).toFixed(2), e.tipoPersona, e.direccionPais, e.direccionPaisBeneficiario1 == null ? 'Ecuador' : e.direccionPaisBeneficiario1),
+        dividendoRecibido: ((row.div_repartido * ((e.cantidadAcciones / cantidadTotal) * 100.00).toFixed(16) / 100.00).toFixed(2) - getRetencion1((baseImponible * (row.div_repartido * ((e.cantidadAcciones / cantidadTotal) * 100.00).toFixed(16) / 100.00).toFixed(2) / 100.00).toFixed(2), e.tipoPersona, e.direccionPais, e.direccionPaisBeneficiario1 == null ? 'Ecuador' : e.direccionPaisBeneficiario1)).toFixed(2),
         estadoDividendo: 'Confirmado',
         documento: '',
         solicitado: false,
@@ -759,7 +739,7 @@ export default function Dividendos() {
         HoraSolicitud: '',
         fechaPago: '',
         direccionPaisBeneficiario1: e.direccionPaisBeneficiario1,
-        saldoDividendoPeriodo: (row.saldoDividendo * ((e.cantidadAcciones / cantidadTotal) * 100.00).toFixed(16) / 100.00).toFixed(2),
+        saldoDividendoPeriodo: (row.div_repartido * ((e.cantidadAcciones / cantidadTotal) * 100.00).toFixed(16) / 100.00).toFixed(2),
       };
     })
     setAccionistasCorte(accionistasCalculo);
@@ -991,7 +971,7 @@ export default function Dividendos() {
   };
 
   const handleDividendoChange = (event) => {
-
+    
     const divRepartidos = dividendos.reduce(function (prev, current) {
       return prev + +(current.periodo == formData.periodo ? current.dividendoRepartir : 0)
     }, 0);
@@ -1137,6 +1117,14 @@ export default function Dividendos() {
 
   const classes = useStyles();
 
+  const preventMinus = (e) => {
+    if (e.code === 'Minus') {
+        e.preventDefault();
+    }
+  };
+  const inputProps = {
+    onKeyPress: {preventMinus},
+  };
   return (
 
     <main className={classes.content}>
@@ -1273,9 +1261,11 @@ export default function Dividendos() {
                   <TextField style={{ marginLeft: '10px' }}
                     id="outlined-required"
                     label="Secuencial"
+                    type='number'
                     value={formData.secuencial}
                     onChange={handleChangeSecuencial}
                     fullWidth
+                    inputProps={inputProps}
                   />
                 </div>
 
@@ -1300,6 +1290,7 @@ export default function Dividendos() {
                   type='number'
                   onChange={handleDividendoChange}
                   fullWidth
+                  inputProps={inputProps}
                 />
 
                 <TextField
@@ -1309,6 +1300,7 @@ export default function Dividendos() {
                   type='number'
                   onChange={handlePorcentajeRepartirChange}
                   fullWidth
+                  inputProps={inputProps}
                 />
 
                 <TextField
