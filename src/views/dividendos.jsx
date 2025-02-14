@@ -656,8 +656,6 @@ export default function Dividendos() {
     var aux;
     const dividendosRelacionados = apiData2.data.listDetalleDividendos.items.map(function (e) {
       aux = apiData.data.listDividendoNuevos.items.find(({ id }) => id === e.dividendoID);
-      console.log("aux",aux);
-      console.log("apiData.data.listDividendoNuevos.items",apiData.data.listDividendoNuevos.items);
       return {
         ddiv_usuario: e.ddiv_usuario,
         ddiv_secuencial: e.ddiv_secuencial,
@@ -676,7 +674,7 @@ export default function Dividendos() {
     console.log("dividendosRelacionados: ",dividendosRelacionados);
     var dividendosFromAPI = apiData.data.listDividendoNuevos.items;
     setDividendos(dividendosFromAPI);
-    setRows(dividendosFromAPI);
+    setRows(dividendosRelacionados);
   }
 
   async function fetchAccionistas(row) {
@@ -1123,7 +1121,7 @@ export default function Dividendos() {
     }
   };
   const inputProps = {
-    onKeyPress: {preventMinus},
+    onKeyPress: preventMinus,
   };
   return (
 
