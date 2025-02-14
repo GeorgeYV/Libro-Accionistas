@@ -1,7 +1,7 @@
 import React, { useState, useEffect, Fragment } from 'react'
 import { API, graphqlOperation } from 'aws-amplify';
 import { getParametro, listDividendosAccionistas, listDividendoNuevos, listOperaciones, listAccionistaArchives } from '../graphql/queries';
-import { createDividendoNuevo, createDividendosAccionista, updateDividendos, updateDividendosAccionista,
+import { createDividendoNuevo, createDividendosAccionista, updateDividendosAccionista,
   createDetalleDividendo
  } from '../graphql/mutations';
 
@@ -251,7 +251,7 @@ export default function Dividendos() {
     for (const accionistaCorte of accionistasCorte) {
 
       //console.log(accionistaCorte.nombre, accionistaCorte.dividendo, accionistaCorte.baseImponible);
-
+      /*
       const dividendoAccionista = {
         idAccionista: accionistaCorte.id,
         tipoIdentificacion: accionistaCorte.tipoIdentificacion,
@@ -285,7 +285,7 @@ export default function Dividendos() {
       //const apiDataDividendoAccionista = await API.graphql({ query: createDividendosAccionista, variables: { input: dividendoAccionista } });  
       const divAccionsitaID = await API.graphql(graphqlOperation(createDividendosAccionista, { input: dividendoAccionista }))
       const operID = await API.graphql({ query: updateDividendos, variables: { input: { id: periodoSeleccionado.id, estado: "Confirmado" } } });
-
+      */
       handleClose();
 
     }
@@ -615,7 +615,7 @@ export default function Dividendos() {
     fetchDividendos();
     //fetchTodosAccionistas();
     //if (periodoSeleccionado.id) refrescarAccionistas();
-    fetchOperaciones();
+    //fetchOperaciones();
 
   }, [refrescar]);
 
@@ -688,23 +688,14 @@ export default function Dividendos() {
   }
 
   async function fetchAccionistas(row) {
-
-    ///////////////////////////
-
-    var fechaSolicitada = row.fechaCorte.split("-").reverse().join("-");
-
+    /*var fechaSolicitada = row.fechaCorte.split("-").reverse().join("-");
     const fechaPasada = new Date(newFindClosest(fechas, fechaSolicitada));
-
     if (fechaPasada.getHours() > 0) fechaPasada.setHours(fechaPasada.getHours() + 5);
-
     const MyDateString = fechaPasada.getFullYear() + '-'
       + ('0' + (fechaPasada.getMonth() + 1)).slice(-2) + '-'
-      + ('0' + fechaPasada.getDate()).slice(-2);
+      + ('0' + fechaPasada.getDate()).slice(-2);*/
 
     const filter = {
-      /*fecha: {
-        eq: MyDateString
-      },*/
       estado: {
         eq: "Activo"
       }
