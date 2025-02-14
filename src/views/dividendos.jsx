@@ -210,7 +210,7 @@ export default function Dividendos() {
     }
 
     //if(residente.trim() !== "Ecuador") {num = base*retencionNoResidente/100.00;}
-    if (persona == "PJ") console.log("RESIDENCIAAAA", persona, residente, base, num, retencion);
+    //if (persona == "PJ") console.log("RESIDENCIAAAA", persona, residente, base, num, retencion);
 
     return num.toFixed(2);
   }
@@ -660,6 +660,8 @@ export default function Dividendos() {
     var aux;
     const dividendosRelacionados = apiData2.data.listDetalleDividendos.items.map(function (e) {
       aux = apiData.data.listDividendoNuevos.items.find(({ id }) => id === e.dividendoID);
+      console.log("aux",aux);
+      console.log("apiData.data.listDividendoNuevos.items",apiData.data.listDividendoNuevos.items);
       return {
         ddiv_usuario: e.ddiv_usuario,
         ddiv_secuencial: e.ddiv_secuencial,
@@ -668,11 +670,11 @@ export default function Dividendos() {
         ddiv_titulos: e.ddiv_titulos,
         ddiv_dividendo: e.ddiv_dividendo,
         dividendoID: e.dividendoID,
-        div_periodo: aux.div_periodo,
-        div_concepto: aux.div_concepto,
-        div_dividendo: aux.div_dividendo,
-        div_porcentaje: aux.div_porcentaje,
-        div_repartido: aux.div_repartido,
+        div_periodo: "aux.div_periodo",
+        div_concepto: "aux.div_concepto",
+        div_dividendo: "aux.div_dividendo",
+        div_porcentaje: "aux.div_porcentaje",
+        div_repartido: "aux.div_repartido",
       };
     })
     console.log("dividendosRelacionados: ",dividendosRelacionados);
@@ -760,47 +762,6 @@ export default function Dividendos() {
         saldoDividendoPeriodo: (row.saldoDividendo * ((e.cantidadAcciones / cantidadTotal) * 100.00).toFixed(16) / 100.00).toFixed(2),
       };
     })
-
-    /*const accionistasCalculo2 = accionistasCalculo.map(function (e) {
-      return {
-        id: e.id,
-        idAccionista: e.idAccionista,
-        tipoIdentificacion: e.tipoIdentificacion,
-        identificacion: e.identificacion,
-        nombre: e.nombre,
-        direccionPais: e.direccionPais,
-        paisNacionalidad: e.paisNacionalidad,
-        cantidadAcciones: e.cantidadAcciones,
-        participacion: e.participacion,
-        tipoAcciones: e.tipoAcciones,
-        estado: e.estado,
-        tipoPersona: e.tipoPersona,
-        decevale: e.decevale,
-        idDividendo: e.id,
-        periodo: e.periodo,
-        dividendo: (row.dividendoRepartir * ((e.cantidadAcciones / cantidadTotal) * 100.00).toFixed(16) / 100.00).toFixed(2),
-        //dividendo: e.porcentajeRepartir < 50 && periodoSeleccionado.saldoPorcentajeDividendo < 50 ? 0 : e.porcentajeRepartir < 50 ? e.dividendo :  
-        //(((100 - periodoSeleccionado.saldoPorcentajeDividendo)/100.00) * periodoSeleccionado.dividendo)*((e.cantidadAcciones / cantidadTotal) * 100.00) -  ((periodoSeleccionado.dividendo * ((e.cantidadAcciones / cantidadTotal) * 100.00).toFixed(16) / 100.00)/50.00).toFixed(2),
-
-
-        baseImponible: (baseImponible * (row.dividendoRepartir * ((e.cantidadAcciones / cantidadTotal) * 100.00).toFixed(16) / 100.00).toFixed(2) / 100.00).toFixed(2),
-        retencion: getRetencion1((baseImponible * (row.dividendoRepartir * ((e.cantidadAcciones / cantidadTotal) * 100.00).toFixed(16) / 100.00).toFixed(2) / 100.00).toFixed(2), e.tipoPersona, e.direccionPais, e.direccionPaisBeneficiario1 == null ? 'Ecuador' : e.direccionPaisBeneficiario1),
-        dividendoRecibido: ((row.dividendoRepartir * ((e.cantidadAcciones / cantidadTotal) * 100.00).toFixed(16) / 100.00).toFixed(2) - getRetencion1((baseImponible * (row.dividendoRepartir * ((e.cantidadAcciones / cantidadTotal) * 100.00).toFixed(16) / 100.00).toFixed(2) / 100.00).toFixed(2), e.tipoPersona, e.direccionPais, e.direccionPaisBeneficiario1 == null ? 'Ecuador' : e.direccionPaisBeneficiario1)).toFixed(2),
-        estadoDividendo: 'Confirmado',
-        documento: '',
-        solicitado: true,
-        fechaSolicitud: '',
-        HoraSolicitud: '',
-        fechaPago: '',
-        direccionPaisBeneficiario1: e.direccionPaisBeneficiario1,
-        saldoDividendoPeriodo: (row.saldoDividendo * ((e.cantidadAcciones / cantidadTotal) * 100.00).toFixed(16) / 100.00).toFixed(2),
-      };
-    })*/
-
-
-    ////////////
-
-
     setAccionistasCorte(accionistasCalculo);
     setOpenAccionistas(true)
   }
@@ -1022,10 +983,6 @@ export default function Dividendos() {
     */
 
   const handlePeriodoChange = (event) => {
-    console.log("texto", event.target);
-
-    //pais.find(o => o.value === data.paisDireccion).label
-
     setFormData({ ...formData, 'periodo': event.target.value })
   };
 
@@ -1042,10 +999,6 @@ export default function Dividendos() {
     const divSaldoPorc = dividendos.reduce(function (prev, current) {
       return prev + +(current.periodo == formData.periodo ? current.saldoPorcentajeDividendo : 0)
     }, 0);
-
-    console.log("Dividendos Saldo", divRepartidos);
-    console.log("Porcentaje Saldo", divSaldoPorc);
-    //setFormData({ ...formData, 'dividendo': event.target.value, 'dividendoRepartir': (event.target.value * formData.porcentajeRepartir /100.00).toFixed(2), 'saldoDividendo': ((event.target.value*(100.00-formData.porcentajeRepartir)/100.00) - divRepartidos).toFixed(2), 'saldoPorcentajeDividendo': divSaldoPorc > 0 ? divSaldoPorc - formData.porcentajeRepartir : 100.00 - formData.porcentajeRepartir})};
     setFormData({ ...formData, 'dividendo': event.target.value, 'dividendoRepartir': (event.target.value * formData.porcentajeRepartir / 100.00).toFixed(2), 'saldoDividendo': (event.target.value - (event.target.value * formData.porcentajeRepartir / 100.00).toFixed(2)).toFixed(2), 'saldoPorcentajeDividendo': 100.00 - formData.porcentajeRepartir })
   };
 
@@ -1058,10 +1011,6 @@ export default function Dividendos() {
     const divSaldoPorc = dividendos.reduce(function (prev, current) {
       return prev + +(current.periodo == formData.periodo ? current.saldoPorcentajeDividendo : 0)
     }, 0);
-    console.log("Dividendos Saldo", divRepartidos);
-    console.log("Porcentaje Saldo", divSaldoPorc);
-    console.log("Porcentaje Saldo 2", divSaldoPorc - event.target.value);
-    //setFormData({ ...formData, 'porcentajeRepartir': event.target.value, 'dividendoRepartir': (event.target.value * formData.dividendo /100.00).toFixed(2), 'saldoDividendo': ((formData.dividendo*(100.00-event.target.value)/100.00) - divRepartidos).toFixed(2), 'saldoPorcentajeDividendo': divSaldoPorc > 0 ? divSaldoPorc - event.target.value : 100.00 - event.target.value})        
     setFormData({ ...formData, 'porcentajeRepartir': event.target.value, 'dividendoRepartir': (event.target.value * formData.dividendo / 100.00).toFixed(2), 'saldoDividendo': (formData.dividendo - (event.target.value * formData.dividendo / 100.00).toFixed(2)).toFixed(2), 'saldoPorcentajeDividendo': 100.00 - event.target.value })
   };
 
@@ -1100,11 +1049,7 @@ export default function Dividendos() {
 
       if (!formData.periodo || !formData.dividendo || !formData.porcentajeRepartir || !formData.fechaCorte || 
         !formData.fechaPago) return
-
       setCircular(true);
-
-      //const dividendo = { ...formData }
-
       const dividendo = { 
         div_periodo: formData.periodo,
         div_concepto: formData.concepto,
@@ -1112,11 +1057,7 @@ export default function Dividendos() {
         div_porcentaje: formData.porcentajeRepartir,
         div_repartido: formData.dividendoRepartir
       }
-
       const dividendoID = await API.graphql(graphqlOperation(createDividendoNuevo, { input: dividendo }))
-      console.log("dividendoID",dividendoID);
-      console.log("dividendoID.data.createDividendoNuevo.id",dividendoID.data.createDividendoNuevo.id);
-
       const detalleDividendo={
         ddiv_usuario: "Admin",
         ddiv_secuencial: formData.secuencial,
