@@ -3,7 +3,7 @@ import { API, Storage, Auth, graphqlOperation } from 'aws-amplify';
 
 import { makeStyles } from '@material-ui/core/styles';
 import { createTheme } from '@material-ui/core/styles';
-import { listAsambleas, listDividendos, listAccionistas, listAccionistasxJuntas, getParametro, listSolicitudes } from '../graphql/queries';
+import { listAsambleas, listAccionistas, listAccionistasxJuntas, getParametro, listSolicitudes } from '../graphql/queries';
 import { createAccionistasxJunta, updateAsamblea, updateAccionistasxJunta, createSolicitudes } from '../graphql/mutations';
 
 import { DataGrid } from '@mui/x-data-grid';
@@ -523,7 +523,7 @@ export default function Accionistadashboard() {
   const [dividendos, setDividendos] = useState([]);
 
   async function fetchDividendos() {
-    const apiData = await API.graphql({ query: listDividendos, variables: { limit: 1000 } });
+    /*const apiData = await API.graphql({ query: listDividendos, variables: { limit: 1000 } });
     const dividendosFromAPI = apiData.data.listDividendos.items;
 
 
@@ -551,7 +551,7 @@ export default function Accionistadashboard() {
     })
 
 
-    setDividendos(accionistaCalculo);
+    setDividendos(accionistaCalculo);*/
 
 
 
@@ -754,7 +754,7 @@ export default function Accionistadashboard() {
 
     fetchAccionistasxAsambleas();
 
-    fetchDividendos();
+    //fetchDividendos();
 
     fetchAccionistas();
 

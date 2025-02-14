@@ -293,7 +293,7 @@ export default function Dividendos() {
   }
   const columns = [
     {
-      field: 'periodo',
+      field: 'div_periodo',
       headerName: 'Periodo',
       width: 100,
     },
@@ -303,24 +303,24 @@ export default function Dividendos() {
       width: 60,
     },
     {
-      field: 'concepto',
+      field: 'div_concepto',
       headerName: 'Concepto',
       width: 120,
     },
     {
-      field: 'dividendo',
+      field: 'div_dividendo',
       headerName: 'Total Dividendo',
       type: 'number',
       width: 120,
     },
     {
-      field: 'porcentajeRepartir',
+      field: 'div_porcentaje',
       headerName: 'Reparto Acordado',
       type: 'number',
       width: 100,
     },
     {
-      field: 'dividendoRepartir',
+      field: 'div_repartido',
       headerName: 'Repartir',
       type: 'number',
       width: 120,
@@ -1323,13 +1323,8 @@ export default function Dividendos() {
               pageSize={25}
               rowsPerPageOptions={[25]}
             />
-
-
-
           </DialogContent>
           <DialogActions style={{ display: 'flex', flexDirection: 'row', alignItems: 'flex-end', justifyContent: 'flex-end', width: '100%' }}>
-
-
             <Button onClick={handleCloseAccionistasDividendos} color="primary" >
               Salir
             </Button>
