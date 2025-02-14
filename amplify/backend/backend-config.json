@@ -1,27 +1,18 @@
 {
   "api": {
-    "apiQLDBprod": {
-      "dependsOn": [
-        {
-          "attributes": [
-            "Name",
-            "Arn"
-          ],
-          "category": "function",
-          "resourceName": "crearRegistro"
-        }
-      ],
-      "providerPlugin": "awscloudformation",
-      "service": "API Gateway"
-    },
     "libroaccionistas": {
+      "dependsOn": [],
       "output": {
         "authConfig": {
-          "additionalAuthenticationProviders": [],
+          "additionalAuthenticationProviders": [
+            {
+              "authenticationType": "AWS_IAM"
+            }
+          ],
           "defaultAuthentication": {
             "apiKeyConfig": {
-              "apiKeyExpirationDays": 360,
-              "description": "demo"
+              "apiKeyExpirationDays": 30,
+              "description": "api key description"
             },
             "authenticationType": "API_KEY"
           }
@@ -55,31 +46,7 @@
       "service": "Cognito"
     }
   },
-  "function": {
-    "crearRegistro": {
-      "build": true,
-      "providerPlugin": "awscloudformation",
-      "service": "Lambda"
-    }
-  },
-  "parameters": {
-    "AMPLIFY_function_crearRegistro_deploymentBucketName": {
-      "usedBy": [
-        {
-          "category": "function",
-          "resourceName": "crearRegistro"
-        }
-      ]
-    },
-    "AMPLIFY_function_crearRegistro_s3Key": {
-      "usedBy": [
-        {
-          "category": "function",
-          "resourceName": "crearRegistro"
-        }
-      ]
-    }
-  },
+  "function": {},
   "storage": {
     "imagestorage": {
       "providerPlugin": "awscloudformation",

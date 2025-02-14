@@ -1,191 +1,200 @@
 /* eslint-disable */
 // this is an auto generated file. This will be overwritten
 
-export const createEstadoCatalogo = /* GraphQL */ `
-  mutation CreateEstadoCatalogo(
-    $input: CreateEstadoCatalogoInput!
-    $condition: ModelEstadoCatalogoConditionInput
+export const createDividendosTitulos = /* GraphQL */ `
+  mutation CreateDividendosTitulos(
+    $input: CreateDividendosTitulosInput!
+    $condition: ModelDividendosTitulosConditionInput
   ) {
-    createEstadoCatalogo(input: $input, condition: $condition) {
+    createDividendosTitulos(input: $input, condition: $condition) {
       id
-      nombre
-      nombreCorto
+      div_tit_participacion
+      div_tit_dividendo
+      div_tit_retencion
+      div_tit_base_imponible
+      div_tit_fecha_pago
+      div_tit_documento
+      detalledividendoID
       createdAt
       updatedAt
       __typename
     }
   }
 `;
-export const updateEstadoCatalogo = /* GraphQL */ `
-  mutation UpdateEstadoCatalogo(
-    $input: UpdateEstadoCatalogoInput!
-    $condition: ModelEstadoCatalogoConditionInput
+export const updateDividendosTitulos = /* GraphQL */ `
+  mutation UpdateDividendosTitulos(
+    $input: UpdateDividendosTitulosInput!
+    $condition: ModelDividendosTitulosConditionInput
   ) {
-    updateEstadoCatalogo(input: $input, condition: $condition) {
+    updateDividendosTitulos(input: $input, condition: $condition) {
       id
-      nombre
-      nombreCorto
+      div_tit_participacion
+      div_tit_dividendo
+      div_tit_retencion
+      div_tit_base_imponible
+      div_tit_fecha_pago
+      div_tit_documento
+      detalledividendoID
       createdAt
       updatedAt
       __typename
     }
   }
 `;
-export const deleteEstadoCatalogo = /* GraphQL */ `
-  mutation DeleteEstadoCatalogo(
-    $input: DeleteEstadoCatalogoInput!
-    $condition: ModelEstadoCatalogoConditionInput
+export const deleteDividendosTitulos = /* GraphQL */ `
+  mutation DeleteDividendosTitulos(
+    $input: DeleteDividendosTitulosInput!
+    $condition: ModelDividendosTitulosConditionInput
   ) {
-    deleteEstadoCatalogo(input: $input, condition: $condition) {
+    deleteDividendosTitulos(input: $input, condition: $condition) {
       id
-      nombre
-      nombreCorto
+      div_tit_participacion
+      div_tit_dividendo
+      div_tit_retencion
+      div_tit_base_imponible
+      div_tit_fecha_pago
+      div_tit_documento
+      detalledividendoID
       createdAt
       updatedAt
       __typename
     }
   }
 `;
-export const createTipoPersona = /* GraphQL */ `
-  mutation CreateTipoPersona(
-    $input: CreateTipoPersonaInput!
-    $condition: ModelTipoPersonaConditionInput
+export const createDetalleDividendo = /* GraphQL */ `
+  mutation CreateDetalleDividendo(
+    $input: CreateDetalleDividendoInput!
+    $condition: ModelDetalleDividendoConditionInput
   ) {
-    createTipoPersona(input: $input, condition: $condition) {
+    createDetalleDividendo(input: $input, condition: $condition) {
       id
-      nombre
-      nombreCorto
-      estado
+      ddiv_usuario
+      ddiv_secuencial
+      ddiv_fecha_junta
+      ddiv_fecha_pago
+      ddiv_titulos
+      ddiv_dividendo
+      dividendoID
       createdAt
       updatedAt
+      DetDiv_DividendosTitulos {
+        nextToken
+        __typename
+      }
       __typename
     }
   }
 `;
-export const updateTipoPersona = /* GraphQL */ `
-  mutation UpdateTipoPersona(
-    $input: UpdateTipoPersonaInput!
-    $condition: ModelTipoPersonaConditionInput
+export const updateDetalleDividendo = /* GraphQL */ `
+  mutation UpdateDetalleDividendo(
+    $input: UpdateDetalleDividendoInput!
+    $condition: ModelDetalleDividendoConditionInput
   ) {
-    updateTipoPersona(input: $input, condition: $condition) {
+    updateDetalleDividendo(input: $input, condition: $condition) {
       id
-      nombre
-      nombreCorto
-      estado
+      ddiv_usuario
+      ddiv_secuencial
+      ddiv_fecha_junta
+      ddiv_fecha_pago
+      ddiv_titulos
+      ddiv_dividendo
+      dividendoID
       createdAt
       updatedAt
+      DetDiv_DividendosTitulos {
+        nextToken
+        __typename
+      }
       __typename
     }
   }
 `;
-export const deleteTipoPersona = /* GraphQL */ `
-  mutation DeleteTipoPersona(
-    $input: DeleteTipoPersonaInput!
-    $condition: ModelTipoPersonaConditionInput
+export const deleteDetalleDividendo = /* GraphQL */ `
+  mutation DeleteDetalleDividendo(
+    $input: DeleteDetalleDividendoInput!
+    $condition: ModelDetalleDividendoConditionInput
   ) {
-    deleteTipoPersona(input: $input, condition: $condition) {
+    deleteDetalleDividendo(input: $input, condition: $condition) {
       id
-      nombre
-      nombreCorto
-      estado
+      ddiv_usuario
+      ddiv_secuencial
+      ddiv_fecha_junta
+      ddiv_fecha_pago
+      ddiv_titulos
+      ddiv_dividendo
+      dividendoID
       createdAt
       updatedAt
+      DetDiv_DividendosTitulos {
+        nextToken
+        __typename
+      }
       __typename
     }
   }
 `;
-export const createTipoIdentificacion = /* GraphQL */ `
-  mutation CreateTipoIdentificacion(
-    $input: CreateTipoIdentificacionInput!
-    $condition: ModelTipoIdentificacionConditionInput
+export const createDividendoNuevo = /* GraphQL */ `
+  mutation CreateDividendoNuevo(
+    $input: CreateDividendoNuevoInput!
+    $condition: ModelDividendoNuevoConditionInput
   ) {
-    createTipoIdentificacion(input: $input, condition: $condition) {
+    createDividendoNuevo(input: $input, condition: $condition) {
       id
-      nombre
-      nombreCorto
-      estado
-      tipoPersona
+      div_periodo
+      div_concepto
+      div_dividendo
+      div_porcentaje
+      div_repartido
       createdAt
       updatedAt
+      Div_DetalleDividendo {
+        nextToken
+        __typename
+      }
       __typename
     }
   }
 `;
-export const updateTipoIdentificacion = /* GraphQL */ `
-  mutation UpdateTipoIdentificacion(
-    $input: UpdateTipoIdentificacionInput!
-    $condition: ModelTipoIdentificacionConditionInput
+export const updateDividendoNuevo = /* GraphQL */ `
+  mutation UpdateDividendoNuevo(
+    $input: UpdateDividendoNuevoInput!
+    $condition: ModelDividendoNuevoConditionInput
   ) {
-    updateTipoIdentificacion(input: $input, condition: $condition) {
+    updateDividendoNuevo(input: $input, condition: $condition) {
       id
-      nombre
-      nombreCorto
-      estado
-      tipoPersona
+      div_periodo
+      div_concepto
+      div_dividendo
+      div_porcentaje
+      div_repartido
       createdAt
       updatedAt
+      Div_DetalleDividendo {
+        nextToken
+        __typename
+      }
       __typename
     }
   }
 `;
-export const deleteTipoIdentificacion = /* GraphQL */ `
-  mutation DeleteTipoIdentificacion(
-    $input: DeleteTipoIdentificacionInput!
-    $condition: ModelTipoIdentificacionConditionInput
+export const deleteDividendoNuevo = /* GraphQL */ `
+  mutation DeleteDividendoNuevo(
+    $input: DeleteDividendoNuevoInput!
+    $condition: ModelDividendoNuevoConditionInput
   ) {
-    deleteTipoIdentificacion(input: $input, condition: $condition) {
+    deleteDividendoNuevo(input: $input, condition: $condition) {
       id
-      nombre
-      nombreCorto
-      estado
-      tipoPersona
+      div_periodo
+      div_concepto
+      div_dividendo
+      div_porcentaje
+      div_repartido
       createdAt
       updatedAt
-      __typename
-    }
-  }
-`;
-export const createEstadoCivil = /* GraphQL */ `
-  mutation CreateEstadoCivil(
-    $input: CreateEstadoCivilInput!
-    $condition: ModelEstadoCivilConditionInput
-  ) {
-    createEstadoCivil(input: $input, condition: $condition) {
-      id
-      nombre
-      estado
-      createdAt
-      updatedAt
-      __typename
-    }
-  }
-`;
-export const updateEstadoCivil = /* GraphQL */ `
-  mutation UpdateEstadoCivil(
-    $input: UpdateEstadoCivilInput!
-    $condition: ModelEstadoCivilConditionInput
-  ) {
-    updateEstadoCivil(input: $input, condition: $condition) {
-      id
-      nombre
-      estado
-      createdAt
-      updatedAt
-      __typename
-    }
-  }
-`;
-export const deleteEstadoCivil = /* GraphQL */ `
-  mutation DeleteEstadoCivil(
-    $input: DeleteEstadoCivilInput!
-    $condition: ModelEstadoCivilConditionInput
-  ) {
-    deleteEstadoCivil(input: $input, condition: $condition) {
-      id
-      nombre
-      estado
-      createdAt
-      updatedAt
+      Div_DetalleDividendo {
+        nextToken
+        __typename
+      }
       __typename
     }
   }
@@ -340,150 +349,6 @@ export const deleteCiudad = /* GraphQL */ `
     }
   }
 `;
-export const createTipoMedioContacto = /* GraphQL */ `
-  mutation CreateTipoMedioContacto(
-    $input: CreateTipoMedioContactoInput!
-    $condition: ModelTipoMedioContactoConditionInput
-  ) {
-    createTipoMedioContacto(input: $input, condition: $condition) {
-      id
-      nombre
-      estado
-      createdAt
-      updatedAt
-      __typename
-    }
-  }
-`;
-export const updateTipoMedioContacto = /* GraphQL */ `
-  mutation UpdateTipoMedioContacto(
-    $input: UpdateTipoMedioContactoInput!
-    $condition: ModelTipoMedioContactoConditionInput
-  ) {
-    updateTipoMedioContacto(input: $input, condition: $condition) {
-      id
-      nombre
-      estado
-      createdAt
-      updatedAt
-      __typename
-    }
-  }
-`;
-export const deleteTipoMedioContacto = /* GraphQL */ `
-  mutation DeleteTipoMedioContacto(
-    $input: DeleteTipoMedioContactoInput!
-    $condition: ModelTipoMedioContactoConditionInput
-  ) {
-    deleteTipoMedioContacto(input: $input, condition: $condition) {
-      id
-      nombre
-      estado
-      createdAt
-      updatedAt
-      __typename
-    }
-  }
-`;
-export const createCuentaBancaria = /* GraphQL */ `
-  mutation CreateCuentaBancaria(
-    $input: CreateCuentaBancariaInput!
-    $condition: ModelCuentaBancariaConditionInput
-  ) {
-    createCuentaBancaria(input: $input, condition: $condition) {
-      id
-      nombre
-      nombreCorto
-      estado
-      createdAt
-      updatedAt
-      __typename
-    }
-  }
-`;
-export const updateCuentaBancaria = /* GraphQL */ `
-  mutation UpdateCuentaBancaria(
-    $input: UpdateCuentaBancariaInput!
-    $condition: ModelCuentaBancariaConditionInput
-  ) {
-    updateCuentaBancaria(input: $input, condition: $condition) {
-      id
-      nombre
-      nombreCorto
-      estado
-      createdAt
-      updatedAt
-      __typename
-    }
-  }
-`;
-export const deleteCuentaBancaria = /* GraphQL */ `
-  mutation DeleteCuentaBancaria(
-    $input: DeleteCuentaBancariaInput!
-    $condition: ModelCuentaBancariaConditionInput
-  ) {
-    deleteCuentaBancaria(input: $input, condition: $condition) {
-      id
-      nombre
-      nombreCorto
-      estado
-      createdAt
-      updatedAt
-      __typename
-    }
-  }
-`;
-export const createEstadoAccionista = /* GraphQL */ `
-  mutation CreateEstadoAccionista(
-    $input: CreateEstadoAccionistaInput!
-    $condition: ModelEstadoAccionistaConditionInput
-  ) {
-    createEstadoAccionista(input: $input, condition: $condition) {
-      id
-      nombre
-      nombreCorto
-      descripcion
-      estado
-      createdAt
-      updatedAt
-      __typename
-    }
-  }
-`;
-export const updateEstadoAccionista = /* GraphQL */ `
-  mutation UpdateEstadoAccionista(
-    $input: UpdateEstadoAccionistaInput!
-    $condition: ModelEstadoAccionistaConditionInput
-  ) {
-    updateEstadoAccionista(input: $input, condition: $condition) {
-      id
-      nombre
-      nombreCorto
-      descripcion
-      estado
-      createdAt
-      updatedAt
-      __typename
-    }
-  }
-`;
-export const deleteEstadoAccionista = /* GraphQL */ `
-  mutation DeleteEstadoAccionista(
-    $input: DeleteEstadoAccionistaInput!
-    $condition: ModelEstadoAccionistaConditionInput
-  ) {
-    deleteEstadoAccionista(input: $input, condition: $condition) {
-      id
-      nombre
-      nombreCorto
-      descripcion
-      estado
-      createdAt
-      updatedAt
-      __typename
-    }
-  }
-`;
 export const createAccionista = /* GraphQL */ `
   mutation CreateAccionista(
     $input: CreateAccionistaInput!
@@ -558,27 +423,12 @@ export const createAccionista = /* GraphQL */ `
       fechaBeneficiario8
       nombreBeneficiario9
       fechaBeneficiario9
+      createdAt
+      updatedAt
       titulos {
-        items {
-          id
-          accionistaID
-          titulo
-          acciones
-          fechaCompra
-          estado
-          idCedenteHereda
-          nombreCedenteHereda
-          desde
-          hasta
-          createdAt
-          updatedAt
-          __typename
-        }
         nextToken
         __typename
       }
-      createdAt
-      updatedAt
       __typename
     }
   }
@@ -657,27 +507,12 @@ export const updateAccionista = /* GraphQL */ `
       fechaBeneficiario8
       nombreBeneficiario9
       fechaBeneficiario9
+      createdAt
+      updatedAt
       titulos {
-        items {
-          id
-          accionistaID
-          titulo
-          acciones
-          fechaCompra
-          estado
-          idCedenteHereda
-          nombreCedenteHereda
-          desde
-          hasta
-          createdAt
-          updatedAt
-          __typename
-        }
         nextToken
         __typename
       }
-      createdAt
-      updatedAt
       __typename
     }
   }
@@ -756,27 +591,12 @@ export const deleteAccionista = /* GraphQL */ `
       fechaBeneficiario8
       nombreBeneficiario9
       fechaBeneficiario9
+      createdAt
+      updatedAt
       titulos {
-        items {
-          id
-          accionistaID
-          titulo
-          acciones
-          fechaCompra
-          estado
-          idCedenteHereda
-          nombreCedenteHereda
-          desde
-          hasta
-          createdAt
-          updatedAt
-          __typename
-        }
         nextToken
         __typename
       }
-      createdAt
-      updatedAt
       __typename
     }
   }
@@ -922,23 +742,6 @@ export const createOperaciones = /* GraphQL */ `
       estado
       usuarioIngreso
       usuarioAprobador
-      titulos {
-        items {
-          id
-          operacionID
-          tituloId
-          titulo
-          acciones
-          accionesTransferidas
-          desde
-          hasta
-          createdAt
-          updatedAt
-          __typename
-        }
-        nextToken
-        __typename
-      }
       cs
       cg
       ci
@@ -955,6 +758,10 @@ export const createOperaciones = /* GraphQL */ `
       fechaValor
       createdAt
       updatedAt
+      titulos {
+        nextToken
+        __typename
+      }
       __typename
     }
   }
@@ -977,23 +784,6 @@ export const updateOperaciones = /* GraphQL */ `
       estado
       usuarioIngreso
       usuarioAprobador
-      titulos {
-        items {
-          id
-          operacionID
-          tituloId
-          titulo
-          acciones
-          accionesTransferidas
-          desde
-          hasta
-          createdAt
-          updatedAt
-          __typename
-        }
-        nextToken
-        __typename
-      }
       cs
       cg
       ci
@@ -1010,6 +800,10 @@ export const updateOperaciones = /* GraphQL */ `
       fechaValor
       createdAt
       updatedAt
+      titulos {
+        nextToken
+        __typename
+      }
       __typename
     }
   }
@@ -1032,23 +826,6 @@ export const deleteOperaciones = /* GraphQL */ `
       estado
       usuarioIngreso
       usuarioAprobador
-      titulos {
-        items {
-          id
-          operacionID
-          tituloId
-          titulo
-          acciones
-          accionesTransferidas
-          desde
-          hasta
-          createdAt
-          updatedAt
-          __typename
-        }
-        nextToken
-        __typename
-      }
       cs
       cg
       ci
@@ -1065,6 +842,10 @@ export const deleteOperaciones = /* GraphQL */ `
       fechaValor
       createdAt
       updatedAt
+      titulos {
+        nextToken
+        __typename
+      }
       __typename
     }
   }
@@ -1981,12 +1762,12 @@ export const deleteAccionistasxJunta = /* GraphQL */ `
     }
   }
 `;
-export const createDividendos = /* GraphQL */ `
-  mutation CreateDividendos(
-    $input: CreateDividendosInput!
-    $condition: ModelDividendosConditionInput
+export const createDividendosAnterior = /* GraphQL */ `
+  mutation CreateDividendosAnterior(
+    $input: CreateDividendosAnteriorInput!
+    $condition: ModelDividendosAnteriorConditionInput
   ) {
-    createDividendos(input: $input, condition: $condition) {
+    createDividendosAnterior(input: $input, condition: $condition) {
       id
       periodo
       secuencial
@@ -2009,12 +1790,12 @@ export const createDividendos = /* GraphQL */ `
     }
   }
 `;
-export const updateDividendos = /* GraphQL */ `
-  mutation UpdateDividendos(
-    $input: UpdateDividendosInput!
-    $condition: ModelDividendosConditionInput
+export const updateDividendosAnterior = /* GraphQL */ `
+  mutation UpdateDividendosAnterior(
+    $input: UpdateDividendosAnteriorInput!
+    $condition: ModelDividendosAnteriorConditionInput
   ) {
-    updateDividendos(input: $input, condition: $condition) {
+    updateDividendosAnterior(input: $input, condition: $condition) {
       id
       periodo
       secuencial
@@ -2037,12 +1818,12 @@ export const updateDividendos = /* GraphQL */ `
     }
   }
 `;
-export const deleteDividendos = /* GraphQL */ `
-  mutation DeleteDividendos(
-    $input: DeleteDividendosInput!
-    $condition: ModelDividendosConditionInput
+export const deleteDividendosAnterior = /* GraphQL */ `
+  mutation DeleteDividendosAnterior(
+    $input: DeleteDividendosAnteriorInput!
+    $condition: ModelDividendosAnteriorConditionInput
   ) {
-    deleteDividendos(input: $input, condition: $condition) {
+    deleteDividendosAnterior(input: $input, condition: $condition) {
       id
       periodo
       secuencial

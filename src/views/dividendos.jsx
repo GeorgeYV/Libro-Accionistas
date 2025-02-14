@@ -1,30 +1,24 @@
 import React, { useState, useEffect, Fragment } from 'react'
-import { API, Storage, graphqlOperation } from 'aws-amplify';
-import { getParametro, listDividendosAccionistas, listAccionistas, listDividendos, listOperaciones, listAccionistaArchives } from '../graphql/queries';
-
+import { API, graphqlOperation } from 'aws-amplify';
+import { getParametro, listDividendosAccionistas, listDividendoNuevos, listOperaciones, listAccionistaArchives } from '../graphql/queries';
+import { createDividendoNuevo, createDividendosAccionista, updateDividendos, updateDividendosAccionista,
+  createDetalleDividendo
+ } from '../graphql/mutations';
 
 import { makeStyles } from '@material-ui/core/styles';
 import { createTheme } from '@material-ui/core/styles';
 
 import {
-  Grid, Typography, Button, ListItem, ListItemText, ListSubheader, List, Chip, TextField, LinearProgress,
-  FormControl, Box, Tabs, Tab, IconButton, Checkbox, InputLabel, Select, MenuItem,
-  Dialog, DialogActions, DialogContent, DialogTitle, ListItemIcon, Snackbar, CircularProgress, Divider, DialogContentText
+  Grid, Typography, Button, Chip, TextField, LinearProgress,
+  FormControl, Box, IconButton, InputLabel, Select, MenuItem,
+  Dialog, DialogActions, DialogContent, DialogTitle, Snackbar, CircularProgress
 } from '@material-ui/core';
 
-import { DataGrid, GridToolbar, GRID_CHECKBOX_SELECTION_COL_DEF } from '@mui/x-data-grid';
+import { DataGrid } from '@mui/x-data-grid';
 import PropTypes from 'prop-types';
 
 import PageviewIcon from '@material-ui/icons/Pageview';
-import CheckIcon from '@material-ui/icons/Check';
-import CloudUploadOutlinedIcon from '@material-ui/icons/CloudUploadOutlined';
-import DeleteIcon from '@material-ui/icons/Delete';
-import FunctionsIcon from '@material-ui/icons/Functions';
-import DonutLargeIcon from '@material-ui/icons/DonutLarge';
 import EditIcon from '@material-ui/icons/Edit';
-
-import { uuid } from 'uuidv4';
-import { createDividendos, createDividendosAccionista, updateDividendos, updateDividendosAccionista } from '../graphql/mutations';
 import MuiAlert from '@material-ui/lab/Alert';
 
 function Alert(props) {
@@ -333,7 +327,7 @@ export default function Dividendos() {
     },
     {
       field: 'fechaCorte',
-      headerName: 'Corte',
+      headerName: 'Pago',
       width: 90,
     },
     {
@@ -341,22 +335,6 @@ export default function Dividendos() {
       headerName: 'Junta',
       width: 90,
     },
-
-    /*
-    {
-        field: 'retencion',
-        headerName: 'Retención',
-        type: 'number',
-        width: 120,
-      }, 
-       
-      {
-        field: 'saldoPorcentajeDividendo',
-        headerName: 'Saldo %',
-        type: 'number',
-        width: 100,
-      },   
-      */
     {
       field: 'saldoDividendo',
       headerName: 'Saldo Div',
@@ -376,14 +354,16 @@ export default function Dividendos() {
 
 
           <IconButton onClick={() => {
-            if (cellValues.row.estado == "Nuevo") {
+            /*if (cellValues.row.estado == "Nuevo") {
               fetchAccionistas(cellValues.row);
               setPeriodoSeleccionado(cellValues.row);
             } else {
               fetchAccionistasDividendos(cellValues.row);
               setPeriodoSeleccionado(cellValues.row);
               console.log(cellValues.row)
-            }
+            }*/
+            fetchAccionistas(cellValues.row);
+            setPeriodoSeleccionado(cellValues.row);
           }
           } color='primary'><PageviewIcon /></IconButton>
 
@@ -391,28 +371,14 @@ export default function Dividendos() {
 
       }
     },
-    {
+    /*{
       field: 'estado',
       headerName: 'Estado',
       width: 110,
       renderCell: (cellValues) => {
         return <Chip size="small" variant="outlined" label={cellValues.row.estado} color={cellValues.row.estado == 'Nuevo' ? 'primary' : 'secondary'} />
       }
-    },
-
-    /*
-    {
-        field: 'entregado',
-        headerName: 'Entregado',
-        type: 'number',
-        width: 120,
-      },   
-      {
-        field: 'porEntregar',
-        headerName: 'Por Entregar',
-        type: 'number',
-        width: 120,
-      },  */
+    }*/
   ];
 
   const columnsAccionistasCorte = [
@@ -715,8 +681,8 @@ export default function Dividendos() {
   }
 
   async function fetchDividendos() {
-    const apiData = await API.graphql({ query: listDividendos, variables: { limit: 1000 } });
-    const dividendosFromAPI = apiData.data.listDividendos.items;
+    const apiData = await API.graphql({ query: listDividendoNuevos, variables: { limit: 1000 } });
+    const dividendosFromAPI = apiData.data.listDividendoNuevos.items;
     setDividendos(dividendosFromAPI);
     setRows(dividendosFromAPI);
   }
@@ -736,12 +702,11 @@ export default function Dividendos() {
       + ('0' + fechaPasada.getDate()).slice(-2);
 
     const filter = {
-      fecha: {
+      /*fecha: {
         eq: MyDateString
-      },
+      },*/
       estado: {
         eq: "Activo"
-        //ne: "Inactivo"
       }
     }
     //console.log("FILTRO", filter, row.fechaCorte);
@@ -882,7 +847,6 @@ export default function Dividendos() {
     console.log("FILTRO", filter);
     const apiData3 = await API.graphql({ query: listDividendosAccionistas, variables: { filter: filter, limit: 20000 } });
     let accionistasFromAPI3 = apiData3.data.listDividendosAccionistas.items;
-
     let nexttoken4 = null
     if (apiData3.data.listDividendosAccionistas.nextToken != null) {
       const apiData4 = await API.graphql({ query: listDividendosAccionistas, variables: { filter: filter, limit: 20000, nextToken: apiData3.data.listDividendosAccionistas.nextToken } });
@@ -890,13 +854,11 @@ export default function Dividendos() {
       accionistasFromAPI3 = accionistasFromAPI3.concat(accionistasFromAPI4);
       if (apiData4.data.listDividendosAccionistas.nextToken != null) nexttoken4 = apiData4.data.listDividendosAccionistas.nextToken
     }
-
     if (nexttoken4 != null) {
       const apiData5 = await API.graphql({ query: listDividendosAccionistas, variables: { filter: filter, limit: 20000, nextToken: nexttoken4 } });
       const accionistasFromAPI5 = apiData5.data.listDividendosAccionistas.items;
       accionistasFromAPI3 = accionistasFromAPI3.concat(accionistasFromAPI5);
     }
-
     setAccionistasCorteDividendos(accionistasFromAPI3);
     setOpenAccionistasDividendos(true)
   }
@@ -1166,11 +1128,35 @@ export default function Dividendos() {
   const addDividendo = async () => {
     try {
 
-      if (!formData.periodo || !formData.dividendo || !formData.porcentajeRepartir || !formData.fechaCorte || !formData.fechaPago) return
+      if (!formData.periodo || !formData.dividendo || !formData.porcentajeRepartir || !formData.fechaCorte || 
+        !formData.fechaPago) return
 
       setCircular(true);
 
-      const dividendo = { ...formData }
+      //const dividendo = { ...formData }
+
+      const dividendo = { 
+        div_periodo: formData.periodo,
+        div_concepto: formData.concepto,
+        div_dividendo: formData.dividendo,
+        div_porcentaje: formData.porcentajeRepartir,
+        div_repartido: formData.dividendoRepartir
+      }
+
+      const dividendoID = await API.graphql(graphqlOperation(createDividendoNuevo, { input: dividendo }))
+      console.log("dividendoID",dividendoID);
+
+      const detalleDividendo={
+        ddiv_usuario: "Admin",
+        ddiv_secuencial: formData.secuencial,
+        ddiv_fecha_junta: formData.fechaPago,
+        ddiv_fecha_pago: formData.fechaCorte,
+        ddiv_titulos: 99,
+        ddiv_dividendo: formData.dividendoRepartir,
+        dividendoID: "prueba"
+      }
+      
+      API.graphql(graphqlOperation(createDetalleDividendo, { input: detalleDividendo }))
 
       setFormData({
         periodo: '',
@@ -1189,9 +1175,6 @@ export default function Dividendos() {
         entregado: 0,
         porEntregar: 0,
       });
-
-
-      const dividendoID = await API.graphql(graphqlOperation(createDividendos, { input: dividendo }))
 
       setCircular(false);
 
@@ -1297,13 +1280,9 @@ export default function Dividendos() {
               disableColumnMenu
               rows={accionistasCorte}
               columns={columnsAccionistasCorte}
-              //components={{ Toolbar: GridToolbar }}
-              pageSize={100}
-              rowsPerPageOptions={[100]}
+              pageSize={25}
+              rowsPerPageOptions={[25]}
             />
-
-
-
           </DialogContent>
           <DialogActions style={{ display: 'flex', flexDirection: 'row', alignItems: 'flex-end', justifyContent: 'flex-end', width: '100%' }}>
 
@@ -1341,9 +1320,8 @@ export default function Dividendos() {
               disableColumnMenu
               rows={accionistasCorteDividendos}
               columns={columnsAccionistasCorteDividendos}
-              //components={{ Toolbar: GridToolbar }}
-              pageSize={100}
-              rowsPerPageOptions={[100]}
+              pageSize={25}
+              rowsPerPageOptions={[25]}
             />
 
 
@@ -1377,26 +1355,12 @@ export default function Dividendos() {
                       label="Retención Asignada"
                       onChange={handlePeriodoChange}
                     >
-                      <MenuItem value={2015} >2015</MenuItem>
-                      <MenuItem value={2016} >2016</MenuItem>
-                      <MenuItem value={2017} >2017</MenuItem>
-                      <MenuItem value={2018} >2018</MenuItem>
-                      <MenuItem value={2019} >2019</MenuItem>
                       <MenuItem value={2020} >2020</MenuItem>
                       <MenuItem value={2021} >2021</MenuItem>
                       <MenuItem value={2022} >2022</MenuItem>
                       <MenuItem value={2023} >2023</MenuItem>
                       <MenuItem value={2024} >2024</MenuItem>
                       <MenuItem value={2025} >2025</MenuItem>
-                      <MenuItem value={2026} >2026</MenuItem>
-                      <MenuItem value={2027} >2027</MenuItem>
-                      <MenuItem value={2028} >2028</MenuItem>
-                      <MenuItem value={2029} >2029</MenuItem>
-                      <MenuItem value={2030} >2030</MenuItem>
-                      <MenuItem value={2031} >2031</MenuItem>
-                      <MenuItem value={2032} >2032</MenuItem>
-                      <MenuItem value={2033} >2033</MenuItem>
-                      <MenuItem value={2034} >2034</MenuItem>
                     </Select>
                   </FormControl>
 
@@ -1454,7 +1418,7 @@ export default function Dividendos() {
                   <TextField
                     size='small'
                     id="datetime-local"
-                    label="Fecha Corte"
+                    label="Fecha Pago"
                     type="date"
                     defaultValue={Date.now()}
                     variant="standard"

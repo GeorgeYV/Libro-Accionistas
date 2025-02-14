@@ -1,103 +1,43 @@
 /* eslint-disable */
 // this is an auto generated file. This will be overwritten
 
-export const getEstadoCatalogo = /* GraphQL */ `
-  query GetEstadoCatalogo($id: ID!) {
-    getEstadoCatalogo(id: $id) {
+export const getDividendosTitulos = /* GraphQL */ `
+  query GetDividendosTitulos($id: ID!) {
+    getDividendosTitulos(id: $id) {
       id
-      nombre
-      nombreCorto
+      div_tit_participacion
+      div_tit_dividendo
+      div_tit_retencion
+      div_tit_base_imponible
+      div_tit_fecha_pago
+      div_tit_documento
+      detalledividendoID
       createdAt
       updatedAt
       __typename
     }
   }
 `;
-export const listEstadoCatalogos = /* GraphQL */ `
-  query ListEstadoCatalogos(
-    $filter: ModelEstadoCatalogoFilterInput
+export const listDividendosTitulos = /* GraphQL */ `
+  query ListDividendosTitulos(
+    $filter: ModelDividendosTitulosFilterInput
     $limit: Int
     $nextToken: String
   ) {
-    listEstadoCatalogos(filter: $filter, limit: $limit, nextToken: $nextToken) {
-      items {
-        id
-        nombre
-        nombreCorto
-        createdAt
-        updatedAt
-        __typename
-      }
-      nextToken
-      __typename
-    }
-  }
-`;
-export const getTipoPersona = /* GraphQL */ `
-  query GetTipoPersona($id: ID!) {
-    getTipoPersona(id: $id) {
-      id
-      nombre
-      nombreCorto
-      estado
-      createdAt
-      updatedAt
-      __typename
-    }
-  }
-`;
-export const listTipoPersonas = /* GraphQL */ `
-  query ListTipoPersonas(
-    $filter: ModelTipoPersonaFilterInput
-    $limit: Int
-    $nextToken: String
-  ) {
-    listTipoPersonas(filter: $filter, limit: $limit, nextToken: $nextToken) {
-      items {
-        id
-        nombre
-        nombreCorto
-        estado
-        createdAt
-        updatedAt
-        __typename
-      }
-      nextToken
-      __typename
-    }
-  }
-`;
-export const getTipoIdentificacion = /* GraphQL */ `
-  query GetTipoIdentificacion($id: ID!) {
-    getTipoIdentificacion(id: $id) {
-      id
-      nombre
-      nombreCorto
-      estado
-      tipoPersona
-      createdAt
-      updatedAt
-      __typename
-    }
-  }
-`;
-export const listTipoIdentificacions = /* GraphQL */ `
-  query ListTipoIdentificacions(
-    $filter: ModelTipoIdentificacionFilterInput
-    $limit: Int
-    $nextToken: String
-  ) {
-    listTipoIdentificacions(
+    listDividendosTitulos(
       filter: $filter
       limit: $limit
       nextToken: $nextToken
     ) {
       items {
         id
-        nombre
-        nombreCorto
-        estado
-        tipoPersona
+        div_tit_participacion
+        div_tit_dividendo
+        div_tit_retencion
+        div_tit_base_imponible
+        div_tit_fecha_pago
+        div_tit_documento
+        detalledividendoID
         createdAt
         updatedAt
         __typename
@@ -107,29 +47,89 @@ export const listTipoIdentificacions = /* GraphQL */ `
     }
   }
 `;
-export const getEstadoCivil = /* GraphQL */ `
-  query GetEstadoCivil($id: ID!) {
-    getEstadoCivil(id: $id) {
+export const getDetalleDividendo = /* GraphQL */ `
+  query GetDetalleDividendo($id: ID!) {
+    getDetalleDividendo(id: $id) {
       id
-      nombre
-      estado
+      ddiv_usuario
+      ddiv_secuencial
+      ddiv_fecha_junta
+      ddiv_fecha_pago
+      ddiv_titulos
+      ddiv_dividendo
+      dividendoID
       createdAt
       updatedAt
+      DetDiv_DividendosTitulos {
+        nextToken
+        __typename
+      }
       __typename
     }
   }
 `;
-export const listEstadoCivils = /* GraphQL */ `
-  query ListEstadoCivils(
-    $filter: ModelEstadoCivilFilterInput
+export const listDetalleDividendos = /* GraphQL */ `
+  query ListDetalleDividendos(
+    $filter: ModelDetalleDividendoFilterInput
     $limit: Int
     $nextToken: String
   ) {
-    listEstadoCivils(filter: $filter, limit: $limit, nextToken: $nextToken) {
+    listDetalleDividendos(
+      filter: $filter
+      limit: $limit
+      nextToken: $nextToken
+    ) {
       items {
         id
-        nombre
-        estado
+        ddiv_usuario
+        ddiv_secuencial
+        ddiv_fecha_junta
+        ddiv_fecha_pago
+        ddiv_titulos
+        ddiv_dividendo
+        dividendoID
+        createdAt
+        updatedAt
+        __typename
+      }
+      nextToken
+      __typename
+    }
+  }
+`;
+export const getDividendoNuevo = /* GraphQL */ `
+  query GetDividendoNuevo($id: ID!) {
+    getDividendoNuevo(id: $id) {
+      id
+      div_periodo
+      div_concepto
+      div_dividendo
+      div_porcentaje
+      div_repartido
+      createdAt
+      updatedAt
+      Div_DetalleDividendo {
+        nextToken
+        __typename
+      }
+      __typename
+    }
+  }
+`;
+export const listDividendoNuevos = /* GraphQL */ `
+  query ListDividendoNuevos(
+    $filter: ModelDividendoNuevoFilterInput
+    $limit: Int
+    $nextToken: String
+  ) {
+    listDividendoNuevos(filter: $filter, limit: $limit, nextToken: $nextToken) {
+      items {
+        id
+        div_periodo
+        div_concepto
+        div_dividendo
+        div_porcentaje
+        div_repartido
         createdAt
         updatedAt
         __typename
@@ -245,116 +245,6 @@ export const listCiudads = /* GraphQL */ `
     }
   }
 `;
-export const getTipoMedioContacto = /* GraphQL */ `
-  query GetTipoMedioContacto($id: ID!) {
-    getTipoMedioContacto(id: $id) {
-      id
-      nombre
-      estado
-      createdAt
-      updatedAt
-      __typename
-    }
-  }
-`;
-export const listTipoMedioContactos = /* GraphQL */ `
-  query ListTipoMedioContactos(
-    $filter: ModelTipoMedioContactoFilterInput
-    $limit: Int
-    $nextToken: String
-  ) {
-    listTipoMedioContactos(
-      filter: $filter
-      limit: $limit
-      nextToken: $nextToken
-    ) {
-      items {
-        id
-        nombre
-        estado
-        createdAt
-        updatedAt
-        __typename
-      }
-      nextToken
-      __typename
-    }
-  }
-`;
-export const getCuentaBancaria = /* GraphQL */ `
-  query GetCuentaBancaria($id: ID!) {
-    getCuentaBancaria(id: $id) {
-      id
-      nombre
-      nombreCorto
-      estado
-      createdAt
-      updatedAt
-      __typename
-    }
-  }
-`;
-export const listCuentaBancarias = /* GraphQL */ `
-  query ListCuentaBancarias(
-    $filter: ModelCuentaBancariaFilterInput
-    $limit: Int
-    $nextToken: String
-  ) {
-    listCuentaBancarias(filter: $filter, limit: $limit, nextToken: $nextToken) {
-      items {
-        id
-        nombre
-        nombreCorto
-        estado
-        createdAt
-        updatedAt
-        __typename
-      }
-      nextToken
-      __typename
-    }
-  }
-`;
-export const getEstadoAccionista = /* GraphQL */ `
-  query GetEstadoAccionista($id: ID!) {
-    getEstadoAccionista(id: $id) {
-      id
-      nombre
-      nombreCorto
-      descripcion
-      estado
-      createdAt
-      updatedAt
-      __typename
-    }
-  }
-`;
-export const listEstadoAccionistas = /* GraphQL */ `
-  query ListEstadoAccionistas(
-    $filter: ModelEstadoAccionistaFilterInput
-    $limit: Int
-    $nextToken: String
-  ) {
-    listEstadoAccionistas(
-      filter: $filter
-      limit: $limit
-      nextToken: $nextToken
-    ) {
-      items {
-        id
-        nombre
-        nombreCorto
-        descripcion
-        estado
-        createdAt
-        updatedAt
-        __typename
-      }
-      nextToken
-      __typename
-    }
-  }
-`;
 export const getAccionista = /* GraphQL */ `
   query GetAccionista($id: ID!) {
     getAccionista(id: $id) {
@@ -426,27 +316,12 @@ export const getAccionista = /* GraphQL */ `
       fechaBeneficiario8
       nombreBeneficiario9
       fechaBeneficiario9
+      createdAt
+      updatedAt
       titulos {
-        items {
-          id
-          accionistaID
-          titulo
-          acciones
-          fechaCompra
-          estado
-          idCedenteHereda
-          nombreCedenteHereda
-          desde
-          hasta
-          createdAt
-          updatedAt
-          __typename
-        }
         nextToken
         __typename
       }
-      createdAt
-      updatedAt
       __typename
     }
   }
@@ -527,10 +402,6 @@ export const listAccionistas = /* GraphQL */ `
         fechaBeneficiario8
         nombreBeneficiario9
         fechaBeneficiario9
-        titulos {
-          nextToken
-          __typename
-        }
         createdAt
         updatedAt
         __typename
@@ -641,23 +512,6 @@ export const getOperaciones = /* GraphQL */ `
       estado
       usuarioIngreso
       usuarioAprobador
-      titulos {
-        items {
-          id
-          operacionID
-          tituloId
-          titulo
-          acciones
-          accionesTransferidas
-          desde
-          hasta
-          createdAt
-          updatedAt
-          __typename
-        }
-        nextToken
-        __typename
-      }
       cs
       cg
       ci
@@ -674,6 +528,10 @@ export const getOperaciones = /* GraphQL */ `
       fechaValor
       createdAt
       updatedAt
+      titulos {
+        nextToken
+        __typename
+      }
       __typename
     }
   }
@@ -698,10 +556,6 @@ export const listOperaciones = /* GraphQL */ `
         estado
         usuarioIngreso
         usuarioAprobador
-        titulos {
-          nextToken
-          __typename
-        }
         cs
         cg
         ci
@@ -1367,9 +1221,9 @@ export const listAccionistasxJuntas = /* GraphQL */ `
     }
   }
 `;
-export const getDividendos = /* GraphQL */ `
-  query GetDividendos($id: ID!) {
-    getDividendos(id: $id) {
+export const getDividendosAnterior = /* GraphQL */ `
+  query GetDividendosAnterior($id: ID!) {
+    getDividendosAnterior(id: $id) {
       id
       periodo
       secuencial
@@ -1392,13 +1246,17 @@ export const getDividendos = /* GraphQL */ `
     }
   }
 `;
-export const listDividendos = /* GraphQL */ `
-  query ListDividendos(
-    $filter: ModelDividendosFilterInput
+export const listDividendosAnteriors = /* GraphQL */ `
+  query ListDividendosAnteriors(
+    $filter: ModelDividendosAnteriorFilterInput
     $limit: Int
     $nextToken: String
   ) {
-    listDividendos(filter: $filter, limit: $limit, nextToken: $nextToken) {
+    listDividendosAnteriors(
+      filter: $filter
+      limit: $limit
+      nextToken: $nextToken
+    ) {
       items {
         id
         periodo
@@ -1631,6 +1489,50 @@ export const listAccionistaArchives = /* GraphQL */ `
     }
   }
 `;
+export const AccionistaArchiveByFecha = /* GraphQL */ `
+  query AccionistaArchiveByFecha(
+    $fecha: String
+    $estado: ModelStringKeyConditionInput
+    $sortDirection: ModelSortDirection
+    $filter: ModelAccionistaArchiveFilterInput
+    $limit: Int
+    $nextToken: String
+  ) {
+    AccionistaArchiveByFecha(
+      fecha: $fecha
+      estado: $estado
+      sortDirection: $sortDirection
+      filter: $filter
+      limit: $limit
+      nextToken: $nextToken
+    ) {
+      items {
+        fecha
+        id
+        tipoIdentificacion
+        identificacion
+        nombre
+        cantidadAcciones
+        participacion
+        tipoAcciones
+        estado
+        tipoPersona
+        pn_primerNombre
+        pn_segundoNombre
+        pn_apellidoPaterno
+        pn_apellidoMaterno
+        decevale
+        direccionPais
+        paisNacionalidad
+        createdAt
+        updatedAt
+        __typename
+      }
+      nextToken
+      __typename
+    }
+  }
+`;
 export const getTituloArchive = /* GraphQL */ `
   query GetTituloArchive($id: ID!) {
     getTituloArchive(id: $id) {
@@ -1670,50 +1572,6 @@ export const listTituloArchives = /* GraphQL */ `
         nombreCedenteHereda
         desde
         hasta
-        createdAt
-        updatedAt
-        __typename
-      }
-      nextToken
-      __typename
-    }
-  }
-`;
-export const AccionistaArchiveByFecha = /* GraphQL */ `
-  query AccionistaArchiveByFecha(
-    $fecha: String
-    $estado: ModelStringKeyConditionInput
-    $sortDirection: ModelSortDirection
-    $filter: ModelAccionistaArchiveFilterInput
-    $limit: Int
-    $nextToken: String
-  ) {
-    AccionistaArchiveByFecha(
-      fecha: $fecha
-      estado: $estado
-      sortDirection: $sortDirection
-      filter: $filter
-      limit: $limit
-      nextToken: $nextToken
-    ) {
-      items {
-        fecha
-        id
-        tipoIdentificacion
-        identificacion
-        nombre
-        cantidadAcciones
-        participacion
-        tipoAcciones
-        estado
-        tipoPersona
-        pn_primerNombre
-        pn_segundoNombre
-        pn_apellidoPaterno
-        pn_apellidoMaterno
-        decevale
-        direccionPais
-        paisNacionalidad
         createdAt
         updatedAt
         __typename

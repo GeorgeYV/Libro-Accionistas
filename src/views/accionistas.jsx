@@ -681,7 +681,8 @@ export default function Accionistas() {
       },
     };
     const data = await API.get('apiQLDBprod', '/crearRegistro-prod', miInit)
-
+    console.log("miInit: ",miInit);
+    console.log("data aiQLDBprod: ",data);
     let base64Image = document.getElementById('qrcode').toDataURL()
 
     const unit = "pt";
