@@ -1,6 +1,6 @@
 import React, { useState, useEffect, Fragment } from 'react'
 import { API, graphqlOperation } from 'aws-amplify';
-import { getParametro, listDividendosAccionistas, listDividendoNuevos, listOperaciones, listAccionistaArchives } from '../graphql/queries';
+import { getParametro, listDividendosAccionistas, listDividendoNuevos, listOperaciones, listAccionistaArchives, listDetalleDividendos } from '../graphql/queries';
 import { createDividendoNuevo, createDividendosAccionista, updateDividendosAccionista,
   createDetalleDividendo
  } from '../graphql/mutations';
@@ -398,20 +398,6 @@ export default function Dividendos() {
       width: 60,
     },
     {
-      field: 'estado',
-      headerName: 'Estado',
-      width: 100,
-      renderCell: (cellValues) => {
-        return <Chip size="small" variant="outlined" label={cellValues.row.estado} color={cellValues.row.estado == 'Activo' ? 'primary' : 'secondary'} />
-      }
-    },
-    /*        
-    {
-        field: 'paisNacionalidad',
-        headerName: 'Nacionalidad',
-        width: 100,
-    }, */
-    {
       field: 'direccionPais',
       headerName: 'Residencia',
       width: 100,
@@ -460,19 +446,7 @@ export default function Dividendos() {
       headerName: 'Pagar',
       type: 'number',
       width: 110,
-      //valueGetter: getNetoRecibir,
     },
-
-    /*
-    {
-      field: 'saldoDividendoPeriodo',
-      headerName: 'Saldo Dividendo',
-      type: 'number',
-      width: 110,
-      //valueGetter: getNetoRecibir,
-    },  
-    */
-
 
   ];
 
@@ -681,8 +655,28 @@ export default function Dividendos() {
   }
 
   async function fetchDividendos() {
-    const apiData = await API.graphql({ query: listDividendoNuevos, variables: { limit: 1000 } });
-    const dividendosFromAPI = apiData.data.listDividendoNuevos.items;
+    const apiData = await API.graphql({ query: listDividendoNuevos});
+    const apiData2 = await API.graphql({ query: listDetalleDividendos});
+    var aux;
+    const dividendosRelacionados = apiData2.data.listDetalleDividendos.items.map(function (e) {
+      aux = apiData.data.listDividendoNuevos.items.find(({ id }) => id === e.dividendoID);
+      return {
+        ddiv_usuario: e.ddiv_usuario,
+        ddiv_secuencial: e.ddiv_secuencial,
+        ddiv_fecha_junta: e.ddiv_fecha_junta,
+        ddiv_fecha_pago: e.ddiv_fecha_pago,
+        ddiv_titulos: e.ddiv_titulos,
+        ddiv_dividendo: e.ddiv_dividendo,
+        dividendoID: e.dividendoID,
+        div_periodo: aux.div_periodo,
+        div_concepto: aux.div_concepto,
+        div_dividendo: aux.div_dividendo,
+        div_porcentaje: aux.div_porcentaje,
+        div_repartido: aux.div_repartido,
+      };
+    })
+    console.log("dividendosRelacionados: ",dividendosRelacionados);
+    var dividendosFromAPI = apiData.data.listDividendoNuevos.items;
     setDividendos(dividendosFromAPI);
     setRows(dividendosFromAPI);
   }
@@ -767,22 +761,7 @@ export default function Dividendos() {
       };
     })
 
-    ///////////
-
-    const filter2 = {
-      periodo: {
-        eq: periodoSeleccionado.periodo
-      },
-    }
-    console.log("FILTRO", filter2);
-    const apiData10 = await API.graphql({ query: listDividendosAccionistas, variables: { filter: filter2, limit: 20000 } });
-    const accionistasFromAPI10 = apiData10.data.listDividendosAccionistas.items;
-
-    const sum = accionistasFromAPI10.reduce(function (prev, current) {
-      return prev + +current.dividendo
-    }, 0);
-
-    const accionistasCalculo2 = accionistasCalculo.map(function (e) {
+    /*const accionistasCalculo2 = accionistasCalculo.map(function (e) {
       return {
         id: e.id,
         idAccionista: e.idAccionista,
@@ -816,7 +795,7 @@ export default function Dividendos() {
         direccionPaisBeneficiario1: e.direccionPaisBeneficiario1,
         saldoDividendoPeriodo: (row.saldoDividendo * ((e.cantidadAcciones / cantidadTotal) * 100.00).toFixed(16) / 100.00).toFixed(2),
       };
-    })
+    })*/
 
 
     ////////////
@@ -1136,6 +1115,7 @@ export default function Dividendos() {
 
       const dividendoID = await API.graphql(graphqlOperation(createDividendoNuevo, { input: dividendo }))
       console.log("dividendoID",dividendoID);
+      console.log("dividendoID.data.createDividendoNuevo.id",dividendoID.data.createDividendoNuevo.id);
 
       const detalleDividendo={
         ddiv_usuario: "Admin",
@@ -1144,7 +1124,7 @@ export default function Dividendos() {
         ddiv_fecha_pago: formData.fechaCorte,
         ddiv_titulos: 99,
         ddiv_dividendo: formData.dividendoRepartir,
-        dividendoID: "prueba"
+        dividendoID: dividendoID.data.createDividendoNuevo.id
       }
       
       API.graphql(graphqlOperation(createDetalleDividendo, { input: detalleDividendo }))
@@ -1252,11 +1232,10 @@ export default function Dividendos() {
         <Dialog open={openAccionistas} onClose={handleClose} aria-labelledby="form-dialog-title" fullScreen  >
           <DialogTitle id="form-dialog-title">
             <div style={{ display: 'flex', flexDirection: 'row', alignItems: 'center', justifyContent: 'space-around', width: '100%' }}>
-              {periodoSeleccionado.concepto} : {periodoSeleccionado.periodo} : {periodoSeleccionado.secuencial}
-              <Typography variant="body2" >Total dividendo del periodo : {new Intl.NumberFormat('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2, }).format(periodoSeleccionado.dividendo)}</Typography>
-              <Typography variant="body2" >Total a repartir : {new Intl.NumberFormat('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2, }).format(periodoSeleccionado.dividendoRepartir)}</Typography>
-              <Typography variant="body2" >Porcentaje a repartir : {new Intl.NumberFormat('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2, }).format(periodoSeleccionado.porcentajeRepartir)} %</Typography>
-              <Typography variant="body2" >Saldo : {new Intl.NumberFormat('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2, }).format(periodoSeleccionado.saldoDividendo)}</Typography>
+              {periodoSeleccionado.div_concepto} : {periodoSeleccionado.div_periodo} : {periodoSeleccionado.secuencial}
+              <Typography variant="body2" >Total dividendo del periodo : {new Intl.NumberFormat('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2, }).format(periodoSeleccionado.div_dividendo)}</Typography>
+              <Typography variant="body2" >Total a repartir : {new Intl.NumberFormat('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2, }).format(periodoSeleccionado.div_repartido)}</Typography>
+              <Typography variant="body2" >Porcentaje a repartir : {new Intl.NumberFormat('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2, }).format(periodoSeleccionado.div_porcentaje)} %</Typography>
             </div>
           </DialogTitle>
 
