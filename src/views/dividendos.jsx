@@ -538,7 +538,7 @@ export default function Dividendos() {
       aux = {idAccionista: { eq: element.id }};
       filtro.filter.or.push(aux);
     });
-    console.log("Filter: ",filter);
+    console.log("Filter: ",filtro);
     const apiData3 = API.graphql({ query: listTitulos, variables: { filter: filtro, ProjectionExpression: "acciones"} });
     let sum = 0;
     apiData3.data.listTitulos.items.forEach((el) => sum += el.acciones);
