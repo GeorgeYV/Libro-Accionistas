@@ -527,7 +527,7 @@ export default function Dividendos() {
     return num.toFixed(2);
   }
 
-  function getTitulosTotales(listaIdAccionistas) {
+  async function getTitulosTotales(listaIdAccionistas) {
     var aux;
     let filtro = {
       filter: {
@@ -539,7 +539,7 @@ export default function Dividendos() {
       filtro.filter.or.push(aux);
     });
     console.log("Filter: ",filtro);
-    const apiData3 = API.graphql({ query: listTitulos, variables: { filter: filtro, ProjectionExpression: "acciones"} });
+    const apiData3 = await API.graphql({ query: listTitulos, variables: { filter: filtro, ProjectionExpression: "acciones"} });
     let sum = 0;
     apiData3.data.listTitulos.items.forEach((el) => sum += el.acciones);
     return sum;
@@ -566,13 +566,13 @@ export default function Dividendos() {
     setOpenCrearDividendo(false)
   }
   const handleCloseSelectAccionistas = () =>setSelectAccionistas(false);
-  const handleOpenSelectAccionistas = () => {
-    const apiData = API.graphql({ query: listAccionistas, variables: { ProjectionExpression: "id, identificacion, nombre, tipoPersona, direccionPais, direccionPaisBeneficiario1, cantidadAcciones, participacion"} });
-    var aux = apiData.data.listAccionistas.items;
+  const handleOpenSelectAccionistas = async () => {
+    const apiData = await API.graphql({ query: listAccionistas, variables: { ProjectionExpression: "id, identificacion, nombre, tipoPersona, direccionPais, direccionPaisBeneficiario1, cantidadAcciones, participacion"} });
     console.log("apiData: ",apiData);
     console.log("apiData.data.: ",apiData.data);
     console.log("apiData.data.listAccionistas: ",apiData.data.listAccionistas);
     console.log("apiData.data.listAccionistas.items: ",apiData.data.listAccionistas.items);
+    var aux = apiData.data.listAccionistas.items;
     setRowsSelectAccionistas(aux);
     setSelectAccionistas(true);
   }
@@ -626,6 +626,9 @@ export default function Dividendos() {
 
   async function fetchParametros() {
     const apiData = await API.graphql({ query: getParametro, variables: { id: '1' } });
+    console.log("apiData getParametro: ",apiData);
+    console.log("apiData getParametrodata: ",apiData.data);
+    console.log("apiData getParametrogetParametro: ",apiData.data.getParametro);
     const parametrosFromAPI = apiData.data.getParametro;
     //console.log("PARAMETROS",parametrosFromAPI);
     setCantidadEmitido(parametrosFromAPI.cantidadEmitida);
