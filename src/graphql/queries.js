@@ -57,6 +57,7 @@ export const getDetalleDividendo = /* GraphQL */ `
       ddiv_fecha_pago
       ddiv_titulos
       ddiv_dividendo
+      ddiv_porcentaje
       dividendoID
       createdAt
       updatedAt
@@ -87,6 +88,7 @@ export const listDetalleDividendos = /* GraphQL */ `
         ddiv_fecha_pago
         ddiv_titulos
         ddiv_dividendo
+        ddiv_porcentaje
         dividendoID
         createdAt
         updatedAt
@@ -104,7 +106,6 @@ export const getDividendoNuevo = /* GraphQL */ `
       div_periodo
       div_concepto
       div_dividendo
-      div_porcentaje
       div_repartido
       createdAt
       updatedAt
@@ -128,7 +129,6 @@ export const listDividendoNuevos = /* GraphQL */ `
         div_periodo
         div_concepto
         div_dividendo
-        div_porcentaje
         div_repartido
         createdAt
         updatedAt
@@ -1212,68 +1212,6 @@ export const listAccionistasxJuntas = /* GraphQL */ `
         votacion13
         votacion14
         votacion15
-        createdAt
-        updatedAt
-        __typename
-      }
-      nextToken
-      __typename
-    }
-  }
-`;
-export const getDividendosAnterior = /* GraphQL */ `
-  query GetDividendosAnterior($id: ID!) {
-    getDividendosAnterior(id: $id) {
-      id
-      periodo
-      secuencial
-      concepto
-      dividendo
-      porcentajeRepartir
-      dividendoRepartir
-      fechaCorte
-      fechaPago
-      estado
-      retencion
-      idDividendoOrigen
-      saldoDividendo
-      saldoPorcentajeDividendo
-      entregado
-      porEntregar
-      createdAt
-      updatedAt
-      __typename
-    }
-  }
-`;
-export const listDividendosAnteriors = /* GraphQL */ `
-  query ListDividendosAnteriors(
-    $filter: ModelDividendosAnteriorFilterInput
-    $limit: Int
-    $nextToken: String
-  ) {
-    listDividendosAnteriors(
-      filter: $filter
-      limit: $limit
-      nextToken: $nextToken
-    ) {
-      items {
-        id
-        periodo
-        secuencial
-        concepto
-        dividendo
-        porcentajeRepartir
-        dividendoRepartir
-        fechaCorte
-        fechaPago
-        estado
-        retencion
-        idDividendoOrigen
-        saldoDividendo
-        saldoPorcentajeDividendo
-        entregado
-        porEntregar
         createdAt
         updatedAt
         __typename

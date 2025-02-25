@@ -62,6 +62,7 @@ export const onCreateDetalleDividendo = /* GraphQL */ `
       ddiv_fecha_pago
       ddiv_titulos
       ddiv_dividendo
+      ddiv_porcentaje
       dividendoID
       createdAt
       updatedAt
@@ -83,6 +84,7 @@ export const onUpdateDetalleDividendo = /* GraphQL */ `
       ddiv_fecha_pago
       ddiv_titulos
       ddiv_dividendo
+      ddiv_porcentaje
       dividendoID
       createdAt
       updatedAt
@@ -104,6 +106,7 @@ export const onDeleteDetalleDividendo = /* GraphQL */ `
       ddiv_fecha_pago
       ddiv_titulos
       ddiv_dividendo
+      ddiv_porcentaje
       dividendoID
       createdAt
       updatedAt
@@ -122,7 +125,6 @@ export const onCreateDividendoNuevo = /* GraphQL */ `
       div_periodo
       div_concepto
       div_dividendo
-      div_porcentaje
       div_repartido
       createdAt
       updatedAt
@@ -141,7 +143,6 @@ export const onUpdateDividendoNuevo = /* GraphQL */ `
       div_periodo
       div_concepto
       div_dividendo
-      div_porcentaje
       div_repartido
       createdAt
       updatedAt
@@ -160,7 +161,6 @@ export const onDeleteDividendoNuevo = /* GraphQL */ `
       div_periodo
       div_concepto
       div_dividendo
-      div_porcentaje
       div_repartido
       createdAt
       updatedAt
@@ -1603,81 +1603,6 @@ export const onDeleteAccionistasxJunta = /* GraphQL */ `
       votacion13
       votacion14
       votacion15
-      createdAt
-      updatedAt
-      __typename
-    }
-  }
-`;
-export const onCreateDividendosAnterior = /* GraphQL */ `
-  subscription OnCreateDividendosAnterior {
-    onCreateDividendosAnterior {
-      id
-      periodo
-      secuencial
-      concepto
-      dividendo
-      porcentajeRepartir
-      dividendoRepartir
-      fechaCorte
-      fechaPago
-      estado
-      retencion
-      idDividendoOrigen
-      saldoDividendo
-      saldoPorcentajeDividendo
-      entregado
-      porEntregar
-      createdAt
-      updatedAt
-      __typename
-    }
-  }
-`;
-export const onUpdateDividendosAnterior = /* GraphQL */ `
-  subscription OnUpdateDividendosAnterior {
-    onUpdateDividendosAnterior {
-      id
-      periodo
-      secuencial
-      concepto
-      dividendo
-      porcentajeRepartir
-      dividendoRepartir
-      fechaCorte
-      fechaPago
-      estado
-      retencion
-      idDividendoOrigen
-      saldoDividendo
-      saldoPorcentajeDividendo
-      entregado
-      porEntregar
-      createdAt
-      updatedAt
-      __typename
-    }
-  }
-`;
-export const onDeleteDividendosAnterior = /* GraphQL */ `
-  subscription OnDeleteDividendosAnterior {
-    onDeleteDividendosAnterior {
-      id
-      periodo
-      secuencial
-      concepto
-      dividendo
-      porcentajeRepartir
-      dividendoRepartir
-      fechaCorte
-      fechaPago
-      estado
-      retencion
-      idDividendoOrigen
-      saldoDividendo
-      saldoPorcentajeDividendo
-      entregado
-      porEntregar
       createdAt
       updatedAt
       __typename

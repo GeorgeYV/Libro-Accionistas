@@ -152,7 +152,7 @@ export default function Dividendos() {
       width: 120,
     },
     {
-      field: 'div_porcentaje',
+      field: 'ddiv_porcentaje',
       headerName: 'Reparto Acordado',
       type: 'number',
       width: 100,
@@ -567,8 +567,9 @@ export default function Dividendos() {
   }
   const handleCloseSelectAccionistas = () =>setSelectAccionistas(false);
   const handleOpenSelectAccionistas = () => {
-    const apiData3 = API.graphql({ query: listAccionistas, variables: { ProjectionExpression: "id, identificacion, nombre, tipoPersona, direccionPais, direccionPaisBeneficiario1, cantidadAcciones, participacion"} });
-    setRowsSelectAccionistas(apiData3.data.listAccionistas.items);
+    const apiData = API.graphql({ query: listAccionistas, variables: { ProjectionExpression: "id, identificacion, nombre, tipoPersona, direccionPais, direccionPaisBeneficiario1, cantidadAcciones, participacion"} });
+    console.log("apiData.data.listAccionistas.items: ",apiData.data.listAccionistas.items);
+    setRowsSelectAccionistas(apiData.data.listAccionistas.items);
     setSelectAccionistas(true);
   }
   const handleOpenCrearDividendo = () => setOpenCrearDividendo(true);
@@ -682,6 +683,7 @@ export default function Dividendos() {
         ddiv_fecha_pago: e.ddiv_fecha_pago,
         ddiv_titulos: e.ddiv_titulos,
         ddiv_dividendo: e.ddiv_dividendo,
+        ddiv_porcentaje: e.ddiv_porcentaje,
         dividendoID: e.dividendoID,
         div_periodo: aux.div_periodo,
         div_concepto: aux.div_concepto,
@@ -703,6 +705,7 @@ export default function Dividendos() {
       }
       if (repetido != -1 && e.div_dividendo == e.div_repartido) periodos.splice(repetido,1);
     })
+    console.log("periodos:",periodos);
     setRows(dividendosRelacionados);
   }
 
@@ -839,14 +842,18 @@ export default function Dividendos() {
       var aux = periodos.findIndex(x => x.periodo === formData.periodo);
       if (aux != -1) {
         dividendoID = periodos[aux].id;
+        aux = periodos.filter((periodo) => periodo.periodo == formData.periodo).length + 1;
       } else {
         dividendoID = await API.graphql(graphqlOperation(createDividendoNuevo, { input: dividendo }));
+        aux = 1;
       }
+      console.log("aux secuencial:",aux);
       const apiData3 = await API.graphql({ query: listAccionistas, variables: { ProjectionExpression: "id"} });
       var aux_titulos = getTitulosTotales(apiData3.data.listTitulos.items);
+      console.log("aux titulos:",aux_titulos);
       const detalleDividendo={
         ddiv_usuario: userName,
-        ddiv_secuencial: formData.secuencial,
+        ddiv_secuencial: aux,
         ddiv_fecha_junta: formData.fechaPago,
         ddiv_fecha_pago: formData.fechaCorte,
         ddiv_titulos: aux_titulos,
@@ -1023,11 +1030,11 @@ export default function Dividendos() {
 
         <Dialog open={openCrearDividendo} onClose={handleCloseCrearDividendo} aria-labelledby="form-dialog-title" maxWidth='lg'  >
           <DialogTitle id="form-dialog-title">Crear nuevo dividendo</DialogTitle>
-          <DialogContent style={{ height: '450px', width: '300px' }}>
+          <DialogContent style={{ height: '450px' }}>
             <div style={{ display: 'flex', flexDirection: 'row', alignItems: 'flex-start', justifyContent: 'space-between', width: '100%', }}>
               <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'flex-start', justifyContent: 'space-between', width: '90%', }}>
                 <div style={{ display: 'flex', flexDirection: 'row', alignItems: 'flex-start', justifyContent: 'space-evenly', width: '100%', }}>
-                  <FormControl style={{ width: '180px' }}>
+                  <FormControl style={{ width: '100%' }}>
                     <InputLabel id="periodo-select-label">Periodo</InputLabel>
                     <Select
                       labelId="periodo-select-label"

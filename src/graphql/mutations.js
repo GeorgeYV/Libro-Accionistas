@@ -74,6 +74,7 @@ export const createDetalleDividendo = /* GraphQL */ `
       ddiv_fecha_pago
       ddiv_titulos
       ddiv_dividendo
+      ddiv_porcentaje
       dividendoID
       createdAt
       updatedAt
@@ -98,6 +99,7 @@ export const updateDetalleDividendo = /* GraphQL */ `
       ddiv_fecha_pago
       ddiv_titulos
       ddiv_dividendo
+      ddiv_porcentaje
       dividendoID
       createdAt
       updatedAt
@@ -122,6 +124,7 @@ export const deleteDetalleDividendo = /* GraphQL */ `
       ddiv_fecha_pago
       ddiv_titulos
       ddiv_dividendo
+      ddiv_porcentaje
       dividendoID
       createdAt
       updatedAt
@@ -143,7 +146,6 @@ export const createDividendoNuevo = /* GraphQL */ `
       div_periodo
       div_concepto
       div_dividendo
-      div_porcentaje
       div_repartido
       createdAt
       updatedAt
@@ -165,7 +167,6 @@ export const updateDividendoNuevo = /* GraphQL */ `
       div_periodo
       div_concepto
       div_dividendo
-      div_porcentaje
       div_repartido
       createdAt
       updatedAt
@@ -187,7 +188,6 @@ export const deleteDividendoNuevo = /* GraphQL */ `
       div_periodo
       div_concepto
       div_dividendo
-      div_porcentaje
       div_repartido
       createdAt
       updatedAt
@@ -1756,90 +1756,6 @@ export const deleteAccionistasxJunta = /* GraphQL */ `
       votacion13
       votacion14
       votacion15
-      createdAt
-      updatedAt
-      __typename
-    }
-  }
-`;
-export const createDividendosAnterior = /* GraphQL */ `
-  mutation CreateDividendosAnterior(
-    $input: CreateDividendosAnteriorInput!
-    $condition: ModelDividendosAnteriorConditionInput
-  ) {
-    createDividendosAnterior(input: $input, condition: $condition) {
-      id
-      periodo
-      secuencial
-      concepto
-      dividendo
-      porcentajeRepartir
-      dividendoRepartir
-      fechaCorte
-      fechaPago
-      estado
-      retencion
-      idDividendoOrigen
-      saldoDividendo
-      saldoPorcentajeDividendo
-      entregado
-      porEntregar
-      createdAt
-      updatedAt
-      __typename
-    }
-  }
-`;
-export const updateDividendosAnterior = /* GraphQL */ `
-  mutation UpdateDividendosAnterior(
-    $input: UpdateDividendosAnteriorInput!
-    $condition: ModelDividendosAnteriorConditionInput
-  ) {
-    updateDividendosAnterior(input: $input, condition: $condition) {
-      id
-      periodo
-      secuencial
-      concepto
-      dividendo
-      porcentajeRepartir
-      dividendoRepartir
-      fechaCorte
-      fechaPago
-      estado
-      retencion
-      idDividendoOrigen
-      saldoDividendo
-      saldoPorcentajeDividendo
-      entregado
-      porEntregar
-      createdAt
-      updatedAt
-      __typename
-    }
-  }
-`;
-export const deleteDividendosAnterior = /* GraphQL */ `
-  mutation DeleteDividendosAnterior(
-    $input: DeleteDividendosAnteriorInput!
-    $condition: ModelDividendosAnteriorConditionInput
-  ) {
-    deleteDividendosAnterior(input: $input, condition: $condition) {
-      id
-      periodo
-      secuencial
-      concepto
-      dividendo
-      porcentajeRepartir
-      dividendoRepartir
-      fechaCorte
-      fechaPago
-      estado
-      retencion
-      idDividendoOrigen
-      saldoDividendo
-      saldoPorcentajeDividendo
-      entregado
-      porEntregar
       createdAt
       updatedAt
       __typename
