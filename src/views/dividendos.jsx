@@ -859,7 +859,7 @@ export default function Dividendos() {
         ddiv_secuencial: aux,
         ddiv_fecha_junta: formData.fechaPago,
         ddiv_fecha_pago: formData.fechaCorte,
-        ddiv_titulos: aux_titulos,
+        ddiv_titulos: 0,
         ddiv_dividendo: formData.dividendoRepartir,
         ddiv_porcentaje: formData.porcentajeRepartir,
         dividendoID: dividendoID
