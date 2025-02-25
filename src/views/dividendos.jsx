@@ -568,10 +568,6 @@ export default function Dividendos() {
   const handleCloseSelectAccionistas = () =>setSelectAccionistas(false);
   const handleOpenSelectAccionistas = async () => {
     const apiData = await API.graphql({ query: listAccionistas, variables: { ProjectionExpression: "id, identificacion, nombre, tipoPersona, direccionPais, direccionPaisBeneficiario1, cantidadAcciones, participacion"} });
-    console.log("apiData: ",apiData);
-    console.log("apiData.data.: ",apiData.data);
-    console.log("apiData.data.listAccionistas: ",apiData.data.listAccionistas);
-    console.log("apiData.data.listAccionistas.items: ",apiData.data.listAccionistas.items);
     var aux = apiData.data.listAccionistas.items;
     setRowsSelectAccionistas(aux);
     setSelectAccionistas(true);
@@ -626,9 +622,6 @@ export default function Dividendos() {
 
   async function fetchParametros() {
     const apiData = await API.graphql({ query: getParametro, variables: { id: '1' } });
-    console.log("apiData getParametro: ",apiData);
-    console.log("apiData getParametrodata: ",apiData.data);
-    console.log("apiData getParametrogetParametro: ",apiData.data.getParametro);
     const parametrosFromAPI = apiData.data.getParametro;
     //console.log("PARAMETROS",parametrosFromAPI);
     setCantidadEmitido(parametrosFromAPI.cantidadEmitida);
@@ -712,7 +705,6 @@ export default function Dividendos() {
       }
       if (repetido != -1 && e.div_dividendo == e.div_repartido) periodos.splice(repetido,1);
     })
-    console.log("periodos:",periodos);
     setRows(dividendosRelacionados);
   }
 
@@ -775,7 +767,6 @@ export default function Dividendos() {
         eq: row.id
       },
     }
-    console.log("FILTRO", filter);
     const apiData3 = await API.graphql({ query: listDividendosAccionistas, variables: { filter: filter, limit: 20000 } });
     let accionistasFromAPI3 = apiData3.data.listDividendosAccionistas.items;
     let nexttoken4 = null
@@ -796,7 +787,6 @@ export default function Dividendos() {
 
   async function fetchAccionista50(row) {
     const div50 = ((periodoSeleccionado.dividendo * row.participacion / 100.00) / 2.00).toFixed(2);
-    console.log("div50", div50)
     const operID = await API.graphql({ query: updateDividendosAccionista, variables: { input: { id: row.id, solicitado: true, dividendo: div50, dividendoRecibido: div50 } } });
     fetchAccionistasDividendos(periodoSeleccionado);
     //setAccionistasCorteDividendos(accionistasFromAPI3);
@@ -840,6 +830,11 @@ export default function Dividendos() {
         !formData.fechaPago) return
       setCircular(true);
       var dividendoID;
+      const filter = {
+        estado: {
+          eq: "Activo"
+        },
+      }
       const dividendo = { 
         div_periodo: formData.periodo,
         div_concepto: formData.concepto,
@@ -854,11 +849,9 @@ export default function Dividendos() {
         dividendoID = await API.graphql(graphqlOperation(createDividendoNuevo, { input: dividendo }));
         aux = 1;
       }
-      console.log("aux secuencial:",aux);
-      const apiData3 = await API.graphql({ query: listAccionistas, variables: { ProjectionExpression: "id"} });
-      console.log("apidata3: ",apiData3);
-      console.log("apidata3: ",apiData3.data);
+      const apiData3 = await API.graphql({ query: listAccionistas, variables: { filter: filter, ProjectionExpression: "id"} });
       const aux_listaIdsAccionistas=apiData3.data.listAccionistas.items;
+      console.log("aux_listaIdsAccionistas: ",aux_listaIdsAccionistas);
       var aux_titulos = getTitulosTotales(aux_listaIdsAccionistas);
       console.log("aux titulos:",aux_titulos);
       const detalleDividendo={
@@ -869,7 +862,7 @@ export default function Dividendos() {
         ddiv_titulos: aux_titulos,
         ddiv_dividendo: formData.dividendoRepartir,
         ddiv_porcentaje: formData.porcentajeRepartir,
-        dividendoID: dividendoID.data.createDividendoNuevo.id
+        dividendoID: dividendoID
       }
       
       API.graphql(graphqlOperation(createDetalleDividendo, { input: detalleDividendo }))
@@ -1007,7 +1000,7 @@ export default function Dividendos() {
           </DialogActions>
         </Dialog>
 
-        <Dialog open={openAccionistasDividendos} onClose={handleCloseAccionistasDividendos} aria-labelledby="form-dialog-title" fullScreen  >
+        <Dialog open={openAccionistasDividendos} onClose={handleCloseAccionistasDividendos} aria-labelledby="form-dialog-title" fullScreen>
           <DialogTitle id="form-dialog-title">
             <div style={{ display: 'flex', flexDirection: 'row', alignItems: 'center', justifyContent: 'space-around', width: '100%' }}>
               Ejercicio {periodoSeleccionado.periodo}
@@ -1038,7 +1031,7 @@ export default function Dividendos() {
           </DialogActions>
         </Dialog>
 
-        <Dialog open={openCrearDividendo} onClose={handleCloseCrearDividendo} aria-labelledby="form-dialog-title" maxWidth='lg'  >
+        <Dialog open={openCrearDividendo} onClose={handleCloseCrearDividendo} aria-labelledby="form-dialog-title" maxWidth='lg'>
           <DialogTitle id="form-dialog-title">Crear nuevo dividendo</DialogTitle>
           <DialogContent style={{ height: '450px' }}>
             <div style={{ display: 'flex', flexDirection: 'row', alignItems: 'flex-start', justifyContent: 'space-between', width: '100%', }}>
@@ -1163,7 +1156,7 @@ export default function Dividendos() {
           </DialogActions>
         </Dialog>
 
-        <Dialog open={selectAccionistas} onClose={handleCloseSelectAccionistas}>
+        <Dialog open={selectAccionistas} onClose={handleCloseSelectAccionistas} aria-labelledby="form-dialog-title" fullScreen>
           <DialogTitle id="form-dialog-title">Seleccionar accionistas</DialogTitle>
           <DialogContent>
             <DataGrid
