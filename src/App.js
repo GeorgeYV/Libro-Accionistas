@@ -12,7 +12,6 @@ import Layout from './components/layout';
 import PersonaNatural from './views/personanatural';
 import PersonaJuridica from './views/personajuridica';
 import PosesionEfectiva from './views/posesionefectiva';
-import Pdf from './components/pdf';
 import Canje from './views/canje';
 import Bloqueo from './views/bloqueo';
 import Desbloqueo from './views/desbloqueo';
@@ -27,7 +26,6 @@ import Transferencia from './views/transferencia';
 import AccionistasHistorico from './views/accionistas-historico';
 import AumentoCapital from './views/aumentocapital';
 import { createTheme } from '@material-ui/core/styles';
-import { ThemeProvider } from '@material-ui/styles';
 
 const theme = createTheme({
   palette: {

@@ -12,21 +12,21 @@ type DividendosTitulos @model @auth(rules: [{allow: public}]) @key(name: "byDeta
 type DetalleDividendo @model @auth(rules: [{allow: public}]) @key(name: "byDividendoNuevo", fields: ["dividendoID"]) {
   id: ID!
   ddiv_usuario: String
-  ddiv_secuencial: String
+  ddiv_secuencial: Int
   ddiv_fecha_junta: String
   ddiv_fecha_pago: String
   ddiv_titulos: Int
   ddiv_dividendo: Float
-  dividendoID: ID!
+  ddiv_porcentaje: Float
   DetDiv_DividendosTitulos: [DividendosTitulos] @connection(keyName: "byDetalleDividendo", fields: ["id"])
+  dividendoID: ID!
 }
 
 type DividendoNuevo @model @auth(rules: [{allow: public}]) {
   id: ID!
-  div_periodo: String
+  div_periodo: Int
   div_concepto: String
   div_dividendo: Float
-  div_porcentaje: Float
   div_repartido: Float
   Div_DetalleDividendo: [DetalleDividendo] @connection(keyName: "byDividendoNuevo", fields: ["id"])
 }
@@ -418,25 +418,6 @@ type AccionistasxJunta @model @key(name: "byAsamblea", fields: ["asambleaID"]) @
   votacion13: Boolean
   votacion14: Boolean
   votacion15: Boolean
-}
-
-type DividendosAnterior @model @auth(rules: [{allow: public}]) {
-  id: ID!
-  periodo: String
-  secuencial: String
-  concepto: String
-  dividendo: Float
-  porcentajeRepartir: Float
-  dividendoRepartir: Float
-  fechaCorte: String
-  fechaPago: String
-  estado: String
-  retencion: Float
-  idDividendoOrigen: ID
-  saldoDividendo: Float
-  saldoPorcentajeDividendo: Float
-  entregado: Float
-  porEntregar: Float
 }
 
 type DividendosAccionista @model @auth(rules: [{allow: public}]) {
