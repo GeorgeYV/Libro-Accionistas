@@ -568,7 +568,8 @@ export default function Dividendos() {
   const handleCloseSelectAccionistas = () =>setSelectAccionistas(false);
   const handleOpenSelectAccionistas = () => {
     const apiData = API.graphql({ query: listAccionistas, variables: { ProjectionExpression: "id, identificacion, nombre, tipoPersona, direccionPais, direccionPaisBeneficiario1, cantidadAcciones, participacion"} });
-    console.log("apiData.data.listAccionistas.items: ",apiData.data.listAccionistas.items);
+    console.log("apiData: ",apiData);
+    console.log("apiData.data.: ",apiData.data);
     setRowsSelectAccionistas(apiData.data.listAccionistas.items);
     setSelectAccionistas(true);
   }
@@ -849,7 +850,10 @@ export default function Dividendos() {
       }
       console.log("aux secuencial:",aux);
       const apiData3 = await API.graphql({ query: listAccionistas, variables: { ProjectionExpression: "id"} });
-      var aux_titulos = getTitulosTotales(apiData3.data.listTitulos.items);
+      console.log("apidata3: ",apiData3);
+      console.log("apidata3: ",apiData3.data);
+      const aux_listaIdsAccionistas=apiData3.data.listTitulos.items;
+      var aux_titulos = getTitulosTotales(aux_listaIdsAccionistas);
       console.log("aux titulos:",aux_titulos);
       const detalleDividendo={
         ddiv_usuario: userName,
