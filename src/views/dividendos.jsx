@@ -112,6 +112,7 @@ export default function Dividendos() {
   const [circular, setCircular] = useState(false);
   const [refrescar, setRefrescar] = useState(false);
   var [periodos, setPeriodos] = useState([]);
+  var [listaAccionistasDividendo, setListaAccionistasDividendo] = useState([]);
   var [formData, setFormData] = useState({
     periodo: '',
     secuencial: '',
@@ -415,6 +416,9 @@ export default function Dividendos() {
           <Checkbox
           onChange={() => {
             console.log(cellValues.row);
+            var aux;
+            aux = listaAccionistasDividendo.findIndex(x => x.id === cellValues.row.id);
+            if(aux != -1) listaAccionistasDividendo.push(cellValues.row);
           }
           }
           />
@@ -672,7 +676,7 @@ export default function Dividendos() {
   async function fetchDividendos() {
     const apiData = await API.graphql({ query: listDividendoNuevos});
     const apiData2 = await API.graphql({ query: listDetalleDividendos});
-    var aux,repetido,auxperiodos;
+    var aux,repetido,auxperiodos=[];
     for (let index = 2015; index <= year; index++) {
       auxperiodos.push({id:index,periodo:index,tipo: "Nuevo"});
     }
@@ -858,6 +862,7 @@ export default function Dividendos() {
         dividendoID = await API.graphql(graphqlOperation(createDividendoNuevo, { input: dividendo }));
         aux = 1;
       }
+      console.log("listaAccionistasDividendo",listaAccionistasDividendo);
       const apiData3 = await API.graphql({ query: listAccionistas, variables: { filter: filter, projectionExpression: "id", select:"SPECIFIC_ATTRIBUTES"}, limit: 1000 });
       const aux_listaIdsAccionistas = apiData3.data.listAccionistas.items;
       console.log("aux_listaIdsAccionistas: ",aux_listaIdsAccionistas.length);
@@ -873,9 +878,7 @@ export default function Dividendos() {
         ddiv_porcentaje: formData.porcentajeRepartir,
         dividendoID: dividendoID
       }
-      
       API.graphql(graphqlOperation(createDetalleDividendo, { input: detalleDividendo }))
-
       setFormData({
         periodo: '',
         secuencial: '',
