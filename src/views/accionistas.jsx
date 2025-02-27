@@ -767,7 +767,7 @@ export default function Accionistas() {
     const texto9 = "El código QR lo direccionará a la página de verificación";
     doc.text(texto9, 195, 490);
     //const texto10 = data[0].hash;
-    doc.text(texto10, 195, 500);
+    //doc.text(texto10, 195, 500);
     doc.save("CertificadoAccionistas.pdf")   
   }
 
