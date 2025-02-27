@@ -415,10 +415,11 @@ export default function Dividendos() {
         return <Fragment>
           <Checkbox
           onChange={() => {
-            console.log(cellValues.row);
             var aux;
             aux = listaAccionistasDividendo.findIndex(x => x.id === cellValues.row.id);
             if(aux != -1) listaAccionistasDividendo.push(cellValues.row);
+            console.log("aux",aux);
+            console.log("checkbox",listaAccionistasDividendo);
           }
           }
           />
@@ -722,9 +723,24 @@ export default function Dividendos() {
   }
 
   async function fetchAccionistas(row) {
-    const filter = {
-      estado: {
-        eq: "Activo"
+    console.log("listaAccionistasDividendo",listaAccionistasDividendo);
+    if (listaAccionistasDividendo.length > 0) {
+      var aux;
+      const filter = {
+        estado: {
+          eq: "Activo"
+        },
+        or: []
+      }
+      listaAccionistasDividendo.forEach(element => {
+        aux = {accionistaID: { eq: element.id }};
+        filter.or.push(aux);
+      });
+    } else{
+      const filter = {
+        estado: {
+          eq: "Activo"
+        }
       }
     }
     const apiData3 = await API.graphql({ query: listAccionistas, variables: { filter: filter , limit: 1000} });
@@ -1197,7 +1213,7 @@ export default function Dividendos() {
                 color="primary"
                 className={classes.button}
                 size='small'
-                //onClick={}
+                onClick={handleCloseSelectAccionistas}
                 style={{ textTransform: 'none' }}
               >
                 Confirmar Lista
