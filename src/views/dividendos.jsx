@@ -671,17 +671,16 @@ export default function Dividendos() {
 
   async function fetchDividendos() {
     const apiData = await API.graphql({ query: listDividendoNuevos});
-    console.log("apiData",apiData);
     const apiData2 = await API.graphql({ query: listDetalleDividendos});
-    console.log("apiData2",apiData2);
-    setPeriodos([]);
+    var aux,repetido,auxperiodos;
     for (let index = 2015; index <= year; index++) {
-      periodos.push({id:index,periodo:index,tipo: "Nuevo"});
+      auxperiodos.push({id:index,periodo:index,tipo: "Nuevo"});
     }
+    setPeriodos(auxperiodos);
+    console.log("auxperiodos",auxperiodos);
     console.log("periodos",periodos);
-    if (apiData && apiData2) {
+    if (apiData.data.listDividendoNuevos.items.length > 0 && apiData2.data.listDetalleDividendos.items.length > 0) {
       const dividendosRelacionados = apiData2.data.listDetalleDividendos.items.map(function (e) {
-        var aux;
         aux = apiData.data.listDividendoNuevos.items.find(({ id }) => id === e.dividendoID);
         console.log("aux1",aux);
         return {
@@ -701,7 +700,6 @@ export default function Dividendos() {
         };
       });
       apiData.data.listDividendoNuevos.items.map(function (e) {
-        var repetido;
         repetido = periodos.findIndex(x => x.periodo === e.div_periodo);
         console.log("repetido",repetido);
         console.log("e.div_dividendo",e.div_dividendo);
@@ -853,7 +851,7 @@ export default function Dividendos() {
         div_repartido: formData.dividendoRepartir
       }
       var aux = periodos.findIndex(x => x.periodo === formData.periodo);
-      if (aux != -1) {
+      if (aux != -1 && periodos[aux].tipo != "Nuevo") {
         dividendoID = periodos[aux].id;
         aux = periodos.filter((periodo) => periodo.periodo == formData.periodo).length + 1;
       } else {
@@ -862,7 +860,7 @@ export default function Dividendos() {
       }
       const apiData3 = await API.graphql({ query: listAccionistas, variables: { filter: filter, projectionExpression: "id", select:"SPECIFIC_ATTRIBUTES"}, limit: 1000 });
       const aux_listaIdsAccionistas = apiData3.data.listAccionistas.items;
-      console.log("aux_listaIdsAccionistas: ",aux_listaIdsAccionistas);
+      console.log("aux_listaIdsAccionistas: ",aux_listaIdsAccionistas.length);
       var aux_titulos = await getTitulosTotales(aux_listaIdsAccionistas);
       console.log("aux titulos:",aux_titulos);
       const detalleDividendo={
