@@ -724,9 +724,9 @@ export default function Dividendos() {
 
   async function fetchAccionistas(row) {
     console.log("listaAccionistasDividendo",listaAccionistasDividendo);
+    var filter,aux;
     if (listaAccionistasDividendo.length > 0) {
-      var aux;
-      const filter = {
+      filter = {
         estado: {
           eq: "Activo"
         },
@@ -737,7 +737,7 @@ export default function Dividendos() {
         filter.or.push(aux);
       });
     } else{
-      const filter = {
+       filter = {
         estado: {
           eq: "Activo"
         }
@@ -831,6 +831,7 @@ export default function Dividendos() {
       setFormData({ ...formData, 'concepto': periodo_aux.div_concepto });
       setFormData({ ...formData, 'dividendo': periodo_aux.div_dividendo });
       setFormData({ ...formData, 'saldoDividendo': periodo_aux.div_repartido });
+      console.log("formData periodo change",formData);
     }
   };
 
