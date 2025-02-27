@@ -376,10 +376,12 @@ export default function Dividendos() {
     {
       field: 'identificacion',
       headerName: 'Identificación',
+      width: 150,
     },
     {
       field: 'nombre',
       headerName: 'Nombre',
+      width: 200,
     },
     {
       field: 'tipoPersona',
@@ -405,6 +407,7 @@ export default function Dividendos() {
       width: 110,
     },
     {
+      field: '50%',
       headerName: 'X',
       width: 50,
       renderCell: (cellValues) => {
@@ -532,7 +535,7 @@ export default function Dividendos() {
       filter.or.push(aux);
     });
     console.log("Filter: ",filter);
-    const apiData3 = await API.graphql({ query: listTitulos, variables: { filter: filter, ProjectionExpression: "acciones", select:"SPECIFIC_ATTRIBUTES"} });
+    const apiData3 = await API.graphql({ query: listTitulos, variables: { filter: filter, ProjectionExpression: "acciones", select:"SPECIFIC_ATTRIBUTES", limit:1000} });
     let sum = 0;
     apiData3.data.listTitulos.items.forEach((el) => sum += el.acciones);
     return sum;
@@ -560,7 +563,12 @@ export default function Dividendos() {
   }
   const handleCloseSelectAccionistas = () =>setSelectAccionistas(false);
   const handleOpenSelectAccionistas = async () => {
-    const apiData = await API.graphql({ query: listAccionistas, variables: { projectionExpression: "id, identificacion, nombre, tipoPersona, direccionPais, direccionPaisBeneficiario1, cantidadAcciones, participacion", select:"SPECIFIC_ATTRIBUTES", limit: 1000} });
+    const filter = {
+      estado: {
+        eq: "Activo"
+      },
+    }
+    const apiData = await API.graphql({ query: listAccionistas, variables: { filter: filter, projectionExpression: "id, identificacion, nombre, tipoPersona, direccionPais, direccionPaisBeneficiario1, cantidadAcciones, participacion", select:"SPECIFIC_ATTRIBUTES", limit: 1000} });
     var aux = apiData.data.listAccionistas.items;
     setRowsSelectAccionistas(aux);
     setSelectAccionistas(true);
@@ -616,7 +624,6 @@ export default function Dividendos() {
   async function fetchParametros() {
     const apiData = await API.graphql({ query: getParametro, variables: { id: '1' } });
     const parametrosFromAPI = apiData.data.getParametro;
-    //console.log("PARAMETROS",parametrosFromAPI);
     setCantidadEmitido(parametrosFromAPI.cantidadEmitida);
     setValorNominal(parametrosFromAPI.valorNominal);
     setBaseImponible(parametrosFromAPI.baseImponible);
@@ -664,15 +671,19 @@ export default function Dividendos() {
 
   async function fetchDividendos() {
     const apiData = await API.graphql({ query: listDividendoNuevos});
+    console.log("apiData",apidata);
     const apiData2 = await API.graphql({ query: listDetalleDividendos});
-    var aux,repetido;
+    console.log("apiData2",apidata2);
+    var repetido;
+    setPeriodos([]);
     for (let index = 2015; index <= year; index++) {
       periodos.push({id:index,periodo:index,tipo: "Nuevo"});
     }
     if (apiData && apiData2) {
       const dividendosRelacionados = apiData2.data.listDetalleDividendos.items.map(function (e) {
+        var aux;
         aux = apiData.data.listDividendoNuevos.items.find(({ id }) => id === e.dividendoID);
-        console.log("aux",aux);
+        console.log("aux1",aux);
         return {
           id: e.id,
           ddiv_usuario: e.ddiv_usuario,
@@ -698,7 +709,7 @@ export default function Dividendos() {
           periodos[repetido].tipo = "Parcial";
           console.log("periodos[repetido].tipo",periodos[repetido].tipo);
           var aux = dividendosRelacionados.find(({ div_periodo }) => div_periodo === periodos[repetido].periodo);
-          console.log("aux",aux);
+          console.log("dividendosRelacionados",aux);
           periodos[repetido].id = aux.dividendoID;
         }
         if (repetido != -1 && e.div_dividendo == e.div_repartido) periodos.splice(repetido,1);
@@ -848,7 +859,7 @@ export default function Dividendos() {
         dividendoID = await API.graphql(graphqlOperation(createDividendoNuevo, { input: dividendo }));
         aux = 1;
       }
-      const apiData3 = await API.graphql({ query: listAccionistas, variables: { filter: filter, ProjectionExpression: "id", select:"SPECIFIC_ATTRIBUTES"}, limit: 1000 });
+      const apiData3 = await API.graphql({ query: listAccionistas, variables: { filter: filter, projectionExpression: "id", select:"SPECIFIC_ATTRIBUTES"}, limit: 1000 });
       const aux_listaIdsAccionistas = apiData3.data.listAccionistas.items;
       console.log("aux_listaIdsAccionistas: ",aux_listaIdsAccionistas);
       var aux_titulos = await getTitulosTotales(aux_listaIdsAccionistas);
