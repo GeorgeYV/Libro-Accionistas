@@ -671,14 +671,14 @@ export default function Dividendos() {
 
   async function fetchDividendos() {
     const apiData = await API.graphql({ query: listDividendoNuevos});
-    console.log("apiData",apidata);
+    console.log("apiData",apiData);
     const apiData2 = await API.graphql({ query: listDetalleDividendos});
-    console.log("apiData2",apidata2);
-    var repetido;
+    console.log("apiData2",apiData2);
     setPeriodos([]);
     for (let index = 2015; index <= year; index++) {
       periodos.push({id:index,periodo:index,tipo: "Nuevo"});
     }
+    console.log("periodos",periodos);
     if (apiData && apiData2) {
       const dividendosRelacionados = apiData2.data.listDetalleDividendos.items.map(function (e) {
         var aux;
@@ -701,6 +701,7 @@ export default function Dividendos() {
         };
       });
       apiData.data.listDividendoNuevos.items.map(function (e) {
+        var repetido;
         repetido = periodos.findIndex(x => x.periodo === e.div_periodo);
         console.log("repetido",repetido);
         console.log("e.div_dividendo",e.div_dividendo);
