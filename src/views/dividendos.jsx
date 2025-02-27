@@ -859,14 +859,21 @@ export default function Dividendos() {
         dividendoID = periodos[aux].id;
         aux = periodos.filter((periodo) => periodo.periodo == formData.periodo).length + 1;
       } else {
-        dividendoID = await API.graphql(graphqlOperation(createDividendoNuevo, { input: dividendo }));
+        var response = await API.graphql(graphqlOperation(createDividendoNuevo, { input: dividendo }));
+        dividendoID = response.data.createDividendoNuevo.id
         aux = 1;
       }
+      console.log("dividendoID",dividendoID);
       console.log("listaAccionistasDividendo",listaAccionistasDividendo);
-      const apiData3 = await API.graphql({ query: listAccionistas, variables: { filter: filter, projectionExpression: "id", select:"SPECIFIC_ATTRIBUTES"}, limit: 1000 });
-      const aux_listaIdsAccionistas = apiData3.data.listAccionistas.items;
-      console.log("aux_listaIdsAccionistas: ",aux_listaIdsAccionistas.length);
-      var aux_titulos = await getTitulosTotales(aux_listaIdsAccionistas);
+      var aux_titulos;
+      if (listaAccionistasDividendo.length > 0) {
+        aux_titulos = await getTitulosTotales(listaAccionistasDividendo);
+      }else{
+        const apiData3 = await API.graphql({ query: listAccionistas, variables: { filter: filter, ProjectionExpression: "id", select:"SPECIFIC_ATTRIBUTES"}, limit: 1000 });
+        const aux_listaIdsAccionistas = apiData3.data.listAccionistas.items;
+        console.log("aux_listaIdsAccionistas: ",aux_listaIdsAccionistas.length);
+        aux_titulos = await getTitulosTotales(aux_listaIdsAccionistas);
+      }
       console.log("aux titulos:",aux_titulos);
       const detalleDividendo={
         ddiv_usuario: userName,
