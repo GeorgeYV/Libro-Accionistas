@@ -857,7 +857,7 @@ export default function Dividendos() {
       if (listaAccionistasDividendo.length > 0) {
         aux_titulos = await getTitulosTotales(listaAccionistasDividendo);
       }else{
-        const apiData3 = await API.graphql({ query: listAccionistas, variables: { filter: filter, ProjectionExpression: "id", select:"SPECIFIC_ATTRIBUTES"}, limit: 1000 });
+        const apiData3 = await API.graphql({ query: listAccionistas, variables: { ProjectionExpression: "id", select:"SPECIFIC_ATTRIBUTES"}, limit: 1000 });
         const aux_listaIdsAccionistas = apiData3.data.listAccionistas.items;
         console.log("aux_listaIdsAccionistas: ",aux_listaIdsAccionistas.length);
         aux_titulos = await getTitulosTotales(aux_listaIdsAccionistas);
