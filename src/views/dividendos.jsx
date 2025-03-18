@@ -563,12 +563,7 @@ export default function Dividendos() {
   }
   const handleCloseSelectAccionistas = () =>setSelectAccionistas(false);
   const handleOpenSelectAccionistas = async () => {
-    const filter = {
-      estado: {
-        eq: "Activo"
-      },
-    }
-    const apiData = await API.graphql({ query: listAccionistas, variables: { filter: filter, projectionExpression: "id, identificacion, nombre, tipoPersona, direccionPais, direccionPaisBeneficiario1, cantidadAcciones, participacion", select:"SPECIFIC_ATTRIBUTES", limit: 1000} });
+    const apiData = await API.graphql({ query: listAccionistas, variables: { projectionExpression: "id, identificacion, nombre, tipoPersona, direccionPais, direccionPaisBeneficiario1, cantidadAcciones, participacion", select:"SPECIFIC_ATTRIBUTES", limit: 1000} });
     var aux = apiData.data.listAccionistas.items;
     setRowsSelectAccionistas(aux);
     setSelectAccionistas(true);
@@ -738,18 +733,9 @@ export default function Dividendos() {
         }
       }
     }
-    const apiData3 = await API.graphql({ query: listAccionistas, variables: { filter: filter , limit: 1000} });
+    console.log("filtro fetchaccionistas",filter);
+    const apiData3 = await API.graphql({ query: listAccionistas, variables: { limit: 1000} });
     let accionistasFromAPI3 = apiData3.data.listAccionistas.items;
-    /*let numero2 = 1;
-    let nombre_aux2 = '';
-    let cantidadTotal = 0;
-    accionistasFromAPI3.forEach(function (obj) {
-      nombre_aux2 = obj.tipoPersona == 'PN' ? obj.pn_apellidoPaterno + " " + obj.pn_apellidoMaterno + " " + obj.pn_primerNombre + " " + obj.pn_segundoNombre : obj.nombre;
-      obj.nombre2 = nombre_aux2.toUpperCase();
-      cantidadTotal = cantidadTotal + obj.cantidadAcciones;
-      obj.secuencial = numero2++;
-    });
-    setCantidadEmitido(cantidadTotal);*/
     const accionistasCalculo = accionistasFromAPI3.map(function (e) {
       return {
         id: e.id,
@@ -770,6 +756,7 @@ export default function Dividendos() {
         dividendoRecibido: ((row.div_repartido * e.acc_participacion).toFixed(2) - getRetencion1(((baseImponible/ 100.00) * (row.div_repartido * e.acc_participacion).toFixed(2)), e.acc_tipo_identificacion, e.acc_residencia, e.acc_nacionalidad)).toFixed(2),
       };
     })
+    console.log("accionistasCalculo",accionistasCalculo);
     setAccionistasCorte(accionistasCalculo);
     setOpenAccionistas(true)
   }

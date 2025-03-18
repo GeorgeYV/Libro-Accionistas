@@ -170,7 +170,7 @@ export default function Accionistas() {
   const [openTitulos, setOpenTitulos] = useState(false);
   const handleClose = () => setOpenTitulos(false);
 
-  const [estado, setEstado] = useState('Activo');
+  const [estado, setEstado] = useState(1);
 
   function getParticipacion(params) {
     return `${(params.getValue(params.id, 'cantidadAcciones') * 100 / cantidadEmitido).toFixed(8) || ''} `;
@@ -403,7 +403,8 @@ export default function Accionistas() {
         eq: estado
       },
     }
-    const apiData = await API.graphql({ query: listAccionistas, variables: { filter: filter, limit: 1000 } });
+    console.log("filter fetchAccionistas", filter)
+    const apiData = await API.graphql({ query: listAccionistas, variables: { limit: 1000 } });
     const accionistasFromAPI = apiData.data.listAccionistas.items;
     setRows(accionistasFromAPI);
   }
