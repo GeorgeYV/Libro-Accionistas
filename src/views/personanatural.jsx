@@ -2,7 +2,7 @@ import React, { useState } from 'react'
 import {
   makeStyles, Paper, TextField, Button, Typography, MenuItem, Select, Divider, Grid,
   IconButton, InputLabel, Snackbar, Switch,
-  Hidden
+  FormControl, FormHelperText 
 } from '@material-ui/core';
 import { Controller, useForm } from "react-hook-form";
 import { useLocation } from 'react-router-dom'
@@ -1215,7 +1215,7 @@ export default function PersonaNatural() {
                       defaultValue='1'
                       value={accionistaGlobal.pn_estado_civil}
                       variant="outlined"
-                      onChange={(e) => { onChange(e); onChangeEstadoCivil(e); }}
+                      onChange={onChangeEstadoCivil}
                     >
                       {generateSelectEstadoCivil()}
                     </Select>
