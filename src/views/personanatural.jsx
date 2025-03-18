@@ -1064,7 +1064,7 @@ export default function PersonaNatural() {
   }
 
   const onChangeEstadoCivil = (e) => {
-    asignarValores;
+    asignarValores(e);
     if (e.target.value === '2' || e.target.value === '3')
       setConyugue(true)
     else
