@@ -722,19 +722,19 @@ export default function Dividendos() {
     var filter,aux;
     if (listaAccionistasDividendo.length > 0) {
       filter = {
-        estado: {
-          eq: "Activo"
+        acc_estado: {
+          eq: 1
         },
         or: []
       }
       listaAccionistasDividendo.forEach(element => {
-        aux = {accionistaID: { eq: element.id }};
+        aux = {id: { eq: element.id }};
         filter.or.push(aux);
       });
     } else{
        filter = {
-        estado: {
-          eq: "Activo"
+        acc_estado: {
+          eq: 1
         }
       }
     }
@@ -845,8 +845,8 @@ export default function Dividendos() {
       setCircular(true);
       var dividendoID;
       const filter = {
-        estado: {
-          eq: "Activo"
+        acc_estado: {
+          eq: 1
         },
       }
       const dividendo = { 

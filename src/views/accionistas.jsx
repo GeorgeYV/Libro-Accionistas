@@ -236,22 +236,13 @@ export default function Accionistas() {
 
   } else {
     columns = [
-      //{ field: 'id', headerName: 'Nro', width: 80, type: 'number',},
       {
-        field: 'secuencial',
-        headerName: 'Nro',
-        type: 'number',
-        width: 50,
-        //filterable: false,        
-        //renderCell:(index) => index.api.getRowIndex(index.row.id) + 1
-      },
-      {
-        field: 'identificacion',
+        field: 'acc_identificacion',
         headerName: 'Identificacion',
         width: 120,
       },
       {
-        field: 'decevale',
+        field: 'acc_decevale',
         headerName: 'Decevale',
         width: 90,
       },
@@ -262,35 +253,35 @@ export default function Accionistas() {
         flex: 1,
       },
       {
-        field: 'paisNacionalidad',
+        field: 'acc_nacionalidad',
         headerName: 'Nacionalidad',
         width: 110,
       },
       {
-        field: 'direccionPais',
+        field: 'acc_residencia',
         headerName: 'Residencia',
         width: 110,
       },
       {
-        field: 'cantidadAcciones',
+        field: 'acc_cantidad_acciones',
         headerName: 'Acciones',
         //type: 'number',
         width: 100,
         align: "right",
       },
       {
-        field: 'participacion',
+        field: 'acc_participacion',
         headerName: 'Participación',
         type: 'number',
         width: 100,
         valueGetter: getParticipacion,
       },
       {
-        field: 'tipoAcciones',
+        field: 'acc_tipo_acciones',
         headerName: 'Tipo',
         width: 70,
         renderCell: (cellValues) => {
-          return cellValues.row.tipoAcciones == "D" ?
+          return cellValues.row.acc_tipo_acciones == 1 ?
             <Tooltip title="Desmaterializadas" >
               <DevicesOutlinedIcon />
             </Tooltip>
@@ -301,11 +292,11 @@ export default function Accionistas() {
         }
       },
       {
-        field: 'estado',
+        field: 'acc_estado',
         headerName: 'Estado',
         width: 110,
         renderCell: (cellValues) => {
-          return <Chip size="small" variant="outlined" label={cellValues.row.estado} color={cellValues.row.estado == 'Activo' ? 'primary' : 'secondary'} />
+          return <Chip size="small" variant="outlined" label={cellValues.row.estado} color={cellValues.row.acc_estado == 1 ? 'primary' : 'secondary'} />
         }
       },
 
@@ -331,7 +322,7 @@ export default function Accionistas() {
 
 
           return <Link to={{
-            pathname: cellValues.row.tipoPersona == "PN" ? "/personanatural" : "/personajuridica",
+            pathname: cellValues.row.acc_tipo_identificacion == 0 ? "/personanatural" : "/personajuridica",
             state: {
               preloadedValue: cellValues.row,
             },
@@ -381,8 +372,7 @@ export default function Accionistas() {
 
   const handleChange = (event) => {
     console.log("estado", event.target.value)
-    setEstado(event.target.value);
-    //fetchAccionistas(event.target.value);
+    setEstado(event.target.value=="Activo"? 1:0);
   };
 
 
@@ -407,60 +397,15 @@ export default function Accionistas() {
   }
 
   async function fetchAccionistas() {
-
     console.log("entro a buscar con estado", estado)
-
     const filter = {
-      estado: {
+      acc_estado: {
         eq: estado
       },
     }
     const apiData = await API.graphql({ query: listAccionistas, variables: { filter: filter, limit: 1000 } });
     const accionistasFromAPI = apiData.data.listAccionistas.items;
-
-    //console.log("accionistas", accionistasFromAPI)
-    //await Promise.all(accionistasFromAPI.map(async accionista => {
-    //return accionista;
-    //}))
-
-    //const accionistas = accionistasFromAPI.map( accionista => accionista)
-    //accionistasFromAPI.map(obj=> ({ ...obj, nombre2 : obj.tipoPersona == 'PN' ? obj.pn_primerNombre + " " + obj.pn_segundoNombre + " " + obj.pn_apellidoPaterno + " " + obj.pn_apellidoMaterno : obj.nombre }))
-
-    let numero = 1;
-    let nombre_aux = '';
-    accionistasFromAPI.forEach(function (obj) {
-
-      //obj.nombre2 = obj.tipoPersona == 'PN' ? obj.pn_primerNombre + " " + obj.pn_segundoNombre + " " + obj.pn_apellidoPaterno + " " + obj.pn_apellidoMaterno : obj.nombre;
-      nombre_aux = obj.tipoPersona == 'PN' ? obj.pn_apellidoPaterno + " " + obj.pn_apellidoMaterno + " " + obj.pn_primerNombre + " " + obj.pn_segundoNombre : obj.nombre;
-      obj.nombre2 = obj.herederos == true ? nombre_aux.toUpperCase() + "  -  HEREDEROS" : nombre_aux.toUpperCase();
-    });
-
-    setAccionistas(accionistasFromAPI.sort(function (a, b) {
-      if (a.nombre2 > b.nombre2) {
-        return 1;
-      }
-      if (a.nombre2 < b.nombre2) {
-        return -1;
-      }
-      // a must be equal to b
-      return 0;
-    }));
-
-    accionistasFromAPI.forEach(function (obj) {
-
-      obj.secuencial = numero++;
-    });
-
     setRows(accionistasFromAPI);
-    /*
-    if(count === 0)
-      {      
-      setCount(1);
-      setRows(accionistasFromAPI);
-      }
-*/
-
-
   }
 
   const requestSearch = (searchValue) => {
