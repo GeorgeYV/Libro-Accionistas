@@ -1,6 +1,143 @@
 /* eslint-disable */
 // this is an auto generated file. This will be overwritten
 
+export const getPersonaNatural = /* GraphQL */ `
+  query GetPersonaNatural($id: ID!) {
+    getPersonaNatural(id: $id) {
+      id
+      pn_primer_nombre
+      pn_segundo_nombre
+      pn_apellido_paterno
+      pn_apellido_materno
+      pn_estado_civil
+      pn_doc_identificacion
+      createdAt
+      updatedAt
+      PerNat_Conyuge {
+        id
+        con_tipo_identificacion
+        con_identificacion
+        con_nombre
+        con_nacionalidad
+        con_doc_identifcacion
+        createdAt
+        updatedAt
+        __typename
+      }
+      __typename
+    }
+  }
+`;
+export const listPersonaNaturals = /* GraphQL */ `
+  query ListPersonaNaturals(
+    $filter: ModelPersonaNaturalFilterInput
+    $limit: Int
+    $nextToken: String
+  ) {
+    listPersonaNaturals(filter: $filter, limit: $limit, nextToken: $nextToken) {
+      items {
+        id
+        pn_primer_nombre
+        pn_segundo_nombre
+        pn_apellido_paterno
+        pn_apellido_materno
+        pn_estado_civil
+        pn_doc_identificacion
+        createdAt
+        updatedAt
+        __typename
+      }
+      nextToken
+      __typename
+    }
+  }
+`;
+export const getPersonaJuridica = /* GraphQL */ `
+  query GetPersonaJuridica($id: ID!) {
+    getPersonaJuridica(id: $id) {
+      id
+      pj_rl_tipo_identificacion
+      pj_razon_social
+      pj_rl_identificacion
+      pj_rl_nombre
+      pj_rl_nacionalidad
+      pj_rl_telefono
+      pj_rl_email
+      pj_doc_nombramiento
+      createdAt
+      updatedAt
+      __typename
+    }
+  }
+`;
+export const listPersonaJuridicas = /* GraphQL */ `
+  query ListPersonaJuridicas(
+    $filter: ModelPersonaJuridicaFilterInput
+    $limit: Int
+    $nextToken: String
+  ) {
+    listPersonaJuridicas(
+      filter: $filter
+      limit: $limit
+      nextToken: $nextToken
+    ) {
+      items {
+        id
+        pj_rl_tipo_identificacion
+        pj_razon_social
+        pj_rl_identificacion
+        pj_rl_nombre
+        pj_rl_nacionalidad
+        pj_rl_telefono
+        pj_rl_email
+        pj_doc_nombramiento
+        createdAt
+        updatedAt
+        __typename
+      }
+      nextToken
+      __typename
+    }
+  }
+`;
+export const getConyuge = /* GraphQL */ `
+  query GetConyuge($id: ID!) {
+    getConyuge(id: $id) {
+      id
+      con_tipo_identificacion
+      con_identificacion
+      con_nombre
+      con_nacionalidad
+      con_doc_identifcacion
+      createdAt
+      updatedAt
+      __typename
+    }
+  }
+`;
+export const listConyuges = /* GraphQL */ `
+  query ListConyuges(
+    $filter: ModelConyugeFilterInput
+    $limit: Int
+    $nextToken: String
+  ) {
+    listConyuges(filter: $filter, limit: $limit, nextToken: $nextToken) {
+      items {
+        id
+        con_tipo_identificacion
+        con_identificacion
+        con_nombre
+        con_nacionalidad
+        con_doc_identifcacion
+        createdAt
+        updatedAt
+        __typename
+      }
+      nextToken
+      __typename
+    }
+  }
+`;
 export const getDividendosTitulos = /* GraphQL */ `
   query GetDividendosTitulos($id: ID!) {
     getDividendosTitulos(id: $id) {
@@ -249,75 +386,58 @@ export const getAccionista = /* GraphQL */ `
   query GetAccionista($id: ID!) {
     getAccionista(id: $id) {
       id
-      tipoIdentificacion
-      identificacion
-      nombre
-      direccionPais
-      direccionProvincia
-      direccionCiudad
-      direccionCalle
-      direccionNumero
-      nombreBanco
-      tipoCuenta
-      cuentaBancaria
-      paisNacionalidad
-      cantidadAcciones
-      participacion
-      tipoAcciones
-      estado
-      tipoPersona
-      pn_primerNombre
-      pn_segundoNombre
-      pn_apellidoPaterno
-      pn_apellidoMaterno
-      pn_estadoCivil
-      conyugue_tipoIdentificacion
-      conyugue_identificacion
-      conyugue_nombre
-      conyugue_nacionalidad
-      repLegal_tipoIdentificacion
-      repLegal_identificacion
-      repLegal_nombre
-      repLegal_nacionalidad
-      repLegal_telefono
-      repLegal_email
-      telefono1
-      obs1
-      telefono2
-      obs2
-      telefono3
-      obs3
-      email1
-      email2
-      email3
-      docIdentidadPrincipal
-      docCertificadoBancario
-      docIdentidadConyugue
-      herederos
-      esHeredero
-      decevale
-      docPosesionEfectiva
-      nombreBeneficiario1
-      fechaBeneficiario1
-      direccionPaisBeneficiario1
-      nombreBeneficiario2
-      fechaBeneficiario2
-      nombreBeneficiario3
-      fechaBeneficiario3
-      nombreBeneficiario4
-      fechaBeneficiario4
-      nombreBeneficiario5
-      fechaBeneficiario5
-      nombreBeneficiario6
-      fechaBeneficiario6
-      nombreBeneficiario7
-      fechaBeneficiario7
-      nombreBeneficiario8
-      fechaBeneficiario8
-      nombreBeneficiario9
-      fechaBeneficiario9
+      acc_decevale
+      acc_estado
+      acc_tipo_identificacion
+      acc_identificacion
+      acc_nacionalidad
+      acc_residencia
+      acc_pais
+      acc_provincia
+      acc_ciudad
+      acc_direccion
+      acc_dir_numero
+      acc_banco
+      acc_tipo_cuenta
+      acc_cuenta_bancaria
+      acc_doc_certificado_bancario
+      acc_doc_actualizacion_datos
+      acc_doc_uso_datos
+      acc_doc_posesion_efectiva
+      acc_telefonos
+      acc_obs_telefonos
+      acc_correos
+      acc_cantidad_acciones
+      acc_participacion
+      acc_tipo_acciones
       createdAt
       updatedAt
+      Acc_PerNat {
+        id
+        pn_primer_nombre
+        pn_segundo_nombre
+        pn_apellido_paterno
+        pn_apellido_materno
+        pn_estado_civil
+        pn_doc_identificacion
+        createdAt
+        updatedAt
+        __typename
+      }
+      Acc_PerJur {
+        id
+        pj_rl_tipo_identificacion
+        pj_razon_social
+        pj_rl_identificacion
+        pj_rl_nombre
+        pj_rl_nacionalidad
+        pj_rl_telefono
+        pj_rl_email
+        pj_doc_nombramiento
+        createdAt
+        updatedAt
+        __typename
+      }
       titulos {
         nextToken
         __typename
@@ -335,73 +455,30 @@ export const listAccionistas = /* GraphQL */ `
     listAccionistas(filter: $filter, limit: $limit, nextToken: $nextToken) {
       items {
         id
-        tipoIdentificacion
-        identificacion
-        nombre
-        direccionPais
-        direccionProvincia
-        direccionCiudad
-        direccionCalle
-        direccionNumero
-        nombreBanco
-        tipoCuenta
-        cuentaBancaria
-        paisNacionalidad
-        cantidadAcciones
-        participacion
-        tipoAcciones
-        estado
-        tipoPersona
-        pn_primerNombre
-        pn_segundoNombre
-        pn_apellidoPaterno
-        pn_apellidoMaterno
-        pn_estadoCivil
-        conyugue_tipoIdentificacion
-        conyugue_identificacion
-        conyugue_nombre
-        conyugue_nacionalidad
-        repLegal_tipoIdentificacion
-        repLegal_identificacion
-        repLegal_nombre
-        repLegal_nacionalidad
-        repLegal_telefono
-        repLegal_email
-        telefono1
-        obs1
-        telefono2
-        obs2
-        telefono3
-        obs3
-        email1
-        email2
-        email3
-        docIdentidadPrincipal
-        docCertificadoBancario
-        docIdentidadConyugue
-        herederos
-        esHeredero
-        decevale
-        docPosesionEfectiva
-        nombreBeneficiario1
-        fechaBeneficiario1
-        direccionPaisBeneficiario1
-        nombreBeneficiario2
-        fechaBeneficiario2
-        nombreBeneficiario3
-        fechaBeneficiario3
-        nombreBeneficiario4
-        fechaBeneficiario4
-        nombreBeneficiario5
-        fechaBeneficiario5
-        nombreBeneficiario6
-        fechaBeneficiario6
-        nombreBeneficiario7
-        fechaBeneficiario7
-        nombreBeneficiario8
-        fechaBeneficiario8
-        nombreBeneficiario9
-        fechaBeneficiario9
+        acc_decevale
+        acc_estado
+        acc_tipo_identificacion
+        acc_identificacion
+        acc_nacionalidad
+        acc_residencia
+        acc_pais
+        acc_provincia
+        acc_ciudad
+        acc_direccion
+        acc_dir_numero
+        acc_banco
+        acc_tipo_cuenta
+        acc_cuenta_bancaria
+        acc_doc_certificado_bancario
+        acc_doc_actualizacion_datos
+        acc_doc_uso_datos
+        acc_doc_posesion_efectiva
+        acc_telefonos
+        acc_obs_telefonos
+        acc_correos
+        acc_cantidad_acciones
+        acc_participacion
+        acc_tipo_acciones
         createdAt
         updatedAt
         __typename
