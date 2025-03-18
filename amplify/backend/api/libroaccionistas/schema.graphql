@@ -1,35 +1,3 @@
-type PersonaNatural @model @auth(rules: [{allow: public}]) {
-  id: ID!
-  pn_primer_nombre: String
-  pn_segundo_nombre: String
-  pn_apellido_paterno: String
-  pn_apellido_materno: String
-  pn_estado_civil: String
-  pn_doc_identificacion: String
-  PerNat_Conyuge: Conyuge @connection
-}
-
-type PersonaJuridica @model @auth(rules: [{allow: public}]) {
-  id: ID!
-  pj_rl_tipo_identificacion: Int
-  pj_razon_social: String
-  pj_rl_identificacion: String
-  pj_rl_nombre: String
-  pj_rl_nacionalidad: String
-  pj_rl_telefono: String
-  pj_rl_email: String
-  pj_doc_nombramiento: String
-}
-
-type Conyuge @model @auth(rules: [{allow: public}]) {
-  id: ID!
-  con_tipo_identificacion: Int
-  con_identificacion: String
-  con_nombre: String
-  con_nacionalidad: String
-  con_doc_identifcacion: String
-}
-
 type DividendosTitulos @model @auth(rules: [{allow: public}]) @key(name: "byDetalleDividendo", fields: ["detalledividendoID"]) {
   id: ID!
   div_tit_participacion: Float
@@ -88,33 +56,74 @@ type Ciudad @model @auth(rules: [{allow: public}]) {
 
 type Accionista @model @auth(rules: [{allow: public}]) {
   id: ID!
+  tipoIdentificacion: String!
+  identificacion: String!
+  nombre: String!
+  direccionPais: String
+  direccionProvincia: String
+  direccionCiudad: String
+  direccionCalle: String
+  direccionNumero: String
+  nombreBanco: String
+  tipoCuenta: String
+  cuentaBancaria: String
+  paisNacionalidad: String
+  cantidadAcciones: Int
+  participacion: Float
+  tipoAcciones: String
+  estado: String!
+  tipoPersona: String!
+  pn_primerNombre: String
+  pn_segundoNombre: String
+  pn_apellidoPaterno: String
+  pn_apellidoMaterno: String
+  pn_estadoCivil: String
+  conyugue_tipoIdentificacion: String
+  conyugue_identificacion: String
+  conyugue_nombre: String
+  conyugue_nacionalidad: String
+  repLegal_tipoIdentificacion: String
+  repLegal_identificacion: String
+  repLegal_nombre: String
+  repLegal_nacionalidad: String
+  repLegal_telefono: String
+  repLegal_email: String
+  telefono1: String
+  obs1: String
+  telefono2: String
+  obs2: String
+  telefono3: String
+  obs3: String
+  email1: String
+  email2: String
+  email3: String
+  docIdentidadPrincipal: String
+  docCertificadoBancario: String
+  docIdentidadConyugue: String
+  herederos: Boolean
+  esHeredero: Boolean
+  decevale: String
+  docPosesionEfectiva: String
+  nombreBeneficiario1: String
+  fechaBeneficiario1: String
+  direccionPaisBeneficiario1: String
+  nombreBeneficiario2: String
+  fechaBeneficiario2: String
+  nombreBeneficiario3: String
+  fechaBeneficiario3: String
+  nombreBeneficiario4: String
+  fechaBeneficiario4: String
+  nombreBeneficiario5: String
+  fechaBeneficiario5: String
+  nombreBeneficiario6: String
+  fechaBeneficiario6: String
+  nombreBeneficiario7: String
+  fechaBeneficiario7: String
+  nombreBeneficiario8: String
+  fechaBeneficiario8: String
+  nombreBeneficiario9: String
+  fechaBeneficiario9: String
   titulos: [Titulo] @connection(keyName: "byAccionista", fields: ["id"])
-  acc_decevale: String
-  acc_estado: Int
-  acc_tipo_identificacion: Int
-  acc_identificacion: String
-  acc_nacionalidad: String
-  acc_residencia: String
-  acc_pais: String
-  acc_provincia: String
-  acc_ciudad: String
-  acc_direccion: String
-  acc_dir_numero: String
-  acc_banco: String
-  acc_tipo_cuenta: String
-  acc_cuenta_bancaria: String
-  acc_doc_certificado_bancario: String
-  acc_doc_actualizacion_datos: String
-  acc_doc_uso_datos: String
-  acc_doc_posesion_efectiva: String
-  acc_telefonos: String
-  acc_obs_telefonos: String
-  acc_correos: String
-  acc_cantidad_acciones: Int
-  acc_participacion: Float
-  acc_tipo_acciones: Int
-  Acc_PerNat: PersonaNatural @connection
-  Acc_PerJur: PersonaJuridica @connection
 }
 
 type Titulo @model @key(name: "byAccionista", fields: ["accionistaID"]) @auth(rules: [{allow: public}]) {

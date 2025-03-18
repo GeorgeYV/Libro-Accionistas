@@ -217,33 +217,38 @@ export default function Dividendos() {
 
   const columnsAccionistasCorte = [
     {
-      field: 'acc_identificacion',
+      field: 'identificacion',
       headerName: 'Identificación',
       width: 100,
     },
     {
-      field: 'acc_tipo_identificacion',
+      field: 'nombre',
+      headerName: 'Nombre',
+      width: 240,
+    },
+    {
+      field: 'tipoPersona',
       headerName: 'Persona',
       width: 60,
     },
     {
-      field: 'acc_residencia',
+      field: 'direccionPais',
       headerName: 'Residencia',
       width: 100,
     },
     {
-      field: 'acc_nacionalidad',
+      field: 'direccionPaisBeneficiario1',
       headerName: 'Beneficiario',
       width: 100,
     },
     {
-      field: 'acc_cantidad_acciones',
+      field: 'cantidadAcciones',
       headerName: 'Acciones',
       type: 'number',
       width: 100,
     },
     {
-      field: 'acc_participacion',
+      field: 'participacion',
       headerName: 'Participación',
       type: 'number',
       width: 110,
@@ -490,22 +495,22 @@ export default function Dividendos() {
     //if(residente == null) residenciaFiscal = "Local"
     if (residente.trim() == "Panama") residenciaFiscal = "PF"
 
-    if (beneficiario.trim() == "Ecuatoriano") residenciaFiscalBenef = "Local"
+    if (beneficiario.trim() == "Ecuador") residenciaFiscalBenef = "Local"
     //if(beneficiario == null) residenciaFiscalBenef = "Local"
-    if (beneficiario.trim() == "Panameño") residenciaFiscalBenef = "PF"
+    if (beneficiario.trim() == "Panama") residenciaFiscalBenef = "PF"
 
-    if (persona == 0 && residenciaFiscal == "Local") retencion = Retencion_PN_Loc;
-    if (persona == 0 && residenciaFiscal == "NPF") retencion = Retencion_PN_NPF;
-    if (persona == 0 && residenciaFiscal == "PF") retencion = Retencion_PN_PF;
-    if (persona == 1 && residenciaFiscal == "Local" && residenciaFiscalBenef == "Local") retencion = Retencion_PJ_Loc_Loc;
-    if (persona == 1 && residenciaFiscal == "Local" && residenciaFiscalBenef == "NPF") retencion = Retencion_PJ_Loc_NPF;
-    if (persona == 1 && residenciaFiscal == "Local" && residenciaFiscalBenef == "PF") retencion = Retencion_PJ_Loc_PF;
-    if (persona == 1 && residenciaFiscal == "PF" && residenciaFiscalBenef == "Local") retencion = Retencion_PJ_PF_Loc;
-    if (persona == 1 && residenciaFiscal == "PF" && residenciaFiscalBenef == "NPF") retencion = Retencion_PJ_PF_NPF;
-    if (persona == 1 && residenciaFiscal == "PF" && residenciaFiscalBenef == "PF") retencion = Retencion_PJ_PF_PF;
-    if (persona == 1 && residenciaFiscal == "NPF" && residenciaFiscalBenef == "Local") retencion = Retencion_PJ_NPF_Loc;
-    if (persona == 1 && residenciaFiscal == "NPF" && residenciaFiscalBenef == "NPF") retencion = Retencion_PJ_NPF_NPF;
-    if (persona == 1 && residenciaFiscal == "NPF" && residenciaFiscalBenef == "PF") retencion = Retencion_PJ_NPF_PF;
+    if (persona == "PN" && residenciaFiscal == "Local") retencion = Retencion_PN_Loc;
+    if (persona == "PN" && residenciaFiscal == "NPF") retencion = Retencion_PN_NPF;
+    if (persona == "PN" && residenciaFiscal == "PF") retencion = Retencion_PN_PF;
+    if (persona == "PJ" && residenciaFiscal == "Local" && residenciaFiscalBenef == "Local") retencion = Retencion_PJ_Loc_Loc;
+    if (persona == "PJ" && residenciaFiscal == "Local" && residenciaFiscalBenef == "NPF") retencion = Retencion_PJ_Loc_NPF;
+    if (persona == "PJ" && residenciaFiscal == "Local" && residenciaFiscalBenef == "PF") retencion = Retencion_PJ_Loc_PF;
+    if (persona == "PJ" && residenciaFiscal == "PF" && residenciaFiscalBenef == "Local") retencion = Retencion_PJ_PF_Loc;
+    if (persona == "PJ" && residenciaFiscal == "PF" && residenciaFiscalBenef == "NPF") retencion = Retencion_PJ_PF_NPF;
+    if (persona == "PJ" && residenciaFiscal == "PF" && residenciaFiscalBenef == "PF") retencion = Retencion_PJ_PF_PF;
+    if (persona == "PJ" && residenciaFiscal == "NPF" && residenciaFiscalBenef == "Local") retencion = Retencion_PJ_NPF_Loc;
+    if (persona == "PJ" && residenciaFiscal == "NPF" && residenciaFiscalBenef == "NPF") retencion = Retencion_PJ_NPF_NPF;
+    if (persona == "PJ" && residenciaFiscal == "NPF" && residenciaFiscalBenef == "PF") retencion = Retencion_PJ_NPF_PF;
 
     //let num = base*retencionNoResidente/100.00;
     let num = 0;
@@ -740,7 +745,7 @@ export default function Dividendos() {
     }
     const apiData3 = await API.graphql({ query: listAccionistas, variables: { filter: filter , limit: 1000} });
     let accionistasFromAPI3 = apiData3.data.listAccionistas.items;
-    /*let numero2 = 1;
+    let numero2 = 1;
     let nombre_aux2 = '';
     let cantidadTotal = 0;
     accionistasFromAPI3.forEach(function (obj) {
@@ -749,25 +754,36 @@ export default function Dividendos() {
       cantidadTotal = cantidadTotal + obj.cantidadAcciones;
       obj.secuencial = numero2++;
     });
-    setCantidadEmitido(cantidadTotal);*/
+    setCantidadEmitido(cantidadTotal);
     const accionistasCalculo = accionistasFromAPI3.map(function (e) {
       return {
         id: e.id,
-        acc_decevale:e.acc_decevale,
-        acc_estado:e.acc_estado,
-        acc_tipo_identificacion:e.acc_tipo_identificacion == 0 ? 'Natural':'Jurídica',
-        acc_identificacion:e.acc_identificacion,
-        acc_nacionalidad:e.acc_nacionalidad,
-        acc_residencia:e.acc_residencia,
-        acc_cantidad_acciones:e.acc_cantidad_acciones,
-        acc_participacion:e.acc_participacion,
-        acc_tipo_acciones:e.acc_tipo_acciones,
+        idAccionista: e.idAccionista,
+        tipoIdentificacion: e.tipoIdentificacion,
+        identificacion: e.identificacion,
+        nombre: e.nombre2,
+        direccionPais: e.direccionPais,
+        paisNacionalidad: e.paisNacionalidad,
+        cantidadAcciones: e.cantidadAcciones.toFixed(0),
+        participacion: ((e.cantidadAcciones / cantidadTotal) * 100.00).toFixed(16),
+        tipoAcciones: e.tipoAcciones,
+        estado: e.estado,
+        tipoPersona: e.tipoPersona,
+        decevale: e.decevale,
         idDividendo: row.id,
         periodo: row.periodo,
-        dividendo: (row.div_repartido * e.acc_participacion).toFixed(2),
-        baseImponible: ((baseImponible/100) * (row.div_repartido * e.acc_participacion)).toFixed(2),
-        retencion: getRetencion1(((baseImponible/ 100.00) * (row.div_repartido * e.acc_participacion).toFixed(2)), e.acc_tipo_identificacion, e.acc_residencia, e.acc_nacionalidad),
-        dividendoRecibido: ((row.div_repartido * e.acc_participacion).toFixed(2) - getRetencion1(((baseImponible/ 100.00) * (row.div_repartido * e.acc_participacion).toFixed(2)), e.acc_tipo_identificacion, e.acc_residencia, e.acc_nacionalidad)).toFixed(2),
+        dividendo: (row.div_repartido * ((e.cantidadAcciones / cantidadTotal) * 100.00).toFixed(16) / 100.00).toFixed(2),
+        baseImponible: (baseImponible * (row.div_repartido * ((e.cantidadAcciones / cantidadTotal) * 100.00).toFixed(16) / 100.00).toFixed(2) / 100.00).toFixed(2),
+        retencion: getRetencion1((baseImponible * (row.div_repartido * ((e.cantidadAcciones / cantidadTotal) * 100.00).toFixed(16) / 100.00).toFixed(2) / 100.00).toFixed(2), e.tipoPersona, e.direccionPais, e.direccionPaisBeneficiario1 == null ? 'Ecuador' : e.direccionPaisBeneficiario1),
+        dividendoRecibido: ((row.div_repartido * ((e.cantidadAcciones / cantidadTotal) * 100.00).toFixed(16) / 100.00).toFixed(2) - getRetencion1((baseImponible * (row.div_repartido * ((e.cantidadAcciones / cantidadTotal) * 100.00).toFixed(16) / 100.00).toFixed(2) / 100.00).toFixed(2), e.tipoPersona, e.direccionPais, e.direccionPaisBeneficiario1 == null ? 'Ecuador' : e.direccionPaisBeneficiario1)).toFixed(2),
+        estadoDividendo: 'Confirmado',
+        documento: '',
+        solicitado: false,
+        fechaSolicitud: '',
+        HoraSolicitud: '',
+        fechaPago: '',
+        direccionPaisBeneficiario1: e.direccionPaisBeneficiario1,
+        saldoDividendoPeriodo: (row.div_repartido * ((e.cantidadAcciones / cantidadTotal) * 100.00).toFixed(16) / 100.00).toFixed(2),
       };
     })
     setAccionistasCorte(accionistasCalculo);
