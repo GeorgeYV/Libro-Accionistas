@@ -556,12 +556,12 @@ export default function Dividendos() {
       accionistasCorte.map(function (e) {
         aux = apiData3.data.listTitulos.items.find(({ accionistaID }) => accionistaID === e.id);
         console.log("aux: ",aux);
-        auxDividendoTitulo.div_tit_participacion = element.acc_participacion;
-        auxDividendoTitulo.div_tit_dividendo = element.dividendo;
-        auxDividendoTitulo.div_tit_retencion = element.retencion;
-        auxDividendoTitulo.div_tit_base_imponible = element.baseImponible;
-        auxDividendoTitulo.detalledividendoID = element.id;
-        auxDividendoTitulo.tituloID = element.aux;
+        auxDividendoTitulo.div_tit_participacion = e.acc_participacion;
+        auxDividendoTitulo.div_tit_dividendo = e.dividendo;
+        auxDividendoTitulo.div_tit_retencion = e.retencion;
+        auxDividendoTitulo.div_tit_base_imponible = e.baseImponible;
+        auxDividendoTitulo.detalledividendoID = e.id;
+        auxDividendoTitulo.tituloID = e.aux;
         console.log("auxdividendotitulo: ",auxDividendoTitulo)
       });
       //API.graphql(graphqlOperation(createTitulo, { input: dividendosTitulos }));

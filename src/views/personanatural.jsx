@@ -2,7 +2,7 @@ import React, { useState } from 'react'
 import {
   makeStyles, Paper, TextField, Button, Typography, MenuItem, Select, Divider, Grid,
   IconButton, InputLabel, Snackbar, Switch,
-  FormControl, FormHelperText 
+  FormControl, FormHelperText
 } from '@material-ui/core';
 import { Controller, useForm } from "react-hook-form";
 import { useLocation } from 'react-router-dom'
@@ -696,17 +696,17 @@ export default function PersonaNatural() {
 
   //Metodos
   const asignarValores = (event) => {
-    console.log("value: ",event.target.value);
-    console.log("id: ",event.target.id);
+    console.log("value: ", event.target.value);
+    console.log("id: ", event.target.id);
     setAccionistaGlobal({ ...accionistaGlobal, [event.target.id]: event.target.value });
-    console.log("accionistaGlobal: ",accionistaGlobal);
+    console.log("accionistaGlobal: ", accionistaGlobal);
   };
 
   const asignarValoresEnteros = (event) => {
-    console.log("value: ",event.target.value);
-    console.log("id: ",event.target.id);
+    console.log("value: ", event.target.value);
+    console.log("id: ", event.target.id);
     setAccionistaGlobal({ ...accionistaGlobal, [event.target.id]: parseInt(event.target.value) });
-    console.log("accionistaGlobal: ",accionistaGlobal);
+    console.log("accionistaGlobal: ", accionistaGlobal);
   };
 
 
@@ -771,7 +771,6 @@ export default function PersonaNatural() {
       fechaBeneficiario7: location.state.preloadedValue.fechaBeneficiario7,
       fechaBeneficiario8: location.state.preloadedValue.fechaBeneficiario8,
       fechaBeneficiario9: location.state.preloadedValue.fechaBeneficiario9,
-
     }
   } : defaultValues;
 
@@ -801,66 +800,49 @@ export default function PersonaNatural() {
   const onSubmit = (data) => {
     console.log('onsubmit data', data);
     const accionista = {
-      tipoIdentificacion: tipoIdentificacion.find(o => o.value === data.tipoIdentificacion) ? tipoIdentificacion.find(o => o.value === data.tipoIdentificacion).label : '',
-      identificacion: data.identificacion,
-      decevale: data.decevale,
-      nombre: data.pn_primerNombre.concat(' ', data.segundoNombre == null ? '' : data.segundoNombre, ' ', data.apellidoPaterno, ' ', data.apellidoMaterno == null ? '' : data.apellidoMaterno),
-      direccionPais: pais.find(o => o.value === data.paisDireccion) ? pais.find(o => o.value === data.paisDireccion).label : '',
-      direccionProvincia: provincia.find(o => o.value === data.provinciaDireccion) ? provincia.find(o => o.value === data.provinciaDireccion).label : '',
-      direccionCiudad: ciudad.find(o => o.value === data.ciudadDireccion) ? ciudad.find(o => o.value === data.ciudadDireccion).label : '',
-      direccionCalle: data.calle,
-      direccionNumero: data.numero,
-      nombreBanco: banco.find(o => o.value === data.banco) ? banco.find(o => o.value === data.banco).label : '',
-      tipoCuenta: tipoCuenta.find(o => o.value === data.tipoCuenta) ? tipoCuenta.find(o => o.value === data.tipoCuenta).label : '',
-      cuentaBancaria: data.cuenta,
-      paisNacionalidad: nacionalidad.find(o => o.value === data.nacionalidad) ? nacionalidad.find(o => o.value === data.nacionalidad).label : '',
-      cantidadAcciones: 0,
-      tipoAcciones: 'D',
-      estado: 'Activo',
-      tipoPersona: 'PN',
-      pn_primerNombre: data.pn_primerNombre,
-      pn_segundoNombre: data.segundoNombre,
-      pn_apellidoPaterno: data.apellidoPaterno,
-      pn_apellidoMaterno: data.apellidoMaterno,
-      pn_estadoCivil: estadoCivil.find(o => o.value === data.estadoCivil) ? estadoCivil.find(o => o.value === data.estadoCivil).label : '',
-      conyugue_tipoIdentificacion: tipoIdentificacion.find(o => o.value === data.tipoIdentificacionConyugue) ? tipoIdentificacion.find(o => o.value === data.tipoIdentificacionConyugue).label : '',
-      conyugue_identificacion: data.identificacionConyugue,
-      conyugue_nombre: data.nombreConyugue,
-      conyugue_nacionalidad: nacionalidad.find(o => o.value === data.nacionalidadConyugue) ? nacionalidad.find(o => o.value === data.nacionalidadConyugue).label : '',
-      telefono1: data.telefono,
-      obs1: data.observacionTelefono,
-      telefono2: countTelef > 1 ? data.telefonoAux1 : '',
-      obs2: countTelef > 1 ? data.observacionTelefonoAux1 : '',
-      telefono3: countTelef > 2 ? data.telefonoAux2 : '',
-      obs3: countTelef > 2 ? data.observacionTelefonoAux2 : '',
-      email1: data.email,
-      email2: countEmail > 1 ? data.emailAux1 : '',
-      email3: countEmail > 2 ? data.emailAux2 : '',
+      acc_decevale: "",
+      acc_estado: 0,
+      acc_tipo_identificacion: 0,
+      acc_identificacion: "",
+      acc_nacionalidad: "",
+      acc_residencia: "",
+      acc_pais: "",
+      acc_provincia: "",
+      acc_ciudad: "",
+      acc_direccion: "",
+      acc_dir_numero: "",
+      acc_banco: "",
+      acc_tipo_cuenta: "",
+      acc_cuenta_bancaria: "",
+      acc_doc_certificado_bancario: "",
+      acc_doc_actualizacion_datos: "",
+      acc_doc_uso_datos: "",
+      acc_doc_posesion_efectiva: "",
+      acc_telefonos: "",
+      acc_obs_telefonos: "",
+      acc_correos: "",
+      acc_cantidad_acciones: 0,
+      acc_participacion: 0,
+      acc_tipo_acciones: 0,
+      pn_primer_nombre: "",
+      pn_segundo_nombre: "",
+      pn_apellido_paterno: "",
+      pn_apellido_materno: "",
+      pn_estado_civil: "",
+      pn_doc_identificacion: "",
+      con_tipo_identificacion: 0,
+      con_identificacion: "",
+      con_nombre: "",
+      con_nacionalidad: "",
+      con_doc_identifcacion: "",
       docPosesionEfectiva: formData.docPosesionEfectiva,
       docIdentidadPrincipal: formData.docIdentidadPrincipal,
       docCertificadoBancario: formData.docCertificadoBancario,
       docIdentidadConyugue: formData.docIdentidadConyugue,
-      herederos: checked,
-      nombreBeneficiario1: data.nombreBeneficiario1,
-      nombreBeneficiario2: data.nombreBeneficiario2,
-      nombreBeneficiario3: data.nombreBeneficiario3,
-      nombreBeneficiario4: data.nombreBeneficiario4,
-      nombreBeneficiario5: data.nombreBeneficiario5,
-      nombreBeneficiario6: data.nombreBeneficiario6,
-      nombreBeneficiario7: data.nombreBeneficiario7,
-      nombreBeneficiario8: data.nombreBeneficiario8,
-      nombreBeneficiario9: data.nombreBeneficiario9,
-      fechaBeneficiario1: data.fechaBeneficiario1,
-      fechaBeneficiario2: data.fechaBeneficiario2,
-      fechaBeneficiario3: data.fechaBeneficiario3,
-      fechaBeneficiario4: data.fechaBeneficiario4,
-      fechaBeneficiario5: data.fechaBeneficiario5,
-      fechaBeneficiario6: data.fechaBeneficiario6,
-      fechaBeneficiario7: data.fechaBeneficiario7,
-      fechaBeneficiario8: data.fechaBeneficiario8,
-      fechaBeneficiario9: data.fechaBeneficiario9,
     };
-    data.id ? editAccionista(data.id, accionista) : addAccionista(accionista);
+    console.log("accionistaGlobal",accionistaGlobal);
+    console.log("formdata",formData);
+    //data.id ? editAccionista(data.id, accionista) : addAccionista(accionista);
   }
 
   const generateSelectTipoIdentificacion = () => {
@@ -1045,8 +1027,6 @@ export default function PersonaNatural() {
       setFormData({ docIdentidadPrincipal: '', docCertificadoBancario: '', docIdentidadConyugue: '', docPosesionEfectiva: '' })
       reset(defaultValues);
       setOpenSnack(true)
-
-
     } catch (err) {
       console.log('error updating accionista:', err)
     }
@@ -1105,7 +1085,6 @@ export default function PersonaNatural() {
     if (reason === 'clickaway') {
       return;
     }
-
     setOpenSnack(false);
   };
 
@@ -1119,565 +1098,550 @@ export default function PersonaNatural() {
     <main className={classes.content}>
       <div className={classes.appBarSpacer} />
       <Paper variant="outlined">
-        <form>
-          <Grid container spacing={3}>
-            <Grid item xs={12} md={6} lg={4}>
-              <Paper>
-                <div style={{ marginBottom: 20 }}>
-                  <Typography variant='subtitle1' style={{ color: "#000000" }}>Información Básica</Typography>
-                </div>
-                <form>
-                  <TextField
-                  id="acc_decevale"
-                  value={accionistaGlobal.acc_decevale} 
-                  label="Decevale"
-                  variant='outlined'
-                  onBlur={asignarValores}/>
-                  <FormControl required>
-                    <InputLabel id="demo-simple-select-required-label">Nacionalidad</InputLabel>
-                    <Select
-                    id="acc_nacionalidad"
-                    labelId="demo-simple-select-required-label"
-                    value={accionistaGlobal.acc_nacionalidad}
-                    variant="outlined"
-                    defaultValue='1'
-                    onChange={asignarValores}
-                    >
-                      {generateSelectNacionalidad()}
-                    </Select>
-                    <FormHelperText>Required</FormHelperText>
-                  </FormControl>
-                  <FormControl required>
-                    <InputLabel id="demo-simple-select-required-label">Tipo de identificación</InputLabel>
-                    <Select
-                    id="acc_tipo_identificacion"
-                    labelId="demo-simple-select-required-label"
-                    value={accionistaGlobal.acc_tipo_identificacion}
-                    variant="outlined"
-                    onChange={asignarValoresEnteros}
-                    >
-                      {generateSelectTipoIdentificacion()}
-                    </Select>
-                    <FormHelperText>Required</FormHelperText>
-                  </FormControl>
-                  <TextField
-                  required
-                  id="acc_identificacion"
-                  label="Identificación"
+
+        <Grid container spacing={3}>
+          <Grid item xs={12} md={6} lg={4}>
+            <Paper>
+              <div style={{ marginBottom: 20 }}>
+                <Typography variant='subtitle1' style={{ color: "#000000" }}>Información Básica</Typography>
+              </div>
+              <TextField
+                id="acc_decevale"
+                value={accionistaGlobal.acc_decevale}
+                label="Decevale"
+                variant='outlined'
+                onBlur={asignarValores} />
+              <FormControl required>
+                <InputLabel>Nacionalidad</InputLabel>
+                <Select
+                  id="acc_nacionalidad"
+                  value={accionistaGlobal.acc_nacionalidad}
                   variant="outlined"
-                  value={accionistaGlobal.acc_identificacion}
-                  onBlur={asignarValores}/>
-                  <FormControl required>
-                    <InputLabel id="demo-simple-select-required-label">Tipo de acciones</InputLabel>
-                    <Select
-                    id="acc_tipo_acciones"
-                    labelId="demo-simple-select-required-label"
-                    variant="outlined"
-                    value={accionistaGlobal.acc_tipo_acciones}
-                    onChange={asignarValores}
-                    >
-                      <MenuItem value={0}>Ordinaria</MenuItem>
-                      <MenuItem value={1}>Desmaterializada</MenuItem>
-                    </Select>
-                    <FormHelperText>Required</FormHelperText>
-                  </FormControl>
-                  <TextField
-                  required
-                  id="pn_primer_nombre"
-                  label="Primer nombre"
+                  defaultValue='1'
+                  onChange={asignarValores}
+                >
+                  {generateSelectNacionalidad()}
+                </Select>
+                <FormHelperText>Required</FormHelperText>
+              </FormControl>
+              <FormControl required>
+                <InputLabel>Tipo de identificación</InputLabel>
+                <Select
+                  id="acc_tipo_identificacion"
+                  value={accionistaGlobal.acc_tipo_identificacion}
                   variant="outlined"
-                  value={accionistaGlobal.pn_primer_nombre}
-                  onBlur={asignarValores}/>
-                  <TextField
-                  id="pn_segundo_nombre"
-                  label="Segundo nombre"
+                  onChange={asignarValoresEnteros}
+                >
+                  {generateSelectTipoIdentificacion()}
+                </Select>
+                <FormHelperText>Required</FormHelperText>
+              </FormControl>
+              <TextField
+                required
+                id="acc_identificacion"
+                label="Identificación"
+                variant="outlined"
+                value={accionistaGlobal.acc_identificacion}
+                onBlur={asignarValores} />
+              <FormControl required>
+                <InputLabel>Tipo de acciones</InputLabel>
+                <Select
+                  id="acc_tipo_acciones"
                   variant="outlined"
-                  value={accionistaGlobal.pn_segundo_nombre}
-                  onBlur={asignarValores}/>
-                  <TextField
-                  required
-                  id="pn_apellido_paterno"
-                  label="Apellido paterno"
+                  value={accionistaGlobal.acc_tipo_acciones}
+                  onChange={asignarValores}
+                >
+                  <MenuItem value={0}>Ordinaria</MenuItem>
+                  <MenuItem value={1}>Desmaterializada</MenuItem>
+                </Select>
+                <FormHelperText>Required</FormHelperText>
+              </FormControl>
+              <TextField
+                required
+                id="pn_primer_nombre"
+                label="Primer nombre"
+                variant="outlined"
+                value={accionistaGlobal.pn_primer_nombre}
+                onBlur={asignarValores} />
+              <TextField
+                id="pn_segundo_nombre"
+                label="Segundo nombre"
+                variant="outlined"
+                value={accionistaGlobal.pn_segundo_nombre}
+                onBlur={asignarValores} />
+              <TextField
+                required
+                id="pn_apellido_paterno"
+                label="Apellido paterno"
+                variant="outlined"
+                value={accionistaGlobal.pn_apellido_paterno}
+                onBlur={asignarValores} />
+              <TextField
+                id="pn_apellido_materno"
+                label="Apellido materno"
+                variant="outlined"
+                value={accionistaGlobal.pn_apellido_materno}
+                onBlur={asignarValores} />
+              <FormControl required>
+                <InputLabel>Estado civil</InputLabel>
+                <Select
+                  id="pn_estado_civil"
+                  defaultValue='1'
+                  value={accionistaGlobal.pn_estado_civil}
                   variant="outlined"
-                  value={accionistaGlobal.pn_apellido_paterno}
-                  onBlur={asignarValores}/>
-                  <TextField
-                  id="pn_apellido_materno"
-                  label="Apellido materno"
-                  variant="outlined"
-                  value={accionistaGlobal.pn_apellido_materno}
-                  onBlur={asignarValores}/>
-                  <FormControl required>
-                    <InputLabel id="demo-simple-select-required-label">Estado civil</InputLabel>
-                    <Select
-                      id="pn_estado_civil"
-                      labelId="demo-simple-select-required-label"
-                      defaultValue='1'
-                      value={accionistaGlobal.pn_estado_civil}
-                      variant="outlined"
-                      onChange={onChangeEstadoCivil}
-                    >
-                      {generateSelectEstadoCivil()}
-                    </Select>
-                    <FormHelperText>Required</FormHelperText>
-                  </FormControl>
-                </form>
-              </Paper>
-            </Grid>
-            {conyugue &&
+                  onChange={onChangeEstadoCivil}
+                >
+                  {generateSelectEstadoCivil()}
+                </Select>
+                <FormHelperText>Required</FormHelperText>
+              </FormControl>
+            </Paper>
+          </Grid>
+          {conyugue &&
             <Grid item xs={12} md={6} lg={4}>
               <Paper>
                 <div style={{ marginBottom: 20 }}>
                   <Typography variant='subtitle1' style={{ color: "#000000" }}>Información de Conyuge</Typography>
                 </div>
-                <form>
-                  <FormControl>
-                    <InputLabel id="demo-simple-select-required-label">Tipo de identificación</InputLabel>
-                    <Select
+                <FormControl>
+                  <InputLabel>Tipo de identificación</InputLabel>
+                  <Select
                     id="con_tipo_identificacion"
-                    labelId="demo-simple-select-required-label"
                     value={accionistaGlobal.con_tipo_identificacion}
                     variant="outlined"
                     onChange={asignarValoresEnteros}
-                    >
-                      {generateSelectTipoIdentificacion()}
-                    </Select>
-                  </FormControl>
-                  <TextField
+                  >
+                    {generateSelectTipoIdentificacion()}
+                  </Select>
+                </FormControl>
+                <TextField
                   id="con_identificacion"
                   label="Identificación"
                   variant="outlined"
                   value={accionistaGlobal.con_identificacion}
-                  onBlur={asignarValores}/>
-                  <TextField
+                  onBlur={asignarValores} />
+                <TextField
                   id="con_nombre"
                   label="Nombre"
                   variant="outlined"
                   value={accionistaGlobal.con_nombre}
-                  onBlur={asignarValores}/>
-                  <FormControl>
-                    <InputLabel id="demo-simple-select-required-label">Nacionalidad</InputLabel>
-                    <Select
+                  onBlur={asignarValores} />
+                <FormControl>
+                  <InputLabel>Nacionalidad</InputLabel>
+                  <Select
                     id="con_nacionalidad"
-                    labelId="demo-simple-select-required-label"
                     value={accionistaGlobal.con_nacionalidad}
                     variant="outlined"
                     defaultValue='1'
                     onChange={asignarValores}
-                    >
-                      {generateSelectNacionalidad()}
-                    </Select>
-                  </FormControl>
-                  <TextField
+                  >
+                    {generateSelectNacionalidad()}
+                  </Select>
+                </FormControl>
+                <TextField
                   id="con_doc_identifcacion"
                   label="Documento de identificacion"
                   variant="outlined"
                   value={accionistaGlobal.con_doc_identifcacion}
-                  onBlur={asignarValores}/>
-                </form>
+                  onBlur={asignarValores} />
               </Paper>
             </Grid>
-            }
-            <Grid item xs={12} md={6} lg={4}>
-              <Paper>
+          }
+          <Grid item xs={12} md={6} lg={4}>
+            <Paper>
+              <div style={{ marginBottom: 20 }}>
+                <Typography variant='subtitle1' style={{ color: "#000000" }}>Dirección</Typography>
+              </div>
+              <FormControl>
+                <InputLabel>País</InputLabel>
+                <Select
+                  id="acc_pais"
+                  value={accionistaGlobal.acc_pais}
+                  variant="outlined"
+                  defaultValue='1'
+                  onChange={asignarValores}
+                >
+                  {generateSelectPais()}
+                </Select>
+              </FormControl>
+              <TextField
+                id="acc_provincia"
+                label="Provincia"
+                variant="outlined"
+                value={accionistaGlobal.acc_provincia}
+                onBlur={asignarValores} />
+              <TextField
+                id="acc_ciudad"
+                label="Ciudad"
+                variant="outlined"
+                value={accionistaGlobal.acc_ciudad}
+                onBlur={asignarValores} />
+              <TextField
+                id="acc_direccion"
+                label="Dirección"
+                variant="outlined"
+                value={accionistaGlobal.acc_direccion}
+                onBlur={asignarValores} />
+              <TextField
+                id="acc_dir_numero"
+                label="Número"
+                variant="outlined"
+                value={accionistaGlobal.acc_dir_numero}
+                onBlur={asignarValores} />
+            </Paper>
+          </Grid>
+          <Grid item xs={12} md={6} lg={4}>
+            <Paper>
+              <div style={{ marginBottom: 20 }}>
+                <Typography variant='subtitle1' style={{ color: "#000000" }}>Cuenta Bancaria</Typography>
+              </div>
+              <TextField
+                id="acc_banco"
+                label="Número"
+                variant="outlined"
+                value={accionistaGlobal.acc_banco}
+                onBlur={asignarValores} />
+              <TextField
+                id="acc_tipo_cuenta"
+                label="Número"
+                variant="outlined"
+                value={accionistaGlobal.acc_tipo_cuenta}
+                onBlur={asignarValores} />
+              <TextField
+                id="acc_cuenta_bancaria"
+                label="Número de cuenta"
+                variant="outlined"
+                value={accionistaGlobal.acc_cuenta_bancaria}
+                onBlur={asignarValores} />=
+            </Paper>
+          </Grid>
+          <Grid item xs={12} md={6} lg={4}>
+            <Paper>
+              <div className={classes.gridSpace}>
                 <div style={{ marginBottom: 20 }}>
-                  <Typography variant='subtitle1' style={{ color: "#000000" }}>Dirección</Typography>
+                  <Typography variant='subtitle1' style={{ color: "#000000" }}>Medios de Contacto</Typography>
                 </div>
-                <form>
-                  <FormControl>
-                    <InputLabel id="demo-simple-select-required-label">País</InputLabel>
-                    <Select
-                    id="acc_pais"
-                    labelId="demo-simple-select-required-label"
-                    value={accionistaGlobal.acc_pais}
-                    variant="outlined"
-                    defaultValue='1'
-                    onChange={asignarValores}
-                    >
-                      {generateSelectPais()}
-                    </Select>
-                  </FormControl>
-                  <TextField
-                  id="acc_provincia"
-                  label="Provincia"
-                  variant="outlined"
-                  value={accionistaGlobal.acc_provincia}
-                  onBlur={asignarValores}/>
-                  <TextField
-                  id="acc_ciudad"
-                  label="Ciudad"
-                  variant="outlined"
-                  value={accionistaGlobal.acc_ciudad}
-                  onBlur={asignarValores}/>
-                  <TextField
-                  id="acc_direccion"
-                  label="Dirección"
-                  variant="outlined"
-                  value={accionistaGlobal.acc_direccion}
-                  onBlur={asignarValores}/>
-                  <TextField
-                  id="acc_dir_numero"
-                  label="Número"
-                  variant="outlined"
-                  value={accionistaGlobal.acc_dir_numero}
-                  onBlur={asignarValores}/>
-                </form>
-              </Paper>
-            </Grid>
-            <Grid item xs={12} md={6} lg={4}>
-              <Paper>
-                <div style={{ marginBottom: 20 }}>
-                  <Typography variant='subtitle1' style={{ color: "#000000" }}>Cuenta Bancaria</Typography>
+                <div className={classes.formSection}>
+                  <Controller
+                    name={"telefono"}
+                    control={control}
+                    render={({ field: { onChange, value } }) => (
+                      <TextField size='small' onChange={onChange} value={value} label={"Teléfono"} variant='outlined' style={{ minWidth: 130 }} margin='dense' />
+                    )} />
+                  <Controller
+                    name={"observacionTelefono"}
+                    control={control}
+                    render={({ field: { onChange, value } }) => (
+                      <TextField size='small' onChange={onChange} value={value} label={"Observación"} variant='outlined' fullWidth margin='dense' />
+                    )} />
                 </div>
-                <form>
-                  <TextField
-                  id="acc_banco"
-                  label="Número"
-                  variant="outlined"
-                  value={accionistaGlobal.acc_banco}
-                  onBlur={asignarValores}/>
-                  <TextField
-                  id="acc_tipo_cuenta"
-                  label="Número"
-                  variant="outlined"
-                  value={accionistaGlobal.acc_tipo_cuenta}
-                  onBlur={asignarValores}/>
-                  <TextField
-                  id="acc_cuenta_bancaria"
-                  label="Número de cuenta"
-                  variant="outlined"
-                  value={accionistaGlobal.acc_cuenta_bancaria}
-                  onBlur={asignarValores}/>
-                </form>
-              </Paper>
-            </Grid>
-            <Grid item xs={12} md={6} lg={4}>
-              <Paper>
-                <div className={classes.gridSpace}>
-                  <div style={{ marginBottom: 20 }}>
-                    <Typography variant='subtitle1' style={{ color: "#000000" }}>Medios de Contacto</Typography>
-                  </div>
+                {countTelef > 1 &&
                   <div className={classes.formSection}>
                     <Controller
-                      name={"telefono"}
+                      name={"telefonoAux1"}
                       control={control}
                       render={({ field: { onChange, value } }) => (
-                        <TextField size='small' onChange={onChange} value={value} label={"Teléfono"} variant='outlined' style={{ minWidth: 130 }} margin='dense' />
+                        <TextField size='small' onChange={onChange} value={value} label={"Teléfono aux"} variant='outlined' style={{ minWidth: 130 }} margin='dense' />
                       )} />
                     <Controller
-                      name={"observacionTelefono"}
+                      name={"observacionTelefonoAux1"}
                       control={control}
                       render={({ field: { onChange, value } }) => (
-                        <TextField size='small' onChange={onChange} value={value} label={"Observación"} variant='outlined' fullWidth margin='dense' />
+                        <TextField size='small' onChange={onChange} value={value} label={"Observación aux"} variant='outlined' fullWidth margin='dense' />
                       )} />
-                  </div>
-                  {countTelef > 1 &&
-                    <div className={classes.formSection}>
-                      <Controller
-                        name={"telefonoAux1"}
-                        control={control}
-                        render={({ field: { onChange, value } }) => (
-                          <TextField size='small' onChange={onChange} value={value} label={"Teléfono aux"} variant='outlined' style={{ minWidth: 130 }} margin='dense' />
-                        )} />
-                      <Controller
-                        name={"observacionTelefonoAux1"}
-                        control={control}
-                        render={({ field: { onChange, value } }) => (
-                          <TextField size='small' onChange={onChange} value={value} label={"Observación aux"} variant='outlined' fullWidth margin='dense' />
-                        )} />
-                    </div>
-                  }
-                  {countTelef > 2 &&
-                    <div className={classes.formSection}>
-                      <Controller
-                        name={"telefonoAux2"}
-                        control={control}
-                        render={({ field: { onChange, value } }) => (
-                          <TextField size='small' onChange={onChange} value={value} label={"Teléfono aux"} variant='outlined' style={{ minWidth: 130 }} margin='dense' />
-                        )} />
-                      <Controller
-                        name={"observacionTelefonoAux2"}
-                        control={control}
-                        render={({ field: { onChange, value } }) => (
-                          <TextField size='small' onChange={onChange} value={value} label={"Observación aux"} variant='outlined' fullWidth margin='dense' />
-                        )} />
-                    </div>
-                  }
-                  <div>
-                    <IconButton color='primary' onClick={() => setCountTelef(countTelef + 1)} disabled={countTelef === 3 ? true : false}><ControlPointIcon /></IconButton>
-                    <IconButton color='primary' onClick={() => setCountTelef(countTelef - 1)} disabled={countTelef === 1 ? true : false} ><RemoveCircleOutlineIcon /></IconButton>
-                  </div>
-
-                  <div className={classes.formSectionContacto}>
-                    <Controller
-                      type='email'
-                      name={"email"}
-                      control={control}
-                      render={({ field: { onChange, value } }) => (
-                        <TextField size='small' onChange={onChange} value={value} label={"Email"} variant='outlined' fullWidth margin='dense' />
-                      )} />
-                    {countEmail > 1 &&
-                      <Controller
-                        type='email'
-                        name={"emailAux1"}
-                        control={control}
-                        render={({ field: { onChange, value } }) => (
-                          <TextField size='small' onChange={onChange} value={value} label={"Email auxiliar"} variant='outlined' fullWidth margin='dense' />
-                        )} />
-                    }
-                    {countEmail > 2 &&
-                      <Controller
-                        type='email'
-                        name={"emailAux2"}
-                        control={control}
-                        render={({ field: { onChange, value } }) => (
-                          <TextField size='small' onChange={onChange} value={value} label={"Email auxiliar"} variant='outlined' fullWidth margin='dense' />
-                        )} />
-                    }
-                    <div>
-                      <IconButton color='primary' onClick={() => setCountEmail(countEmail + 1)} disabled={countEmail === 3 ? true : false}><ControlPointIcon /></IconButton>
-                      <IconButton color='primary' onClick={() => setCountEmail(countEmail - 1)} disabled={countEmail === 1 ? true : false}><RemoveCircleOutlineIcon /></IconButton>
-                    </div>
-                  </div>
-                </div>
-              </Paper>
-            </Grid>
-            <Grid item xs={12} md={6} lg={4}>
-              <Paper>
-                <div style={{ marginBottom: 20 }}>
-                  <Typography variant='subtitle1' style={{ color: "#000000" }}>Documentos Habilitantes</Typography>
-                </div>
-                <div className={classes.formSection}>
-                  <label htmlFor="upload-photo1">
-                    <input style={{ display: 'none' }} id="upload-photo1" name="upload-photo1" type="file" accept="application/pdf" onChange={onChangeDI} />
-                    <Button component="span" color="primary" size='small'>Documento de Identidad</Button>
-                    {formData.docIdentidadPrincipal.length > 0 && <CheckIcon />}
-                  </label>
-                </div>
-                <div className={classes.formSection}>
-                  <label htmlFor="upload-photo2">
-                    <input style={{ display: 'none' }} id="upload-photo2" name="upload-photo2" type="file" accept="application/pdf" onChange={onChangeCB} />
-                    <Button component="span" color="primary" size='small' >Certificado Bancario</Button>
-                    {formData.docCertificadoBancario.length > 0 && <CheckIcon />}
-                  </label>
-                </div>
-                <div className={classes.formSection}>
-                  <label htmlFor="upload-photo3">
-                    <input style={{ display: 'none' }} id="upload-photo3" name="upload-photo3" type="file" accept="application/pdf" />
-                    <Button component="span" color="primary" size='small'>Carta de actualización de datos</Button>
-                    {formData.docIdentidadPrincipal.length > 0 && <CheckIcon />}
-                  </label>
-                </div>
-                <div className={classes.formSection}>
-                  <label htmlFor="upload-photo4">
-                    <input style={{ display: 'none' }} id="upload-photo4" name="upload-photo4" type="file" accept="application/pdf" />
-                    <Button component="span" color="primary" size='small' >Autorización para uso de datos</Button>
-                    {formData.docCertificadoBancario.length > 0 && <CheckIcon />}
-                  </label>
-                </div>
-                {conyugue &&
-                  <div className={classes.formSection}>
-                    <label htmlFor="upload-photo5">
-                      <input style={{ display: 'none' }} id="upload-photo5" name="upload-photo5" type="file" accept="application/pdf" onChange={onChangeDIC} />
-                      <Button component="span" color="primary" size='small' >Documento de Identidad Cónyugue</Button>
-                      {formData.docIdentidadConyugue.length > 0 && <CheckIcon />}
-                    </label>
                   </div>
                 }
+                {countTelef > 2 &&
+                  <div className={classes.formSection}>
+                    <Controller
+                      name={"telefonoAux2"}
+                      control={control}
+                      render={({ field: { onChange, value } }) => (
+                        <TextField size='small' onChange={onChange} value={value} label={"Teléfono aux"} variant='outlined' style={{ minWidth: 130 }} margin='dense' />
+                      )} />
+                    <Controller
+                      name={"observacionTelefonoAux2"}
+                      control={control}
+                      render={({ field: { onChange, value } }) => (
+                        <TextField size='small' onChange={onChange} value={value} label={"Observación aux"} variant='outlined' fullWidth margin='dense' />
+                      )} />
+                  </div>
+                }
+                <div>
+                  <IconButton color='primary' onClick={() => setCountTelef(countTelef + 1)} disabled={countTelef === 3 ? true : false}><ControlPointIcon /></IconButton>
+                  <IconButton color='primary' onClick={() => setCountTelef(countTelef - 1)} disabled={countTelef === 1 ? true : false} ><RemoveCircleOutlineIcon /></IconButton>
+                </div>
+
+                <div className={classes.formSectionContacto}>
+                  <Controller
+                    type='email'
+                    name={"email"}
+                    control={control}
+                    render={({ field: { onChange, value } }) => (
+                      <TextField size='small' onChange={onChange} value={value} label={"Email"} variant='outlined' fullWidth margin='dense' />
+                    )} />
+                  {countEmail > 1 &&
+                    <Controller
+                      type='email'
+                      name={"emailAux1"}
+                      control={control}
+                      render={({ field: { onChange, value } }) => (
+                        <TextField size='small' onChange={onChange} value={value} label={"Email auxiliar"} variant='outlined' fullWidth margin='dense' />
+                      )} />
+                  }
+                  {countEmail > 2 &&
+                    <Controller
+                      type='email'
+                      name={"emailAux2"}
+                      control={control}
+                      render={({ field: { onChange, value } }) => (
+                        <TextField size='small' onChange={onChange} value={value} label={"Email auxiliar"} variant='outlined' fullWidth margin='dense' />
+                      )} />
+                  }
+                  <div>
+                    <IconButton color='primary' onClick={() => setCountEmail(countEmail + 1)} disabled={countEmail === 3 ? true : false}><ControlPointIcon /></IconButton>
+                    <IconButton color='primary' onClick={() => setCountEmail(countEmail - 1)} disabled={countEmail === 1 ? true : false}><RemoveCircleOutlineIcon /></IconButton>
+                  </div>
+                </div>
+              </div>
+            </Paper>
+          </Grid>
+          <Grid item xs={12} md={6} lg={4}>
+            <Paper>
+              <div style={{ marginBottom: 20 }}>
+                <Typography variant='subtitle1' style={{ color: "#000000" }}>Documentos Habilitantes</Typography>
+              </div>
+              <div className={classes.formSection}>
+                <label htmlFor="upload-photo1">
+                  <input style={{ display: 'none' }} id="upload-photo1" name="upload-photo1" type="file" accept="application/pdf" onChange={onChangeDI} />
+                  <Button component="span" color="primary" size='small'>Documento de Identidad</Button>
+                  {formData.docIdentidadPrincipal.length > 0 && <CheckIcon />}
+                </label>
+              </div>
+              <div className={classes.formSection}>
+                <label htmlFor="upload-photo2">
+                  <input style={{ display: 'none' }} id="upload-photo2" name="upload-photo2" type="file" accept="application/pdf" onChange={onChangeCB} />
+                  <Button component="span" color="primary" size='small' >Certificado Bancario</Button>
+                  {formData.docCertificadoBancario.length > 0 && <CheckIcon />}
+                </label>
+              </div>
+              <div className={classes.formSection}>
+                <label htmlFor="upload-photo3">
+                  <input style={{ display: 'none' }} id="upload-photo3" name="upload-photo3" type="file" accept="application/pdf" />
+                  <Button component="span" color="primary" size='small'>Carta de actualización de datos</Button>
+                  {formData.docIdentidadPrincipal.length > 0 && <CheckIcon />}
+                </label>
+              </div>
+              <div className={classes.formSection}>
+                <label htmlFor="upload-photo4">
+                  <input style={{ display: 'none' }} id="upload-photo4" name="upload-photo4" type="file" accept="application/pdf" />
+                  <Button component="span" color="primary" size='small' >Autorización para uso de datos</Button>
+                  {formData.docCertificadoBancario.length > 0 && <CheckIcon />}
+                </label>
+              </div>
+              {conyugue &&
                 <div className={classes.formSection}>
-                  <label htmlFor="upload-photo4">
-                    <input style={{ display: 'none' }} id="upload-photo4" name="upload-photo4" type="file" onChange={onChangePE} />
-                    <Button component="span" color="primary" size='small' >Posesión Efectiva</Button>
-                    {formData.docPosesionEfectiva.length > 0 && <CheckIcon />}
+                  <label htmlFor="upload-photo5">
+                    <input style={{ display: 'none' }} id="upload-photo5" name="upload-photo5" type="file" accept="application/pdf" onChange={onChangeDIC} />
+                    <Button component="span" color="primary" size='small' >Documento de Identidad Cónyugue</Button>
+                    {formData.docIdentidadConyugue.length > 0 && <CheckIcon />}
                   </label>
                 </div>
-              </Paper>
-            </Grid>
-            <Grid item xs={12} md={6} lg={4}>
-              <Paper>
-                <div style={{ marginBottom: 20 }}>
-                  <Typography variant='subtitle1' style={{ color: "#000000" }}>Herederos</Typography>
-                </div>
-                <div style={{
-                  marginTop: 10, display: 'flex',
-                  flexDirection: 'row',
-                  justifyContent: 'flex-start',
-                  alignItems: 'center',
-                }}>
-                  <Switch
-                    checked={checked}
-                    onChange={handleChange}
-                    inputProps={{ 'aria-label': 'controlled' }}
-                    size="small"
-                  />
-                </div>
-                <div>
-                  {checked && countHerederos > 0 &&
-                    <div style={{ display: 'flex', flexDirection: 'row', justifyContent: 'space-evenly', alignItems: 'center', }}>
-                      <Controller
-                        name={"nombreBeneficiario1"}
-                        control={control}
-                        render={({ field: { onChange, value } }) => (
-                          <TextField size='small' onChange={onChange} value={value} label={"Nombre Heredero 1"} variant='outlined' fullWidth margin='dense' style={{ marginRight: '15px' }} />
-                        )} />
-                      <Controller
-                        name={"fechaBeneficiario1"}
-                        control={control}
-                        render={({ field: { onChange, value } }) => (
-                          <TextField size='small' onChange={onChange} value={value} label="Fecha Carga" variant="standard" id="datetime-local1" type="date" style={{ width: '140px' }} InputLabelProps={{ shrink: true, }} />
-                        )} />
-                    </div>
-                  }
-                  {countHerederos > 1 &&
-                    <div style={{ display: 'flex', flexDirection: 'row', justifyContent: 'space-evenly', alignItems: 'center', }}>
-                      <Controller
-                        name={"nombreBeneficiario2"}
-                        control={control}
-                        render={({ field: { onChange, value } }) => (
-                          <TextField size='small' onChange={onChange} value={value} label={"Nombre Heredero 2"} variant='outlined' fullWidth margin='dense' style={{ marginRight: '15px' }} />
-                        )} />
-                      <Controller
-                        name={"fechaBeneficiario2"}
-                        control={control}
-                        render={({ field: { onChange, value } }) => (
-                          <TextField size='small' onChange={onChange} defaultValue={Date.now()} value={value} label="Fecha Carga" variant="standard" id="datetime-local2" type="date" style={{ width: '140px' }} InputLabelProps={{ shrink: true, }} />
-                        )} />
-                    </div>
-                  }
-                  {countHerederos > 2 &&
-                    <div style={{ display: 'flex', flexDirection: 'row', justifyContent: 'space-evenly', alignItems: 'center', }}>
-                      <Controller
-                        name={"nombreBeneficiario3"}
-                        control={control}
-                        render={({ field: { onChange, value } }) => (
-                          <TextField size='small' onChange={onChange} value={value} label={"Nombre Heredero 3"} variant='outlined' fullWidth margin='dense' style={{ marginRight: '15px' }} />
-                        )} />
-                      <Controller
-                        name={"fechaBeneficiario3"}
-                        control={control}
-                        render={({ field: { onChange, value } }) => (
-                          <TextField size='small' onChange={onChange} defaultValue={Date.now()} value={value} label="Fecha Carga" variant="standard" id="datetime-local3" type="date" style={{ width: '140px' }} InputLabelProps={{ shrink: true, }} />
-                        )} />
-                    </div>
-                  }
-                  {countHerederos > 3 &&
-                    <div style={{ display: 'flex', flexDirection: 'row', justifyContent: 'space-evenly', alignItems: 'center', }}>
-                      <Controller
-                        name={"nombreBeneficiario4"}
-                        control={control}
-                        render={({ field: { onChange, value } }) => (
-                          <TextField size='small' onChange={onChange} value={value} label={"Nombre Heredero 4"} variant='outlined' fullWidth margin='dense' style={{ marginRight: '15px' }} />
-                        )} />
-                      <Controller
-                        name={"fechaBeneficiario4"}
-                        control={control}
-                        render={({ field: { onChange, value } }) => (
-                          <TextField size='small' onChange={onChange} defaultValue={Date.now()} value={value} label="Fecha Carga" variant="standard" id="datetime-local4" type="date" style={{ width: '140px' }} InputLabelProps={{ shrink: true, }} />
-                        )} />
-                    </div>
-                  }
-                  {countHerederos > 4 &&
-                    <div style={{ display: 'flex', flexDirection: 'row', justifyContent: 'space-evenly', alignItems: 'center', }}>
-                      <Controller
-                        name={"nombreBeneficiario5"}
-                        control={control}
-                        render={({ field: { onChange, value } }) => (
-                          <TextField size='small' onChange={onChange} value={value} label={"Nombre Heredero 5"} variant='outlined' fullWidth margin='dense' style={{ marginRight: '15px' }} />
-                        )} />
-                      <Controller
-                        name={"fechaBeneficiario5"}
-                        control={control}
-                        render={({ field: { onChange, value } }) => (
-                          <TextField size='small' onChange={onChange} defaultValue={Date.now()} value={value} label="Fecha Carga" variant="standard" id="datetime-local5" type="date" style={{ width: '140px' }} InputLabelProps={{ shrink: true, }} />
-                        )} />
-                    </div>
-                  }
-                  {countHerederos > 5 &&
-                    <div style={{ display: 'flex', flexDirection: 'row', justifyContent: 'space-evenly', alignItems: 'center', }}>
-                      <Controller
-                        name={"nombreBeneficiario6"}
-                        control={control}
-                        render={({ field: { onChange, value } }) => (
-                          <TextField size='small' onChange={onChange} value={value} label={"Nombre Heredero 6"} variant='outlined' fullWidth margin='dense' style={{ marginRight: '15px' }} />
-                        )} />
-                      <Controller
-                        name={"fechaBeneficiario6"}
-                        control={control}
-                        render={({ field: { onChange, value } }) => (
-                          <TextField size='small' onChange={onChange} defaultValue={Date.now()} value={value} label="Fecha Carga" variant="standard" id="datetime-local6" type="date" style={{ width: '140px' }} InputLabelProps={{ shrink: true, }} />
-                        )} />
-                    </div>
-                  }
-                  {countHerederos > 6 &&
-                    <div style={{ display: 'flex', flexDirection: 'row', justifyContent: 'space-evenly', alignItems: 'center', }}>
-                      <Controller
-                        name={"nombreBeneficiario7"}
-                        control={control}
-                        render={({ field: { onChange, value } }) => (
-                          <TextField size='small' onChange={onChange} value={value} label={"Nombre Heredero 7"} variant='outlined' fullWidth margin='dense' style={{ marginRight: '15px' }} />
-                        )} />
-                      <Controller
-                        name={"fechaBeneficiario7"}
-                        control={control}
-                        render={({ field: { onChange, value } }) => (
-                          <TextField size='small' onChange={onChange} defaultValue={Date.now()} value={value} label="Fecha Carga" variant="standard" id="datetime-local7" type="date" style={{ width: '140px' }} InputLabelProps={{ shrink: true, }} />
-                        )} />
-                    </div>
-                  }
-                  {countHerederos > 7 &&
-                    <div style={{ display: 'flex', flexDirection: 'row', justifyContent: 'space-evenly', alignItems: 'center', }}>
-                      <Controller
-                        name={"nombreBeneficiario8"}
-                        control={control}
-                        render={({ field: { onChange, value } }) => (
-                          <TextField size='small' onChange={onChange} value={value} label={"Nombre Heredero 8"} variant='outlined' fullWidth margin='dense' style={{ marginRight: '15px' }} />
-                        )} />
-                      <Controller
-                        name={"fechaBeneficiario8"}
-                        control={control}
-                        render={({ field: { onChange, value } }) => (
-                          <TextField size='small' onChange={onChange} defaultValue={Date.now()} value={value} label="Fecha Carga" variant="standard" id="datetime-local8" type="date" style={{ width: '140px' }} InputLabelProps={{ shrink: true, }} />
-                        )} />
-                    </div>
-                  }
-                  {countHerederos > 8 &&
-                    <div style={{ display: 'flex', flexDirection: 'row', justifyContent: 'space-evenly', alignItems: 'center', }}>
-                      <Controller
-                        name={"nombreBeneficiario9"}
-                        control={control}
-                        render={({ field: { onChange, value } }) => (
-                          <TextField size='small' onChange={onChange} value={value} label={"Nombre Heredero 9"} variant='outlined' fullWidth margin='dense' style={{ marginRight: '15px' }} />
-                        )} />
-                      <Controller
-                        name={"fechaBeneficiario9"}
-                        control={control}
-                        render={({ field: { onChange, value } }) => (
-                          <TextField size='small' onChange={onChange} defaultValue={Date.now()} value={value} label="Fecha Carga" variant="standard" id="datetime-local9" type="date" style={{ width: '140px' }} InputLabelProps={{ shrink: true, }} />
-                        )} />
-                    </div>
-                  }
-                  {checked &&
-                    <div>
-                      <IconButton color='primary' onClick={() => setCountHerederos(countHerederos + 1)} disabled={countHerederos === 9 ? true : false}><ControlPointIcon /></IconButton>
-                      <IconButton color='primary' onClick={() => setCountHerederos(countHerederos - 1)} disabled={countHerederos === 1 ? true : false} ><RemoveCircleOutlineIcon /></IconButton>
-                    </div>
-                  }
-                </div>
-              </Paper>
-            </Grid>
+              }
+              <div className={classes.formSection}>
+                <label htmlFor="upload-photo4">
+                  <input style={{ display: 'none' }} id="upload-photo4" name="upload-photo4" type="file" onChange={onChangePE} />
+                  <Button component="span" color="primary" size='small' >Posesión Efectiva</Button>
+                  {formData.docPosesionEfectiva.length > 0 && <CheckIcon />}
+                </label>
+              </div>
+            </Paper>
           </Grid>
-          <Divider className={classes.divider} />
-          <div className={classes.formSection}>
-            <Button size='small' onClick={limpiarForm} style={{ textTransform: 'none' }} color='primary'>Limpiar</Button>
-            <Button siza='small' onClick={handleSubmit(onSubmit)} variant='contained' color='primary' style={{ textTransform: 'none' }}>{location.state ? "Actualizar Accionista" : "Registrar Accionista"}</Button>
-            {location.state ? (location.state.preloadedValue.cantidadAcciones === 0 || location.state.preloadedValue.cantidadAcciones === null || location.state.preloadedValue.cantidadAcciones === undefined) && <Button siza='small' onClick={eliminarAccionista} variant='contained' color='secondary' style={{ textTransform: 'none' }}>Eliminar Accionista</Button> : null}
-          </div>
-          <Snackbar open={openSnack} autoHideDuration={6000} onClose={handleCloseSnack}>
-            <Alert onClose={handleCloseSnack} severity="success">
-              Se registró el accionista correctamente!
-            </Alert>
-          </Snackbar>
-        </form>
+          <Grid item xs={12} md={6} lg={4}>
+            <Paper>
+              <div style={{ marginBottom: 20 }}>
+                <Typography variant='subtitle1' style={{ color: "#000000" }}>Herederos</Typography>
+              </div>
+              <div style={{
+                marginTop: 10, display: 'flex',
+                flexDirection: 'row',
+                justifyContent: 'flex-start',
+                alignItems: 'center',
+              }}>
+                <Switch
+                  checked={checked}
+                  onChange={handleChange}
+                  inputProps={{ 'aria-label': 'controlled' }}
+                  size="small"
+                />
+              </div>
+              <div>
+                {checked && countHerederos > 0 &&
+                  <div style={{ display: 'flex', flexDirection: 'row', justifyContent: 'space-evenly', alignItems: 'center', }}>
+                    <Controller
+                      name={"nombreBeneficiario1"}
+                      control={control}
+                      render={({ field: { onChange, value } }) => (
+                        <TextField size='small' onChange={onChange} value={value} label={"Nombre Heredero 1"} variant='outlined' fullWidth margin='dense' style={{ marginRight: '15px' }} />
+                      )} />
+                    <Controller
+                      name={"fechaBeneficiario1"}
+                      control={control}
+                      render={({ field: { onChange, value } }) => (
+                        <TextField size='small' onChange={onChange} value={value} label="Fecha Carga" variant="standard" id="datetime-local1" type="date" style={{ width: '140px' }} InputLabelProps={{ shrink: true, }} />
+                      )} />
+                  </div>
+                }
+                {countHerederos > 1 &&
+                  <div style={{ display: 'flex', flexDirection: 'row', justifyContent: 'space-evenly', alignItems: 'center', }}>
+                    <Controller
+                      name={"nombreBeneficiario2"}
+                      control={control}
+                      render={({ field: { onChange, value } }) => (
+                        <TextField size='small' onChange={onChange} value={value} label={"Nombre Heredero 2"} variant='outlined' fullWidth margin='dense' style={{ marginRight: '15px' }} />
+                      )} />
+                    <Controller
+                      name={"fechaBeneficiario2"}
+                      control={control}
+                      render={({ field: { onChange, value } }) => (
+                        <TextField size='small' onChange={onChange} defaultValue={Date.now()} value={value} label="Fecha Carga" variant="standard" id="datetime-local2" type="date" style={{ width: '140px' }} InputLabelProps={{ shrink: true, }} />
+                      )} />
+                  </div>
+                }
+                {countHerederos > 2 &&
+                  <div style={{ display: 'flex', flexDirection: 'row', justifyContent: 'space-evenly', alignItems: 'center', }}>
+                    <Controller
+                      name={"nombreBeneficiario3"}
+                      control={control}
+                      render={({ field: { onChange, value } }) => (
+                        <TextField size='small' onChange={onChange} value={value} label={"Nombre Heredero 3"} variant='outlined' fullWidth margin='dense' style={{ marginRight: '15px' }} />
+                      )} />
+                    <Controller
+                      name={"fechaBeneficiario3"}
+                      control={control}
+                      render={({ field: { onChange, value } }) => (
+                        <TextField size='small' onChange={onChange} defaultValue={Date.now()} value={value} label="Fecha Carga" variant="standard" id="datetime-local3" type="date" style={{ width: '140px' }} InputLabelProps={{ shrink: true, }} />
+                      )} />
+                  </div>
+                }
+                {countHerederos > 3 &&
+                  <div style={{ display: 'flex', flexDirection: 'row', justifyContent: 'space-evenly', alignItems: 'center', }}>
+                    <Controller
+                      name={"nombreBeneficiario4"}
+                      control={control}
+                      render={({ field: { onChange, value } }) => (
+                        <TextField size='small' onChange={onChange} value={value} label={"Nombre Heredero 4"} variant='outlined' fullWidth margin='dense' style={{ marginRight: '15px' }} />
+                      )} />
+                    <Controller
+                      name={"fechaBeneficiario4"}
+                      control={control}
+                      render={({ field: { onChange, value } }) => (
+                        <TextField size='small' onChange={onChange} defaultValue={Date.now()} value={value} label="Fecha Carga" variant="standard" id="datetime-local4" type="date" style={{ width: '140px' }} InputLabelProps={{ shrink: true, }} />
+                      )} />
+                  </div>
+                }
+                {countHerederos > 4 &&
+                  <div style={{ display: 'flex', flexDirection: 'row', justifyContent: 'space-evenly', alignItems: 'center', }}>
+                    <Controller
+                      name={"nombreBeneficiario5"}
+                      control={control}
+                      render={({ field: { onChange, value } }) => (
+                        <TextField size='small' onChange={onChange} value={value} label={"Nombre Heredero 5"} variant='outlined' fullWidth margin='dense' style={{ marginRight: '15px' }} />
+                      )} />
+                    <Controller
+                      name={"fechaBeneficiario5"}
+                      control={control}
+                      render={({ field: { onChange, value } }) => (
+                        <TextField size='small' onChange={onChange} defaultValue={Date.now()} value={value} label="Fecha Carga" variant="standard" id="datetime-local5" type="date" style={{ width: '140px' }} InputLabelProps={{ shrink: true, }} />
+                      )} />
+                  </div>
+                }
+                {countHerederos > 5 &&
+                  <div style={{ display: 'flex', flexDirection: 'row', justifyContent: 'space-evenly', alignItems: 'center', }}>
+                    <Controller
+                      name={"nombreBeneficiario6"}
+                      control={control}
+                      render={({ field: { onChange, value } }) => (
+                        <TextField size='small' onChange={onChange} value={value} label={"Nombre Heredero 6"} variant='outlined' fullWidth margin='dense' style={{ marginRight: '15px' }} />
+                      )} />
+                    <Controller
+                      name={"fechaBeneficiario6"}
+                      control={control}
+                      render={({ field: { onChange, value } }) => (
+                        <TextField size='small' onChange={onChange} defaultValue={Date.now()} value={value} label="Fecha Carga" variant="standard" id="datetime-local6" type="date" style={{ width: '140px' }} InputLabelProps={{ shrink: true, }} />
+                      )} />
+                  </div>
+                }
+                {countHerederos > 6 &&
+                  <div style={{ display: 'flex', flexDirection: 'row', justifyContent: 'space-evenly', alignItems: 'center', }}>
+                    <Controller
+                      name={"nombreBeneficiario7"}
+                      control={control}
+                      render={({ field: { onChange, value } }) => (
+                        <TextField size='small' onChange={onChange} value={value} label={"Nombre Heredero 7"} variant='outlined' fullWidth margin='dense' style={{ marginRight: '15px' }} />
+                      )} />
+                    <Controller
+                      name={"fechaBeneficiario7"}
+                      control={control}
+                      render={({ field: { onChange, value } }) => (
+                        <TextField size='small' onChange={onChange} defaultValue={Date.now()} value={value} label="Fecha Carga" variant="standard" id="datetime-local7" type="date" style={{ width: '140px' }} InputLabelProps={{ shrink: true, }} />
+                      )} />
+                  </div>
+                }
+                {countHerederos > 7 &&
+                  <div style={{ display: 'flex', flexDirection: 'row', justifyContent: 'space-evenly', alignItems: 'center', }}>
+                    <Controller
+                      name={"nombreBeneficiario8"}
+                      control={control}
+                      render={({ field: { onChange, value } }) => (
+                        <TextField size='small' onChange={onChange} value={value} label={"Nombre Heredero 8"} variant='outlined' fullWidth margin='dense' style={{ marginRight: '15px' }} />
+                      )} />
+                    <Controller
+                      name={"fechaBeneficiario8"}
+                      control={control}
+                      render={({ field: { onChange, value } }) => (
+                        <TextField size='small' onChange={onChange} defaultValue={Date.now()} value={value} label="Fecha Carga" variant="standard" id="datetime-local8" type="date" style={{ width: '140px' }} InputLabelProps={{ shrink: true, }} />
+                      )} />
+                  </div>
+                }
+                {countHerederos > 8 &&
+                  <div style={{ display: 'flex', flexDirection: 'row', justifyContent: 'space-evenly', alignItems: 'center', }}>
+                    <Controller
+                      name={"nombreBeneficiario9"}
+                      control={control}
+                      render={({ field: { onChange, value } }) => (
+                        <TextField size='small' onChange={onChange} value={value} label={"Nombre Heredero 9"} variant='outlined' fullWidth margin='dense' style={{ marginRight: '15px' }} />
+                      )} />
+                    <Controller
+                      name={"fechaBeneficiario9"}
+                      control={control}
+                      render={({ field: { onChange, value } }) => (
+                        <TextField size='small' onChange={onChange} defaultValue={Date.now()} value={value} label="Fecha Carga" variant="standard" id="datetime-local9" type="date" style={{ width: '140px' }} InputLabelProps={{ shrink: true, }} />
+                      )} />
+                  </div>
+                }
+                {checked &&
+                  <div>
+                    <IconButton color='primary' onClick={() => setCountHerederos(countHerederos + 1)} disabled={countHerederos === 9 ? true : false}><ControlPointIcon /></IconButton>
+                    <IconButton color='primary' onClick={() => setCountHerederos(countHerederos - 1)} disabled={countHerederos === 1 ? true : false} ><RemoveCircleOutlineIcon /></IconButton>
+                  </div>
+                }
+              </div>
+            </Paper>
+          </Grid>
+        </Grid>
+        <Divider className={classes.divider} />
+        <div className={classes.formSection}>
+          <Button size='small' onClick={limpiarForm} style={{ textTransform: 'none' }} color='primary'>Limpiar</Button>
+          <Button siza='small' onClick={handleSubmit(onSubmit)} variant='contained' color='primary' style={{ textTransform: 'none' }}>{location.state ? "Actualizar Accionista" : "Registrar Accionista"}</Button>
+          {location.state ? (location.state.preloadedValue.cantidadAcciones === 0 || location.state.preloadedValue.cantidadAcciones === null || location.state.preloadedValue.cantidadAcciones === undefined) && <Button siza='small' onClick={eliminarAccionista} variant='contained' color='secondary' style={{ textTransform: 'none' }}>Eliminar Accionista</Button> : null}
+        </div>
+        <Snackbar open={openSnack} autoHideDuration={6000} onClose={handleCloseSnack}>
+          <Alert onClose={handleCloseSnack} severity="success">
+            Se registró el accionista correctamente!
+          </Alert>
+        </Snackbar>
+
       </Paper>
     </main>
   );

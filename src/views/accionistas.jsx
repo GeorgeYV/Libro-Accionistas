@@ -13,6 +13,7 @@ import "jspdf-autotable";
 import PropTypes from 'prop-types';
 import IconButton from '@material-ui/core/IconButton';
 import TextField from '@material-ui/core/TextField';
+import Avatar from '@material-ui/core/Avatar';
 
 import ClearIcon from '@material-ui/icons/Clear';
 import SearchIcon from '@material-ui/icons/Search';
@@ -173,7 +174,7 @@ export default function Accionistas() {
   const [estado, setEstado] = useState(1);
 
   function getParticipacion(params) {
-    return `${(params.getValue(params.id, 'cantidadAcciones') * 100 / cantidadEmitido).toFixed(8) || ''} `;
+    return `${(params.getValue(params.id, 'acc_participacion') * 100 / cantidadEmitido).toFixed(8) || ''} `;
   }
 
   let columns = []
@@ -274,7 +275,7 @@ export default function Accionistas() {
         headerName: 'Participación',
         type: 'number',
         width: 100,
-        valueGetter: getParticipacion,
+        //valueGetter: getParticipacion,
       },
       {
         field: 'acc_tipo_acciones',
@@ -296,7 +297,7 @@ export default function Accionistas() {
         headerName: 'Estado',
         width: 110,
         renderCell: (cellValues) => {
-          return <Chip size="small" variant="outlined" label={cellValues.row.estado} color={cellValues.row.acc_estado == 1 ? 'primary' : 'secondary'} />
+          return <Chip size="small" variant="outlined" icon={<Avatar>{cellValues.row.acc_estado == 0 ? 'Inactivo' : cellValues.row.acc_estado == 1 ? 'Activo' : 'Bloqueado'}</Avatar>} color={cellValues.row.acc_estado == 1 ? 'primary' : 'secondary'} />
         }
       },
 
@@ -304,12 +305,9 @@ export default function Accionistas() {
         field: "Info",
         width: 70,
         renderCell: (cellValues) => {
-          //return <IconButton  disabled={cellValues.row.cantidadAcciones > 0 ? false : true} onClick={() =>  
           return <IconButton onClick={() =>
-          //console.log('datos de accionista',cellValues.row )
           {
             fetchTitulos(cellValues.row);
-            //fetchTitulosPorHeredar(cellValues.row);
           }
           } color='primary'><PageviewIcon /></IconButton>
         }
