@@ -3,7 +3,7 @@ import { API, graphqlOperation, Auth } from 'aws-amplify';
 import { getParametro, listDividendosAccionistas, listDividendoNuevos,
   listAccionistas, listDetalleDividendos, listTitulos } from '../graphql/queries';
 import { createDividendoNuevo, updateDividendosAccionista,
-  createDetalleDividendo
+  createDetalleDividendo, createTitulo
  } from '../graphql/mutations';
 
 import { makeStyles } from '@material-ui/core/styles';
@@ -54,11 +54,21 @@ const useStyles = makeStyles(
 
 const dateNow = new Date();
 const year = dateNow.getFullYear();
+const monthWithOffset = dateNow.getUTCMonth() + 1;
+const month = 
+  monthWithOffset.toString().length < 2
+    ? `0${monthWithOffset}`
+    : monthWithOffset;
+const date =
+  dateNow.getUTCDate().toString().length < 2 
+    ? `0${dateNow.getUTCDate()}`
+    : dateNow.getUTCDate();
+const fechaHoyDMA = `${date}-${month}-${year}`;
 
 export default function Dividendos() {
-  const [accionistasCorte, setAccionistasCorte] = useState([]);
+  const [accionistasCorte, setAccionistasCorte] = useState({});
   const [openAccionistas, setOpenAccionistas] = useState(false);
-  const [accionistasCorteDividendos, setAccionistasCorteDividendos] = useState([]);
+  const [accionistasCorteDividendos, setAccionistasCorteDividendos] = useState({});
   const [openAccionistasDividendos, setOpenAccionistasDividendos] = useState(false);
   const [cantidadEmitido, setCantidadEmitido] = useState(1);
   const [valorNominal, setValorNominal] = useState(1);
@@ -102,17 +112,18 @@ export default function Dividendos() {
   const [Retencion_PJ_NPF_Loc, setRetencion_PJ_NPF_Loc] = useState(0);
   const [Retencion_PJ_NPF_NPF, setRetencion_PJ_NPF_NPF] = useState(0);
   const [Retencion_PJ_NPF_PF, setRetencion_PJ_NPF_PF] = useState(0);
-  const [rowsSelectAccionistas, setRowsSelectAccionistas] = useState([]);
+  const [rowsSelectAccionistas, setRowsSelectAccionistas] = useState({});
   const [userName, setUserName] = useState("");
+  const [idDetalleDividendo, setIdDetalleDividendo] = useState("");
   const [openCrearDividendo, setOpenCrearDividendo] = useState(false);
   const [selectAccionistas, setSelectAccionistas] = useState(false);
-  const [rows, setRows] = useState([]);
+  const [rows, setRows] = useState({});
   const [periodoSeleccionado, setPeriodoSeleccionado] = useState({});
   const [openSnack, setOpenSnack] = useState(false);
   const [circular, setCircular] = useState(false);
   const [refrescar, setRefrescar] = useState(false);
-  var [periodos, setPeriodos] = useState([]);
-  var [listaAccionistasDividendo, setListaAccionistasDividendo] = useState([]);
+  var [periodos, setPeriodos] = useState({});
+  var [listaAccionistasDividendo, setListaAccionistasDividendo] = useState({});
   var [formData, setFormData] = useState({
     periodo: '',
     secuencial: '',
@@ -272,7 +283,6 @@ export default function Dividendos() {
       type: 'number',
       width: 110,
     },
-
   ];
 
   const columnsAccionistasCorteDividendos = [
@@ -370,41 +380,40 @@ export default function Dividendos() {
 
   const columnsSelectAccionistas = [
     {
-      field: 'identificacion',
+      field: 'acc_identificacion',
       headerName: 'Identificación',
-      width: 150,
-    },
-    {
-      field: 'nombre',
-      headerName: 'Nombre',
-      width: 200,
-    },
-    {
-      field: 'tipoPersona',
-      headerName: 'Persona',
-    },
-    {
-      field: 'direccionPais',
-      headerName: 'Residencia',
-    },
-    {
-      field: 'direccionPaisBeneficiario1',
-      headerName: 'Beneficiario',
-    },
-    {
-      field: 'cantidadAcciones',
-      headerName: 'Acciones',
       width: 100,
-      align: 'right',
     },
     {
-      field: 'participacion',
+      field: 'acc_tipo_identificacion',
+      headerName: 'Persona',
+      width: 60,
+    },
+    {
+      field: 'acc_residencia',
+      headerName: 'Residencia',
+      width: 100,
+    },
+    {
+      field: 'acc_nacionalidad',
+      headerName: 'Beneficiario',
+      width: 100,
+    },
+    {
+      field: 'acc_cantidad_acciones',
+      headerName: 'Acciones',
+      type: 'number',
+      width: 100,
+    },
+    {
+      field: 'acc_participacion',
       headerName: 'Participación',
+      type: 'number',
       width: 110,
     },
     {
-      field: '50%',
-      headerName: 'X',
+      field: 'opcion',
+      headerName: 'Opción',
       width: 50,
       renderCell: (cellValues) => {
         return <Fragment>
@@ -412,7 +421,7 @@ export default function Dividendos() {
           onChange={() => {
             var aux;
             aux = listaAccionistasDividendo.findIndex(x => x.id === cellValues.row.id);
-            if(aux != -1) listaAccionistasDividendo.push(cellValues.row);
+            if(aux == -1) listaAccionistasDividendo.push(cellValues.row);
             console.log("aux",aux);
             console.log("checkbox",listaAccionistasDividendo);
           }
@@ -437,47 +446,6 @@ export default function Dividendos() {
     return user;
   }
   
-  function getParticipacion(params) {
-    return `${params.getValue(params.id, 'cantidadAcciones') * 100 / cantidadEmitido || ''} `;
-  }
-
-  function getDividendo(params) {
-    return `${(params.getValue(params.id, 'cantidadAcciones') * periodoSeleccionado.dividendoRepartir / cantidadEmitido).toFixed(2) || ''} `;
-  }
-
-  function getBaseImponible(params) {
-    return `${(params.getValue(params.id, 'cantidadAcciones') * periodoSeleccionado.dividendoRepartir * (baseImponible / 100.00) / cantidadEmitido).toFixed(2) || ''} `;
-  }
-
-  function getRetencion(params) {
-    let base = (params.getValue(params.id, 'cantidadAcciones') * periodoSeleccionado.dividendoRepartir * (baseImponible / 100.00) / cantidadEmitido).toFixed(2)
-    let num = 0;
-    if (base > FB1 && base < FE1) { num = RFB1 + (base - FB1) * RFE1 / 100.00; }
-    if (base > FB2 && base < FE2) { num = RFB2 + (base - FB2) * RFE2 / 100.00; }
-    if (base > FB3 && base < FE3) { num = RFB3 + (base - FB3) * RFE3 / 100.00; }
-    if (base > FB4 && base < FE4) { num = RFB4 + (base - FB4) * RFE4 / 100.00; }
-    if (base > FB5 && base < FE5) { num = RFB5 + (base - FB5) * RFE5 / 100.00; }
-    if (base > FB6 && base < FE6) { num = RFB6 + (base - FB6) * RFE6 / 100.00; }
-    return `${num.toFixed(2) || ''} `;
-  }
-
-  function getNetoRecibir(params) {
-    let dividendo = (params.getValue(params.id, 'cantidadAcciones') * periodoSeleccionado.dividendoRepartir / cantidadEmitido).toFixed(2);
-    let base = (params.getValue(params.id, 'cantidadAcciones') * periodoSeleccionado.dividendoRepartir * (baseImponible / 100.00) / cantidadEmitido).toFixed(2);
-    let num = 0;
-    if (base > FB1 && base < FE1) { num = dividendo - (RFB1 + (base - FB1) * RFE1 / 100.00); }
-    if (base > FB2 && base < FE2) { num = dividendo - (RFB2 + (base - FB2) * RFE2 / 100.00); }
-    if (base > FB3 && base < FE3) { num = dividendo - (RFB3 + (base - FB3) * RFE3 / 100.00); }
-    if (base > FB4 && base < FE4) { num = dividendo - (RFB4 + (base - FB4) * RFE4 / 100.00); }
-    if (base > FB5 && base < FE5) { num = dividendo - (RFB5 + (base - FB5) * RFE5 / 100.00); }
-    if (base > FB6 && base < FE6) { num = dividendo - (RFB6 + (base - FB6) * RFE6 / 100.00); }
-    return `${num.toFixed(2) || ''} `;
-  }
-
-  function getParticipacion1(cantidadAcciones) {
-    return ((cantidadAcciones / cantidadEmitido) * 100.00).toFixed(16);
-  }
-
   function getRetencion1(base, persona, residente, beneficiario) {
 
     //,e.tipoPersona, e.direccionPais, e.direccionPais
@@ -561,9 +529,12 @@ export default function Dividendos() {
     });
     setOpenCrearDividendo(false)
   }
-  const handleCloseSelectAccionistas = () =>setSelectAccionistas(false);
+  const handleCloseSelectAccionistas = () => {
+    setListaAccionistasDividendo({});
+    setSelectAccionistas(false);
+  }
   const handleOpenSelectAccionistas = async () => {
-    const apiData = await API.graphql({ query: listAccionistas, variables: { projectionExpression: "id, identificacion, nombre, tipoPersona, direccionPais, direccionPaisBeneficiario1, cantidadAcciones, participacion", select:"SPECIFIC_ATTRIBUTES", limit: 1000} });
+    const apiData = await API.graphql({ query: listAccionistas, variables: { projectionExpression: "id", select:"SPECIFIC_ATTRIBUTES", limit: 1000} });
     var aux = apiData.data.listAccionistas.items;
     setRowsSelectAccionistas(aux);
     setSelectAccionistas(true);
@@ -571,49 +542,31 @@ export default function Dividendos() {
   const handleOpenCrearDividendo = () => setOpenCrearDividendo(true);
 
   const handleConfirmarDividendo = async () => {
-
-    //console.log("MATRIZ", accionistasCorte);
-    for (const accionistaCorte of accionistasCorte) {
-
-      //console.log(accionistaCorte.nombre, accionistaCorte.dividendo, accionistaCorte.baseImponible);
-      /*
-      const dividendoAccionista = {
-        idAccionista: accionistaCorte.id,
-        tipoIdentificacion: accionistaCorte.tipoIdentificacion,
-        identificacion: accionistaCorte.identificacion,
-        nombre: accionistaCorte.nombre,
-        direccionPais: accionistaCorte.direccionPais,
-        paisNacionalidad: accionistaCorte.paisNacionalidad,
-        cantidadAcciones: accionistaCorte.cantidadAcciones,
-        participacion: accionistaCorte.participacion,
-        tipoAcciones: accionistaCorte.tipoAcciones,
-        estado: accionistaCorte.estado,
-        tipoPersona: accionistaCorte.tipoPersona,
-        decevale: accionistaCorte.decevale,
-        idDividendo: accionistaCorte.idDividendo,
-        periodo: accionistaCorte.periodo,
-        dividendo: accionistaCorte.dividendo,
-        baseImponible: accionistaCorte.baseImponible,
-        retencion: accionistaCorte.retencion,
-        dividendoRecibido: accionistaCorte.dividendoRecibido,
-        estadoDividendo: accionistaCorte.estadoDividendo,
-        documento: accionistaCorte.documento,
-        solicitado: accionistaCorte.solicitado,
-        fechaSolicitud: accionistaCorte.fechaSolicitud,
-        HoraSolicitud: accionistaCorte.HoraSolicitud,
-        fechaPago: accionistaCorte.fechaPago,
-        direccionPaisBeneficiario1: accionistaCorte.direccionPaisBeneficiario1
-
+    if(accionistasCorte){
+      var aux,
+      auxDividendoTitulo={
+        div_tit_participacion: 0,
+        div_tit_dividendo: 0,
+        div_tit_retencion: 0,
+        div_tit_base_imponible: 0,
+        detalledividendoID: "",
+        tituloID: ""
       };
-
-      console.log('input', dividendoAccionista)
-      //const apiDataDividendoAccionista = await API.graphql({ query: createDividendosAccionista, variables: { input: dividendoAccionista } });  
-      const divAccionsitaID = await API.graphql(graphqlOperation(createDividendosAccionista, { input: dividendoAccionista }))
-      const operID = await API.graphql({ query: updateDividendos, variables: { input: { id: periodoSeleccionado.id, estado: "Confirmado" } } });
-      */
-      handleClose();
-    }
-
+      const apiData3 = await API.graphql({ query: listTitulos, variables: { limit:1000} });
+      accionistasCorte.map(function (e) {
+        aux = apiData3.data.listTitulos.items.find(({ accionistaID }) => accionistaID === e.id);
+        console.log("aux: ",aux);
+        auxDividendoTitulo.div_tit_participacion = element.acc_participacion;
+        auxDividendoTitulo.div_tit_dividendo = element.dividendo;
+        auxDividendoTitulo.div_tit_retencion = element.retencion;
+        auxDividendoTitulo.div_tit_base_imponible = element.baseImponible;
+        auxDividendoTitulo.detalledividendoID = element.id;
+        auxDividendoTitulo.tituloID = element.aux;
+        console.log("auxdividendotitulo: ",auxDividendoTitulo)
+      });
+      //API.graphql(graphqlOperation(createTitulo, { input: dividendosTitulos }));
+    } else Alert("No se puede realizar la operación: Confirmar dividendos.");
+    setOpenAccionistas(false);
   }
 
   async function fetchParametros() {
@@ -667,13 +620,11 @@ export default function Dividendos() {
   async function fetchDividendos() {
     const apiData = await API.graphql({ query: listDividendoNuevos});
     const apiData2 = await API.graphql({ query: listDetalleDividendos});
-    var aux,repetido,auxperiodos=[];
+    var aux,repetido,auxperiodos={};
     for (let index = 2015; index <= year; index++) {
       auxperiodos.push({id:index,periodo:index,tipo: "Nuevo"});
     }
-    setPeriodos(auxperiodos);
     console.log("auxperiodos",auxperiodos);
-    console.log("periodos",periodos);
     if (apiData.data.listDividendoNuevos.items.length > 0 && apiData2.data.listDetalleDividendos.items.length > 0) {
       const dividendosRelacionados = apiData2.data.listDetalleDividendos.items.map(function (e) {
         aux = apiData.data.listDividendoNuevos.items.find(({ id }) => id === e.dividendoID);
@@ -695,19 +646,21 @@ export default function Dividendos() {
         };
       });
       apiData.data.listDividendoNuevos.items.map(function (e) {
-        repetido = periodos.findIndex(x => x.periodo === e.div_periodo);
+        repetido = auxperiodos.findIndex(x => x.periodo === e.div_periodo);
         console.log("repetido",repetido);
         console.log("e.div_dividendo",e.div_dividendo);
         console.log("e.div_repartido",e.div_repartido);
         if (repetido != -1 && e.div_dividendo != e.div_repartido) {
-          periodos[repetido].tipo = "Parcial";
-          console.log("periodos[repetido].tipo",periodos[repetido].tipo);
-          var aux = dividendosRelacionados.find(({ div_periodo }) => div_periodo === periodos[repetido].periodo);
+          auxperiodos[repetido].tipo = "Parcial";
+          console.log("periodos[repetido].tipo",auxperiodos[repetido].tipo);
+          var aux = dividendosRelacionados.find(({ div_periodo }) => div_periodo === auxperiodos[repetido].periodo);
           console.log("dividendosRelacionados",aux);
-          periodos[repetido].id = aux.dividendoID;
+          auxperiodos[repetido].id = aux.dividendoID;
         }
-        if (repetido != -1 && e.div_dividendo == e.div_repartido) periodos.splice(repetido,1);
+        if (repetido != -1 && e.div_dividendo == e.div_repartido) auxperiodos.splice(repetido,1);
       })
+      setPeriodos(auxperiodos);
+      console.log("periodos",periodos);
       setRows(dividendosRelacionados);
     }
   }
@@ -718,7 +671,7 @@ export default function Dividendos() {
     if (listaAccionistasDividendo.length > 0) {
       filter = {
         acc_estado: {
-          eq: 1
+          eq: '1'
         },
         or: []
       }
@@ -729,12 +682,12 @@ export default function Dividendos() {
     } else{
        filter = {
         acc_estado: {
-          eq: 1
+          eq: '1'
         }
       }
     }
     console.log("filtro fetchaccionistas",filter);
-    const apiData3 = await API.graphql({ query: listAccionistas, variables: { limit: 1000} });
+    const apiData3 = await API.graphql({ query: listAccionistas, variables: { filter: filter,limit: 1000} });
     let accionistasFromAPI3 = apiData3.data.listAccionistas.items;
     const accionistasCalculo = accionistasFromAPI3.map(function (e) {
       return {
@@ -748,12 +701,11 @@ export default function Dividendos() {
         acc_cantidad_acciones:e.acc_cantidad_acciones,
         acc_participacion:e.acc_participacion,
         acc_tipo_acciones:e.acc_tipo_acciones,
-        idDividendo: row.id,
         periodo: row.periodo,
-        dividendo: (row.div_repartido * e.acc_participacion).toFixed(2),
-        baseImponible: ((baseImponible/100) * (row.div_repartido * e.acc_participacion)).toFixed(2),
-        retencion: getRetencion1(((baseImponible/ 100.00) * (row.div_repartido * e.acc_participacion).toFixed(2)), e.acc_tipo_identificacion, e.acc_residencia, e.acc_nacionalidad),
-        dividendoRecibido: ((row.div_repartido * e.acc_participacion).toFixed(2) - getRetencion1(((baseImponible/ 100.00) * (row.div_repartido * e.acc_participacion).toFixed(2)), e.acc_tipo_identificacion, e.acc_residencia, e.acc_nacionalidad)).toFixed(2),
+        dividendo: (row.div_repartido * e.acc_participacion / 100).toFixed(2),
+        baseImponible: ((baseImponible/100) * (row.div_repartido * e.acc_participacion) / 100).toFixed(2),
+        retencion: getRetencion1(((baseImponible/ 100.00) * (row.div_repartido * e.acc_participacion / 100).toFixed(2)), e.acc_tipo_identificacion, e.acc_residencia, e.acc_nacionalidad),
+        dividendoRecibido: ((row.div_repartido * e.acc_participacion / 100).toFixed(2) - getRetencion1(((baseImponible/ 100.00) * (row.div_repartido * e.acc_participacion / 100).toFixed(2)), e.acc_tipo_identificacion, e.acc_residencia, e.acc_nacionalidad)).toFixed(2),
       };
     })
     console.log("accionistasCalculo",accionistasCalculo);
@@ -796,13 +748,15 @@ export default function Dividendos() {
   const handlePeriodoChange = (event) => {
     setFormData({ ...formData, 'periodo': event.target.value });
     var aux = periodos.findIndex(x => x.periodo === event.target.value);
+    console.log("aux: ",aux);
     if (aux != -1 && periodos[aux].tipo == "Parcial") {
       var periodo_aux = rows.findIndex(x => x.div_periodo === periodos[aux].periodo);
-      aux = periodo_aux.div_dividendo-periodo_aux.div_repartido;
-      setFormData({ ...formData, 'concepto': periodo_aux.div_concepto });
-      setFormData({ ...formData, 'dividendo': periodo_aux.div_dividendo });
-      setFormData({ ...formData, 'saldoDividendo': periodo_aux.div_repartido });
+      aux = rows[periodo_aux].div_dividendo-rows[periodo_aux].div_repartido;
+      setFormData({ ...formData, 'concepto': rows[periodo_aux].div_concepto });
+      setFormData({ ...formData, 'dividendo': rows[periodo_aux].div_dividendo });
+      setFormData({ ...formData, 'saldoDividendo': rows[periodo_aux].div_repartido });
       console.log("formData periodo change",formData);
+      document.getElementById("select-concepto").readOnly=true;
     }
   };
 
@@ -833,7 +787,7 @@ export default function Dividendos() {
       var dividendoID;
       const filter = {
         acc_estado: {
-          eq: 1
+          eq: '1'
         },
       }
       const dividendo = { 
@@ -857,7 +811,7 @@ export default function Dividendos() {
       if (listaAccionistasDividendo.length > 0) {
         aux_titulos = await getTitulosTotales(listaAccionistasDividendo);
       }else{
-        const apiData3 = await API.graphql({ query: listAccionistas, variables: { ProjectionExpression: "id", select:"SPECIFIC_ATTRIBUTES"}, limit: 1000 });
+        const apiData3 = await API.graphql({ query: listAccionistas, variables: { filter: filter, ProjectionExpression: "id", select:"SPECIFIC_ATTRIBUTES"}, limit: 1000 });
         const aux_listaIdsAccionistas = apiData3.data.listAccionistas.items;
         console.log("aux_listaIdsAccionistas: ",aux_listaIdsAccionistas.length);
         aux_titulos = await getTitulosTotales(aux_listaIdsAccionistas);
@@ -873,7 +827,7 @@ export default function Dividendos() {
         ddiv_porcentaje: formData.porcentajeRepartir,
         dividendoID: dividendoID
       }
-      API.graphql(graphqlOperation(createDetalleDividendo, { input: detalleDividendo }))
+      const idDetalleDividendo = API.graphql(graphqlOperation(createDetalleDividendo, { input: detalleDividendo }))
       setFormData({
         periodo: '',
         secuencial: '',
@@ -972,23 +926,21 @@ export default function Dividendos() {
             rowsPerPageOptions={[20]}
           />
         </Grid>
-
-
-        <Dialog open={openAccionistas} onClose={handleClose} aria-labelledby="form-dialog-title" fullScreen  >
+        <Dialog open={openAccionistas} onClose={handleClose} aria-labelledby="form-dialog-title" maxWidth='lg'>
           <DialogTitle id="form-dialog-title">
             <div style={{ display: 'flex', flexDirection: 'row', alignItems: 'center', justifyContent: 'space-around', width: '100%' }}>
-              {periodoSeleccionado.div_concepto} : {periodoSeleccionado.div_periodo} : {periodoSeleccionado.secuencial}
-              <Typography variant="body2" >Total dividendo del periodo : {new Intl.NumberFormat('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2, }).format(periodoSeleccionado.div_dividendo)}</Typography>
-              <Typography variant="body2" >Total a repartir : {new Intl.NumberFormat('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2, }).format(periodoSeleccionado.div_repartido)}</Typography>
-              <Typography variant="body2" >Porcentaje a repartir : {new Intl.NumberFormat('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2, }).format(periodoSeleccionado.div_porcentaje)} %</Typography>
+              <Typography>{periodoSeleccionado.div_concepto}: {periodoSeleccionado.div_periodo} - {periodoSeleccionado.secuencial}</Typography>
+              <Typography>Total dividendo del periodo: {new Intl.NumberFormat('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2, }).format(periodoSeleccionado.div_dividendo)}</Typography>
+              <Typography>Total a repartir: {new Intl.NumberFormat('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2, }).format(periodoSeleccionado.div_repartido)}</Typography>
+              <Typography>Porcentaje a repartir: {new Intl.NumberFormat('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2, }).format(periodoSeleccionado.ddiv_porcentaje)} %</Typography>
             </div>
           </DialogTitle>
-          <DialogContent style={{ height: '500px' }}>
+          <DialogContent>
             <DataGrid
               style={{ backgroundColor: 'white' }}
               density="compact"
-              autoHeight='true'
-              maxWidth='true'
+              autoHeight='false'
+              maxWidth='false'
               autoPageSize='true'
               disableColumnMenu
               rows={accionistasCorte}
@@ -1011,10 +963,10 @@ export default function Dividendos() {
           <DialogTitle id="form-dialog-title">
             <div style={{ display: 'flex', flexDirection: 'row', alignItems: 'center', justifyContent: 'space-around', width: '100%' }}>
               Ejercicio {periodoSeleccionado.periodo}
-              <Typography variant="body2" >Total dividendo del periodo : {new Intl.NumberFormat('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2, }).format(periodoSeleccionado.dividendo)}</Typography>
-              <Typography variant="body2" >Total a repartir : {new Intl.NumberFormat('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2, }).format(periodoSeleccionado.dividendoRepartir)}</Typography>
-              <Typography variant="body2" >Porcentaje a repartir : {new Intl.NumberFormat('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2, }).format(periodoSeleccionado.porcentajeRepartir)} %</Typography>
-              <Typography variant="body2" >Saldo del periodo : {new Intl.NumberFormat('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2, }).format(periodoSeleccionado.saldoDividendo)}</Typography>
+              <Typography >Total dividendo del periodo : {new Intl.NumberFormat('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2, }).format(periodoSeleccionado.dividendo)}</Typography>
+              <Typography >Total a repartir : {new Intl.NumberFormat('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2, }).format(periodoSeleccionado.dividendoRepartir)}</Typography>
+              <Typography >Porcentaje a repartir : {new Intl.NumberFormat('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2, }).format(periodoSeleccionado.porcentajeRepartir)} %</Typography>
+              <Typography >Saldo del periodo : {new Intl.NumberFormat('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2, }).format(periodoSeleccionado.saldoDividendo)}</Typography>
             </div>
           </DialogTitle>
           <DialogContent style={{ height: '500px' }}>
@@ -1042,7 +994,7 @@ export default function Dividendos() {
           <DialogTitle id="form-dialog-title">Crear nuevo dividendo</DialogTitle>
           <DialogContent style={{ height: '450px' }}>
             <div style={{ display: 'flex', flexDirection: 'row', alignItems: 'flex-start', justifyContent: 'space-between', width: '100%', }}>
-              <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'flex-start', justifyContent: 'space-between', width: '90%', }}>
+              <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'flex-start', justifyContent: 'space-between', width: '100%', }}>
                 <div style={{ display: 'flex', flexDirection: 'row', alignItems: 'flex-start', justifyContent: 'space-evenly', width: '100%', }}>
                   <FormControl style={{ width: '100%' }}>
                     <InputLabel id="periodo-select-label">Periodo</InputLabel>
@@ -1073,7 +1025,7 @@ export default function Dividendos() {
                 </FormControl>
                 <TextField
                   id="outlined-required"
-                  label="Dividendo"
+                  label="Dividendo (USD)"
                   value={formData.dividendo}
                   type='number'
                   onChange={handleDividendoChange}
@@ -1093,7 +1045,7 @@ export default function Dividendos() {
 
                 <TextField
                   id="outlined-required"
-                  label="Dividendo a Repartir"
+                  label="Dividendo a Repartir (USD)"
                   value={formData.dividendoRepartir}
                   fullWidth
                   disabled
@@ -1106,7 +1058,7 @@ export default function Dividendos() {
                     id="datetime-local"
                     label="Fecha Pago"
                     type="date"
-                    defaultValue={Date.now()}
+                    defaultValue={fechaHoyDMA}
                     variant="standard"
                     InputLabelProps={{
                       shrink: true,
@@ -1122,7 +1074,7 @@ export default function Dividendos() {
                     id="datetime-local-2"
                     label="Fecha Junta"
                     type="date"
-                    defaultValue={Date.now()}
+                    defaultValue={fechaHoyDMA}
                     variant="standard"
                     InputLabelProps={{
                       shrink: true,
@@ -1131,7 +1083,7 @@ export default function Dividendos() {
                     onChange={handleChangeFechaPago}
                   />
                 </FormControl>
-                Saldo del periodo {formData.saldoDividendo}
+                Saldo del periodo {formData.saldoDividendo} (USD)
               </div>
 
             </div>
