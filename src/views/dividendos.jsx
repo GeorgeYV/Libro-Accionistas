@@ -671,7 +671,7 @@ export default function Dividendos() {
     if (listaAccionistasDividendo.length > 0) {
       filter = {
         acc_estado: {
-          eq: '1'
+          ne: '0'
         },
         or: []
       }
@@ -682,7 +682,7 @@ export default function Dividendos() {
     } else{
        filter = {
         acc_estado: {
-          eq: '1'
+          ne: '0'
         }
       }
     }
@@ -755,6 +755,8 @@ export default function Dividendos() {
       setFormData({ ...formData, 'concepto': rows[periodo_aux].div_concepto });
       setFormData({ ...formData, 'dividendo': rows[periodo_aux].div_dividendo });
       setFormData({ ...formData, 'saldoDividendo': rows[periodo_aux].div_repartido });
+      console.log("rows",rows);
+      console.log("rows[periodo_aux].div_concepto",rows[periodo_aux].div_concepto);
       console.log("formData periodo change",formData);
       document.getElementById("select-concepto").readOnly=true;
     }
@@ -787,7 +789,7 @@ export default function Dividendos() {
       var dividendoID;
       const filter = {
         acc_estado: {
-          eq: '1'
+          ne: '0'
         },
       }
       const dividendo = { 
