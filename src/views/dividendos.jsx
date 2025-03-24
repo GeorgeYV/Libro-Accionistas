@@ -66,9 +66,9 @@ const date =
 const fechaHoyDMA = `${date}-${month}-${year}`;
 
 export default function Dividendos() {
-  const [accionistasCorte, setAccionistasCorte] = useState({});
+  const [accionistasCorte, setAccionistasCorte] = useState([]);
   const [openAccionistas, setOpenAccionistas] = useState(false);
-  const [accionistasCorteDividendos, setAccionistasCorteDividendos] = useState({});
+  const [accionistasCorteDividendos, setAccionistasCorteDividendos] = useState([]);
   const [openAccionistasDividendos, setOpenAccionistasDividendos] = useState(false);
   const [cantidadEmitido, setCantidadEmitido] = useState(1);
   const [valorNominal, setValorNominal] = useState(1);
@@ -112,18 +112,18 @@ export default function Dividendos() {
   const [Retencion_PJ_NPF_Loc, setRetencion_PJ_NPF_Loc] = useState(0);
   const [Retencion_PJ_NPF_NPF, setRetencion_PJ_NPF_NPF] = useState(0);
   const [Retencion_PJ_NPF_PF, setRetencion_PJ_NPF_PF] = useState(0);
-  const [rowsSelectAccionistas, setRowsSelectAccionistas] = useState({});
+  const [rowsSelectAccionistas, setRowsSelectAccionistas] = useState([]);
   const [userName, setUserName] = useState("");
   const [idDetalleDividendo, setIdDetalleDividendo] = useState("");
   const [openCrearDividendo, setOpenCrearDividendo] = useState(false);
   const [selectAccionistas, setSelectAccionistas] = useState(false);
   const [rows, setRows] = useState({});
-  const [periodoSeleccionado, setPeriodoSeleccionado] = useState({});
+  const [periodoSeleccionado, setPeriodoSeleccionado] = useState([]);
   const [openSnack, setOpenSnack] = useState(false);
   const [circular, setCircular] = useState(false);
   const [refrescar, setRefrescar] = useState(false);
-  var [periodos, setPeriodos] = useState({});
-  var [listaAccionistasDividendo, setListaAccionistasDividendo] = useState({});
+  var [periodos, setPeriodos] = useState([]);
+  var [listaAccionistasDividendo, setListaAccionistasDividendo] = useState([]);
   var [formData, setFormData] = useState({
     periodo: '',
     secuencial: '',
@@ -530,7 +530,7 @@ export default function Dividendos() {
     setOpenCrearDividendo(false)
   }
   const handleCloseSelectAccionistas = () => {
-    setListaAccionistasDividendo({});
+    setListaAccionistasDividendo([]);
     setSelectAccionistas(false);
   }
   const handleOpenSelectAccionistas = async () => {
