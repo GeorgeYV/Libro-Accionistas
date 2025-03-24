@@ -117,7 +117,7 @@ export default function Dividendos() {
   const [idDetalleDividendo, setIdDetalleDividendo] = useState("");
   const [openCrearDividendo, setOpenCrearDividendo] = useState(false);
   const [selectAccionistas, setSelectAccionistas] = useState(false);
-  const [rows, setRows] = useState({});
+  const [rows, setRows] = useState([]);
   const [periodoSeleccionado, setPeriodoSeleccionado] = useState([]);
   const [openSnack, setOpenSnack] = useState(false);
   const [circular, setCircular] = useState(false);
@@ -620,7 +620,7 @@ export default function Dividendos() {
   async function fetchDividendos() {
     const apiData = await API.graphql({ query: listDividendoNuevos});
     const apiData2 = await API.graphql({ query: listDetalleDividendos});
-    var aux,repetido,auxperiodos={};
+    var aux,repetido,auxperiodos=[];
     for (let index = 2015; index <= year; index++) {
       auxperiodos.push({id:index,periodo:index,tipo: "Nuevo"});
     }

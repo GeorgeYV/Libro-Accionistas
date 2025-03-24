@@ -297,7 +297,7 @@ export default function Accionistas() {
         headerName: 'Estado',
         width: 110,
         renderCell: (cellValues) => {
-          return <Chip size="small" variant="outlined" icon={<Avatar>{cellValues.row.acc_estado == 0 ? 'Inactivo' : cellValues.row.acc_estado == 1 ? 'Activo' : 'Bloqueado'}</Avatar>} color={cellValues.row.acc_estado == 1 ? 'primary' : 'secondary'} />
+          return <Chip variant="outlined" icon={<Avatar>{cellValues.row.acc_estado == 0 ? 'I' : cellValues.row.acc_estado == 1 ? 'A' : 'B'}</Avatar>} color={cellValues.row.acc_estado == 1 ? 'primary' : 'secondary'} />
         }
       },
 
