@@ -63,7 +63,7 @@ const date =
   dateNow.getUTCDate().toString().length < 2 
     ? `0${dateNow.getUTCDate()}`
     : dateNow.getUTCDate();
-const fechaHoyDMA = `${date}-${month}-${year}`;
+const fechaHoyAMD = `${year}-${month}-${date}`;
 
 export default function Dividendos() {
   const [accionistasCorte, setAccionistasCorte] = useState([]);
@@ -167,6 +167,7 @@ export default function Dividendos() {
       field: 'ddiv_porcentaje',
       headerName: 'Reparto Acordado',
       type: 'number',
+      valueGetter: decimalesParticipacion,
       width: 100,
     },
     {
@@ -257,6 +258,7 @@ export default function Dividendos() {
       field: 'acc_participacion',
       headerName: 'Participación',
       type: 'number',
+      valueGetter: decimalesParticipacion,
       width: 110,
     },
     {
@@ -328,6 +330,7 @@ export default function Dividendos() {
     {
       field: 'participacion',
       headerName: 'Participación',
+      valueGetter: decimalesParticipacion,
       width: 110,
     },
     {
@@ -409,6 +412,7 @@ export default function Dividendos() {
       field: 'acc_participacion',
       headerName: 'Participación',
       type: 'number',
+      valueGetter: decimalesParticipacion,
       width: 110,
     },
     {
@@ -509,6 +513,10 @@ export default function Dividendos() {
     return sum;
   }
 
+  function decimalesParticipacion(params) {
+    return `${(params.getValue(params.id, 'acc_participacion')).toFixed(8) || ''} `;
+  }
+
   const handleCloseCrearDividendo = () => {
     setFormData({
       periodo: '',
@@ -539,6 +547,7 @@ export default function Dividendos() {
   const handleOpenSelectAccionistas = async () => {
     const apiData = await API.graphql({ query: listAccionistas, variables: { projectionExpression: "id", select:"SPECIFIC_ATTRIBUTES", limit: 1000} });
     var aux = apiData.data.listAccionistas.items;
+    setListaAccionistasDividendo([]);
     setRowsSelectAccionistas(aux);
     setSelectAccionistas(true);
   }
@@ -749,24 +758,36 @@ export default function Dividendos() {
   }
 
   const handlePeriodoChange = (event) => {
+    document.getElementById("select-concepto").disabled=false;
+    document.getElementById("textfield-dividendo").disabled=false;
     setFormData({ ...formData, 'periodo': event.target.value });
-    var aux = periodos.findIndex(x => x.periodo === event.target.value);
+    var aux = periodos.findIndex(x => x.periodo === event.target.value),
+    aux_concepto='',aux_dividendo=0,aux_repartido=0;
     console.log("aux: ",aux);
     if (aux != -1 && periodos[aux].tipo == "Parcial") {
       var periodo_aux = rows.findIndex(x => x.div_periodo === periodos[aux].periodo);
-      aux = rows[periodo_aux].div_dividendo-rows[periodo_aux].div_repartido;
-      setFormData({ ...formData, 'concepto': rows[periodo_aux].div_concepto });
+      setFormData({ ...formData, concepto: rows[periodo_aux].div_concepto });
+      aux_concepto = rows[periodo_aux].div_concepto;
       setFormData({ ...formData, 'dividendo': rows[periodo_aux].div_dividendo });
+      aux_dividendo = rows[periodo_aux].div_dividendo;
       setFormData({ ...formData, 'saldoDividendo': rows[periodo_aux].div_repartido });
-      document.getElementById("select-concepto").readOnly=true;
+      aux_repartido = rows[periodo_aux].div_repartido;
       document.getElementById("select-concepto").disabled=true;
-      document.getElementById("textfield-dividendo").readOnly=true;
-      setRefrescar(!refrescar);
-      console.log("formData periodo change",formData);
+      document.getElementById("textfield-dividendo").disabled=true;
       console.log("rows[periodo_aux].div_concepto",rows[periodo_aux].div_concepto);
       console.log("rows",rows);
-      console.log("fechaHoyDMA",fechaHoyDMA);
+      console.log("fechaHoyAMD",fechaHoyAMD);
+      console.log("fecha reverse",formData.fechaPago.split(" ")[0].split("-").reverse().join("-"));
+      console.log("formData periodo change if",formData);
     }
+    setFormData({ ...formData,
+      periodo: event.target.value,
+      secuencial: 2,
+      concepto: aux_concepto,
+      dividendo: aux_dividendo,
+      saldoDividendo: aux_repartido,
+    });
+    console.log("formData periodo change fuera",formData);
   };
 
   const handleConceptoChange = (event) => {
@@ -935,7 +956,7 @@ export default function Dividendos() {
             rowsPerPageOptions={[20]}
           />
         </Grid>
-        <Dialog open={openAccionistas} onClose={handleClose} aria-labelledby="form-dialog-title" maxWidth='lg'>
+        <Dialog open={openAccionistas} onClose={handleClose} aria-labelledby="form-dialog-title" maxWidth='xl'>
           <DialogTitle id="form-dialog-title">
             <div style={{ display: 'flex', flexDirection: 'row', alignItems: 'center', justifyContent: 'space-around', width: '100%' }}>
               <Typography>{periodoSeleccionado.div_concepto}: {periodoSeleccionado.div_periodo} - {periodoSeleccionado.secuencial}</Typography>
@@ -1067,7 +1088,7 @@ export default function Dividendos() {
                     id="datetime-local"
                     label="Fecha Pago"
                     type="date"
-                    defaultValue={fechaHoyDMA}
+                    defaultValue={fechaHoyAMD}
                     variant="standard"
                     InputLabelProps={{
                       shrink: true,
@@ -1083,12 +1104,12 @@ export default function Dividendos() {
                     id="datetime-local-2"
                     label="Fecha Junta"
                     type="date"
-                    defaultValue={fechaHoyDMA}
+                    value={formData.fechaPago.split(" ")[0].split("-").reverse().join("-")}
+                    defaultValue={fechaHoyAMD}
                     variant="standard"
                     InputLabelProps={{
                       shrink: true,
                     }}
-                    value={formData.fechaPago.split(" ")[0].split("-").reverse().join("-")}
                     onChange={handleChangeFechaPago}
                   />
                 </FormControl>
@@ -1124,7 +1145,7 @@ export default function Dividendos() {
           </DialogActions>
         </Dialog>
 
-        <Dialog open={selectAccionistas} onClose={handleCloseSelectAccionistas} aria-labelledby="form-dialog-title" fullScreen>
+        <Dialog open={selectAccionistas} onClose={handleCloseSelectAccionistas} aria-labelledby="form-dialog-title"  maxWidth='xl'>
           <DialogTitle id="form-dialog-title">Seleccionar accionistas</DialogTitle>
           <DialogContent>
             <DataGrid
