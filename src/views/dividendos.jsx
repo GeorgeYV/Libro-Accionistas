@@ -618,7 +618,6 @@ export default function Dividendos() {
     setRetencion_PJ_NPF_Loc(parametrosFromAPI.Retencion_PJ_NPF_Loc);
     setRetencion_PJ_NPF_NPF(parametrosFromAPI.Retencion_PJ_NPF_NPF);
     setRetencion_PJ_NPF_PF(parametrosFromAPI.Retencion_PJ_NPF_PF);
-
   }
 
   async function fetchDividendos() {
@@ -663,10 +662,9 @@ export default function Dividendos() {
         }
         if (repetido != -1 && e.div_dividendo == e.div_repartido) auxperiodos.splice(repetido,1);
       })
-      setPeriodos(auxperiodos);
-      console.log("periodos",periodos);
       setRows(dividendosRelacionados);
     }
+    setPeriodos(auxperiodos);
   }
 
   async function fetchAccionistas(row) {
@@ -948,7 +946,7 @@ export default function Dividendos() {
             rowsPerPageOptions={[20]}
           />
         </Grid>
-        <Dialog open={openAccionistas} onClose={handleClose} aria-labelledby="form-dialog-title" maxWidth='xl'>
+        <Dialog open={openAccionistas} onClose={handleClose} aria-labelledby="form-dialog-title" minWidth="xl">
           <DialogTitle id="form-dialog-title">
             <div style={{ display: 'flex', flexDirection: 'row', alignItems: 'center', justifyContent: 'space-around', width: '100%' }}>
               <Typography>{periodoSeleccionado.div_concepto}: {periodoSeleccionado.div_periodo} - {periodoSeleccionado.secuencial}</Typography>
@@ -1137,7 +1135,7 @@ export default function Dividendos() {
           </DialogActions>
         </Dialog>
 
-        <Dialog open={selectAccionistas} onClose={handleCloseSelectAccionistas} aria-labelledby="form-dialog-title"  maxWidth='xl'>
+        <Dialog open={selectAccionistas} onClose={handleCloseSelectAccionistas} aria-labelledby="form-dialog-title"  minWidth='xl'>
           <DialogTitle id="form-dialog-title">Seleccionar accionistas</DialogTitle>
           <DialogContent>
             <DataGrid
