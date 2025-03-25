@@ -167,7 +167,6 @@ export default function Dividendos() {
       field: 'ddiv_porcentaje',
       headerName: 'Reparto Acordado',
       type: 'number',
-      valueGetter: decimalesParticipacion,
       width: 100,
     },
     {
@@ -258,7 +257,6 @@ export default function Dividendos() {
       field: 'acc_participacion',
       headerName: 'Participación',
       type: 'number',
-      valueGetter: decimalesParticipacion,
       width: 110,
     },
     {
@@ -330,7 +328,6 @@ export default function Dividendos() {
     {
       field: 'participacion',
       headerName: 'Participación',
-      valueGetter: decimalesParticipacion,
       width: 110,
     },
     {
@@ -412,7 +409,6 @@ export default function Dividendos() {
       field: 'acc_participacion',
       headerName: 'Participación',
       type: 'number',
-      valueGetter: decimalesParticipacion,
       width: 110,
     },
     {
@@ -511,10 +507,6 @@ export default function Dividendos() {
     let sum = 0;
     apiData3.data.listTitulos.items.forEach((el) => sum += el.acciones);
     return sum;
-  }
-
-  function decimalesParticipacion(params) {
-    return `${(params.getValue(params.id, 'acc_participacion')).toFixed(8) || ''} `;
   }
 
   const handleCloseCrearDividendo = () => {
