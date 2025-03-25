@@ -533,6 +533,9 @@ export default function Dividendos() {
     setListaAccionistasDividendo([]);
     setSelectAccionistas(false);
   }
+  const handleConfirmarListaAccionistas = () => {
+    setSelectAccionistas(false);
+  }
   const handleOpenSelectAccionistas = async () => {
     const apiData = await API.graphql({ query: listAccionistas, variables: { projectionExpression: "id", select:"SPECIFIC_ATTRIBUTES", limit: 1000} });
     var aux = apiData.data.listAccionistas.items;
@@ -755,10 +758,14 @@ export default function Dividendos() {
       setFormData({ ...formData, 'concepto': rows[periodo_aux].div_concepto });
       setFormData({ ...formData, 'dividendo': rows[periodo_aux].div_dividendo });
       setFormData({ ...formData, 'saldoDividendo': rows[periodo_aux].div_repartido });
-      console.log("rows",rows);
-      console.log("rows[periodo_aux].div_concepto",rows[periodo_aux].div_concepto);
-      console.log("formData periodo change",formData);
       document.getElementById("select-concepto").readOnly=true;
+      document.getElementById("select-concepto").disabled=true;
+      document.getElementById("textfield-dividendo").readOnly=true;
+      setRefrescar(!refrescar);
+      console.log("formData periodo change",formData);
+      console.log("rows[periodo_aux].div_concepto",rows[periodo_aux].div_concepto);
+      console.log("rows",rows);
+      console.log("fechaHoyDMA",fechaHoyDMA);
     }
   };
 
@@ -1026,7 +1033,7 @@ export default function Dividendos() {
                   </Select>
                 </FormControl>
                 <TextField
-                  id="outlined-required"
+                  id="textfield-dividendo"
                   label="Dividendo (USD)"
                   value={formData.dividendo}
                   type='number'
@@ -1139,7 +1146,7 @@ export default function Dividendos() {
                 color="primary"
                 className={classes.button}
                 size='small'
-                onClick={handleCloseSelectAccionistas}
+                onClick={handleConfirmarListaAccionistas}
                 style={{ textTransform: 'none' }}
               >
                 Confirmar Lista
