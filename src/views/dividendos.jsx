@@ -565,7 +565,7 @@ export default function Dividendos() {
   const handleOpenCrearDividendo = () => setOpenCrearDividendo(true);
 
   const handleConfirmarDividendo = async () => {
-    if(accionistasCorte){
+    if(listaAccionistasDividendo){
       var aux,
       auxDividendoTitulo={
         div_tit_participacion: 0,
@@ -576,7 +576,7 @@ export default function Dividendos() {
         tituloID: ""
       };
       //const apiData3 = await API.graphql({ query: listTitulos, variables: { limit:1000} });
-      accionistasCorte.map(function (e) {
+      listaAccionistasDividendo.map(function (e) {
         //aux = apiData3.data.listTitulos.items.find(({ accionistaID }) => accionistaID === e.id);
         //console.log("aux: ",aux);
         auxDividendoTitulo.div_tit_participacion = e.acc_participacion;
@@ -587,7 +587,7 @@ export default function Dividendos() {
         auxDividendoTitulo.tituloID = "Prueba";
         //console.log("auxdividendotitulo: ",auxDividendoTitulo)
       });
-      console.log("accionistasCorte",accionistasCorte);
+      console.log("listaAccionistasDividendo",listaAccionistasDividendo);
       //API.graphql(graphqlOperation(createTitulo, { input: dividendosTitulos }));
     } else Alert("No se puede realizar la operación: Confirmar dividendos.");
     setOpenAccionistas(false);
@@ -693,23 +693,10 @@ export default function Dividendos() {
 
   async function fetchAccionistas(row) {
     console.log("listaAccionistasDividendo",listaAccionistasDividendo);
-    var filter,aux;
-    if (listaAccionistasDividendo.length > 0) {
-      filter = {
-        acc_estado: {
-          ne: '0'
-        },
-        or: []
-      }
-      listaAccionistasDividendo.forEach(element => {
-        aux = {id: { eq: element.id }};
-        filter.or.push(aux);
-      });
-    } else{
-       filter = {
-        acc_estado: {
-          ne: '0'
-        }
+    setListaAccionistasDividendo([]);
+    var filter = {
+      acc_estado: {
+        ne: '0'
       }
     }
     console.log("filtro fetchaccionistas",filter);
@@ -798,7 +785,8 @@ export default function Dividendos() {
       periodo: event.target.value,
       concepto: aux_concepto,
       dividendo: aux_dividendo,
-      saldoDividendo: aux_repartido,
+      saldoDividendo: aux_dividendo-aux_repartido,
+      dividendoRepartir: aux_repartido
     });
     console.log("formData periodo change fuera",formData);
   };
