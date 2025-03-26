@@ -759,7 +759,7 @@ export default function Dividendos() {
   }
 
   const handlePeriodoChange = (event) => {
-    document.getElementById("select-concepto").disabled=false;
+    document.getElementById("formControl-select-concepto").disabled=false;
     document.getElementById("textfield-dividendo").disabled=false;
     setFormData({ ...formData, 'periodo': event.target.value });
     var aux = periodos.findIndex(x => x.periodo === event.target.value),
@@ -773,7 +773,7 @@ export default function Dividendos() {
       aux_dividendo = rows[periodo_aux].div_dividendo;
       setFormData({ ...formData, 'saldoDividendo': rows[periodo_aux].div_repartido });
       aux_repartido = rows[periodo_aux].div_repartido;
-      document.getElementById("select-concepto").disabled=true;
+      document.getElementById("formControl-select-concepto").disabled=true;
       document.getElementById("textfield-dividendo").disabled=true;
       console.log("rows[periodo_aux].div_concepto",rows[periodo_aux].div_concepto);
       console.log("rows",rows);
@@ -821,7 +821,6 @@ export default function Dividendos() {
       if (!formData.periodo || !formData.dividendo || !formData.porcentajeRepartir || !formData.fechaCorte || 
         !formData.fechaPago) return
       setCircular(true);
-      console.log("formData",formData)
       var dividendoID;
       const filter = {
         acc_estado: {
@@ -837,18 +836,14 @@ export default function Dividendos() {
       var aux = periodos.findIndex(x => x.periodo === formData.periodo);
       if (aux != -1 && periodos[aux].tipo != "Nuevo") {
         dividendoID = periodos[aux].id;
-        aux = periodos[aux].hijos + 1;
-        console.log("aux periodos hijo",aux);
         dividendo.div_repartido = formData.dividendoRepartir + periodos[aux].div_repartido;
         await API.graphql(graphqlOperation(updateDividendoNuevo, { input: {id: dividendoID, div_repartido: dividendo.div_repartido} }));
-        console.log("formData.dividendoRepartir + periodos[aux].div_repartido",formData.dividendoRepartir, periodos[aux].div_repartido);
+        aux = periodos[aux].hijos + 1;
       } else {
         var response = await API.graphql(graphqlOperation(createDividendoNuevo, { input: dividendo }));
         dividendoID = response.data.createDividendoNuevo.id
         aux = 1;
       }
-      console.log("dividendoID",dividendoID);
-      console.log("listaAccionistasDividendo",listaAccionistasDividendo);
       var aux_titulos=0;
       if (listaAccionistasDividendo.length > 0) {
         //aux_titulos = await getTitulosTotales(listaAccionistasDividendo);
@@ -860,7 +855,6 @@ export default function Dividendos() {
         //aux_titulos = await getTitulosTotales(aux_listaIdsAccionistas);
         console.log("Tampoco hace nada XD");
       }
-      console.log("aux titulos:",aux_titulos);
       const detalleDividendo={
         ddiv_usuario: userName,
         ddiv_secuencial: aux,
@@ -1054,7 +1048,7 @@ export default function Dividendos() {
                     </Select>
                   </FormControl>
                 </div>
-                <FormControl style={{ width: '100%' }}>
+                <FormControl id={"formControl-select-concepto"} style={{ width: '100%' }}>
                   <InputLabel id="concepto-select-label">Concepto</InputLabel>
                   <Select
                     labelId="concepto-select-label"
@@ -1072,7 +1066,7 @@ export default function Dividendos() {
                   label="Dividendo (USD)"
                   value={formData.dividendo}
                   type='number'
-                  onChange={handleDividendoChange}
+                  onBlur={handleDividendoChange}
                   fullWidth
                   inputProps={inputProps}
                 />
@@ -1082,7 +1076,7 @@ export default function Dividendos() {
                   label="% a repartir"
                   value={formData.porcentajeRepartir}
                   type='number'
-                  onChange={handlePorcentajeRepartirChange}
+                  onBlur={handlePorcentajeRepartirChange}
                   fullWidth
                   inputProps={inputProps}
                 />
