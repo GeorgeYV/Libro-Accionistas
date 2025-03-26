@@ -2,7 +2,7 @@ import React, { useState, useEffect, Fragment } from 'react'
 import { API, graphqlOperation, Auth } from 'aws-amplify';
 import { getParametro, listDividendosAccionistas, listDividendoNuevos,
   listAccionistas, listDetalleDividendos, listTitulos } from '../graphql/queries';
-import { createDividendoNuevo, updateDividendosAccionista,
+import { createDividendoNuevo, updateDividendoNuevo, updateDividendosAccionista,
   createDetalleDividendo, createTitulo
  } from '../graphql/mutations';
 
@@ -170,7 +170,7 @@ export default function Dividendos() {
       width: 100,
     },
     {
-      field: 'div_repartido',
+      field: 'ddiv_dividendo',
       headerName: 'Repartir',
       type: 'number',
       width: 120,
@@ -186,7 +186,7 @@ export default function Dividendos() {
       width: 90,
     },
     {
-      field: 'ddiv_dividendo',
+      field: 'saldo_dividendo',
       headerName: 'Saldo Div',
       type: 'number',
       width: 120,
@@ -282,6 +282,25 @@ export default function Dividendos() {
       headerName: 'Pagar',
       type: 'number',
       width: 110,
+    },
+    {
+      field: 'opcion',
+      headerName: 'Opción',
+      width: 50,
+      renderCell: (cellValues) => {
+        return <Fragment>
+          <Checkbox
+          onChange={() => {
+            var aux;
+            aux = listaAccionistasDividendo.findIndex(x => x.id === cellValues.row.id);
+            if(aux == -1) listaAccionistasDividendo.push(cellValues.row);
+            console.log("aux",aux);
+            console.log("checkbox",listaAccionistasDividendo);
+          }
+          }
+          />
+        </Fragment>
+      }
     },
   ];
 
@@ -556,18 +575,19 @@ export default function Dividendos() {
         detalledividendoID: "",
         tituloID: ""
       };
-      const apiData3 = await API.graphql({ query: listTitulos, variables: { limit:1000} });
+      //const apiData3 = await API.graphql({ query: listTitulos, variables: { limit:1000} });
       accionistasCorte.map(function (e) {
-        aux = apiData3.data.listTitulos.items.find(({ accionistaID }) => accionistaID === e.id);
-        console.log("aux: ",aux);
+        //aux = apiData3.data.listTitulos.items.find(({ accionistaID }) => accionistaID === e.id);
+        //console.log("aux: ",aux);
         auxDividendoTitulo.div_tit_participacion = e.acc_participacion;
         auxDividendoTitulo.div_tit_dividendo = e.dividendo;
         auxDividendoTitulo.div_tit_retencion = e.retencion;
         auxDividendoTitulo.div_tit_base_imponible = e.baseImponible;
         auxDividendoTitulo.detalledividendoID = e.id;
-        auxDividendoTitulo.tituloID = e.aux;
-        console.log("auxdividendotitulo: ",auxDividendoTitulo)
+        auxDividendoTitulo.tituloID = "Prueba";
+        //console.log("auxdividendotitulo: ",auxDividendoTitulo)
       });
+      console.log("accionistasCorte",accionistasCorte);
       //API.graphql(graphqlOperation(createTitulo, { input: dividendosTitulos }));
     } else Alert("No se puede realizar la operación: Confirmar dividendos.");
     setOpenAccionistas(false);
@@ -625,7 +645,7 @@ export default function Dividendos() {
     const apiData2 = await API.graphql({ query: listDetalleDividendos});
     var aux,repetido,auxperiodos=[];
     for (let index = 2015; index <= year; index++) {
-      auxperiodos.push({id:index,periodo:index,tipo: "Nuevo"});
+      auxperiodos.push({id:index,periodo:index,tipo: "Nuevo",hijos:0,div_repartido:0});
     }
     console.log("auxperiodos",auxperiodos);
     if (apiData.data.listDividendoNuevos.items.length > 0 && apiData2.data.listDetalleDividendos.items.length > 0) {
@@ -646,6 +666,7 @@ export default function Dividendos() {
           div_concepto: aux.div_concepto,
           div_dividendo: aux.div_dividendo,
           div_repartido: aux.div_repartido,
+          saldo_dividendo: aux.div_dividendo - aux.div_repartido
         };
       });
       apiData.data.listDividendoNuevos.items.map(function (e) {
@@ -659,11 +680,14 @@ export default function Dividendos() {
           var aux = dividendosRelacionados.find(({ div_periodo }) => div_periodo === auxperiodos[repetido].periodo);
           console.log("dividendosRelacionados",aux);
           auxperiodos[repetido].id = aux.dividendoID;
+          auxperiodos[repetido].div_repartido = aux.div_repartido;
+          auxperiodos[repetido].hijos = dividendosRelacionados.filter((periodo) => periodo.div_periodo == formData.periodo).length;
         }
         if (repetido != -1 && e.div_dividendo == e.div_repartido) auxperiodos.splice(repetido,1);
-      })
+      });
       setRows(dividendosRelacionados);
     }
+    console.log("auxperiodos",auxperiodos);
     setPeriodos(auxperiodos);
   }
 
@@ -772,7 +796,6 @@ export default function Dividendos() {
     }
     setFormData({ ...formData,
       periodo: event.target.value,
-      secuencial: 2,
       concepto: aux_concepto,
       dividendo: aux_dividendo,
       saldoDividendo: aux_repartido,
@@ -819,7 +842,9 @@ export default function Dividendos() {
       var aux = periodos.findIndex(x => x.periodo === formData.periodo);
       if (aux != -1 && periodos[aux].tipo != "Nuevo") {
         dividendoID = periodos[aux].id;
-        aux = periodos.filter((periodo) => periodo.periodo == formData.periodo).length + 1;
+        aux = periodos[aux].hijos + 1;
+        console.log("aux periodos hijo",aux);
+        await API.graphql(graphqlOperation(updateDividendoNuevo, { input: {id: dividendoID, div_repartido: formData.dividendoRepartir - periodos[aux].div_repartido} }));
       } else {
         var response = await API.graphql(graphqlOperation(createDividendoNuevo, { input: dividendo }));
         dividendoID = response.data.createDividendoNuevo.id
@@ -946,7 +971,7 @@ export default function Dividendos() {
             rowsPerPageOptions={[20]}
           />
         </Grid>
-        <Dialog open={openAccionistas} onClose={handleClose} aria-labelledby="form-dialog-title" minWidth="xl">
+        <Dialog open={openAccionistas} onClose={handleClose} aria-labelledby="form-dialog-title" minWidth="lg">
           <DialogTitle id="form-dialog-title">
             <div style={{ display: 'flex', flexDirection: 'row', alignItems: 'center', justifyContent: 'space-around', width: '100%' }}>
               <Typography>{periodoSeleccionado.div_concepto}: {periodoSeleccionado.div_periodo} - {periodoSeleccionado.secuencial}</Typography>
@@ -1114,16 +1139,6 @@ export default function Dividendos() {
               color="primary"
               className={classes.button}
               size='small'
-              onClick={handleOpenSelectAccionistas}
-              style={{ textTransform: 'none' }}
-            >
-              Seleccionar Accionistas
-            </Button>
-            <Button
-              variant="contained"
-              color="primary"
-              className={classes.button}
-              size='small'
               onClick={addDividendo}
               style={{ textTransform: 'none' }}
             >
@@ -1135,7 +1150,7 @@ export default function Dividendos() {
           </DialogActions>
         </Dialog>
 
-        <Dialog open={selectAccionistas} onClose={handleCloseSelectAccionistas} aria-labelledby="form-dialog-title"  minWidth='xl'>
+        <Dialog open={selectAccionistas} onClose={handleCloseSelectAccionistas} aria-labelledby="form-dialog-title"  minWidth='lg'>
           <DialogTitle id="form-dialog-title">Seleccionar accionistas</DialogTitle>
           <DialogContent>
             <DataGrid
