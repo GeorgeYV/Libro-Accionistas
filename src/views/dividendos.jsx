@@ -786,7 +786,6 @@ export default function Dividendos() {
       concepto: aux_concepto,
       dividendo: aux_dividendo,
       saldoDividendo: aux_dividendo-aux_repartido,
-      dividendoRepartir: aux_repartido
     });
     console.log("formData periodo change fuera",formData);
   };
@@ -796,11 +795,18 @@ export default function Dividendos() {
   };
 
   const handleDividendoChange = (event) => {
-    setFormData({ ...formData, 'dividendo': event.target.value, 'dividendoRepartir': (event.target.value * formData.porcentajeRepartir / 100.00).toFixed(2), 'saldoDividendo': (event.target.value - (event.target.value * formData.porcentajeRepartir / 100.00).toFixed(2)).toFixed(2), 'saldoPorcentajeDividendo': 100.00 - formData.porcentajeRepartir })
+    setFormData({ ...formData, 
+      'dividendo': event.target.value, 
+      'dividendoRepartir': (event.target.value * formData.porcentajeRepartir / 100.00).toFixed(2), 
+      'saldoDividendo': (event.target.value - (event.target.value * formData.porcentajeRepartir / 100.00) - formData.saldoDividendo).toFixed(2), 
+      'saldoPorcentajeDividendo': 100.00 - formData.porcentajeRepartir })
   };
 
   const handlePorcentajeRepartirChange = (event) => {
-    setFormData({ ...formData, 'porcentajeRepartir': event.target.value, 'dividendoRepartir': (event.target.value * formData.dividendo / 100.00).toFixed(2), 'saldoDividendo': (formData.dividendo - (event.target.value * formData.dividendo / 100.00).toFixed(2)).toFixed(2), 'saldoPorcentajeDividendo': 100.00 - event.target.value })
+    setFormData({ ...formData, 'porcentajeRepartir': event.target.value, 
+      'dividendoRepartir': (event.target.value * formData.dividendo / 100.00).toFixed(2), 
+      'saldoDividendo': (formData.dividendo - (event.target.value * formData.dividendo / 100.00) - formData.saldoDividendo).toFixed(2), 
+      'saldoPorcentajeDividendo': 100.00 - event.target.value })
   };
 
   const handleChangeFechaCorte = (event) => {
@@ -815,6 +821,7 @@ export default function Dividendos() {
       if (!formData.periodo || !formData.dividendo || !formData.porcentajeRepartir || !formData.fechaCorte || 
         !formData.fechaPago) return
       setCircular(true);
+      console.log("formData",formData)
       var dividendoID;
       const filter = {
         acc_estado: {
@@ -832,7 +839,9 @@ export default function Dividendos() {
         dividendoID = periodos[aux].id;
         aux = periodos[aux].hijos + 1;
         console.log("aux periodos hijo",aux);
-        await API.graphql(graphqlOperation(updateDividendoNuevo, { input: {id: dividendoID, div_repartido: formData.dividendoRepartir + periodos[aux].div_repartido} }));
+        dividendo.div_repartido = formData.dividendoRepartir + periodos[aux].div_repartido;
+        await API.graphql(graphqlOperation(updateDividendoNuevo, { input: {id: dividendoID, div_repartido: dividendo.div_repartido} }));
+        console.log("formData.dividendoRepartir + periodos[aux].div_repartido",formData.dividendoRepartir, periodos[aux].div_repartido);
       } else {
         var response = await API.graphql(graphqlOperation(createDividendoNuevo, { input: dividendo }));
         dividendoID = response.data.createDividendoNuevo.id
@@ -1025,7 +1034,7 @@ export default function Dividendos() {
           </DialogActions>
         </Dialog>
 
-        <Dialog open={openCrearDividendo} onClose={handleCloseCrearDividendo} aria-labelledby="form-dialog-title" fullWidth maxWidth='md'>
+        <Dialog open={openCrearDividendo} onClose={handleCloseCrearDividendo} aria-labelledby="form-dialog-title" fullWidth maxWidth='sm'>
           <DialogTitle id="form-dialog-title">Crear nuevo dividendo</DialogTitle>
           <DialogContent style={{ height: '450px' }}>
             <div style={{ display: 'flex', flexDirection: 'row', alignItems: 'flex-start', justifyContent: 'space-between', width: '100%', }}>
