@@ -681,7 +681,7 @@ export default function Dividendos() {
           console.log("dividendosRelacionados",aux);
           auxperiodos[repetido].id = aux.dividendoID;
           auxperiodos[repetido].div_repartido = aux.div_repartido;
-          auxperiodos[repetido].hijos = dividendosRelacionados.filter((periodo) => periodo.div_periodo == formData.periodo).length;
+          auxperiodos[repetido].hijos = dividendosRelacionados.filter((e) => e.div_periodo == auxperiodos[repetido].periodo).length;
         }
         if (repetido != -1 && e.div_dividendo == e.div_repartido) auxperiodos.splice(repetido,1);
       });
@@ -728,10 +728,10 @@ export default function Dividendos() {
         acc_participacion:e.acc_participacion,
         acc_tipo_acciones:e.acc_tipo_acciones,
         periodo: row.periodo,
-        dividendo: (row.div_repartido * e.acc_participacion / 100).toFixed(2),
-        baseImponible: ((baseImponible/100) * (row.div_repartido * e.acc_participacion) / 100).toFixed(2),
-        retencion: getRetencion1(((baseImponible/ 100.00) * (row.div_repartido * e.acc_participacion / 100).toFixed(2)), e.acc_tipo_identificacion, e.acc_residencia, e.acc_nacionalidad),
-        dividendoRecibido: ((row.div_repartido * e.acc_participacion / 100).toFixed(2) - getRetencion1(((baseImponible/ 100.00) * (row.div_repartido * e.acc_participacion / 100).toFixed(2)), e.acc_tipo_identificacion, e.acc_residencia, e.acc_nacionalidad)).toFixed(2),
+        dividendo: (row.ddiv_dividendo * e.acc_participacion / 100).toFixed(2),
+        baseImponible: ((baseImponible/100) * (row.ddiv_dividendo * e.acc_participacion) / 100).toFixed(2),
+        retencion: getRetencion1(((baseImponible/ 100.00) * (row.ddiv_dividendo * e.acc_participacion / 100).toFixed(2)), e.acc_tipo_identificacion, e.acc_residencia, e.acc_nacionalidad),
+        dividendoRecibido: ((row.ddiv_dividendo * e.acc_participacion / 100).toFixed(2) - getRetencion1(((baseImponible/ 100.00) * (row.ddiv_dividendo * e.acc_participacion / 100).toFixed(2)), e.acc_tipo_identificacion, e.acc_residencia, e.acc_nacionalidad)).toFixed(2),
       };
     })
     console.log("accionistasCalculo",accionistasCalculo);
@@ -844,7 +844,7 @@ export default function Dividendos() {
         dividendoID = periodos[aux].id;
         aux = periodos[aux].hijos + 1;
         console.log("aux periodos hijo",aux);
-        await API.graphql(graphqlOperation(updateDividendoNuevo, { input: {id: dividendoID, div_repartido: formData.dividendoRepartir - periodos[aux].div_repartido} }));
+        await API.graphql(graphqlOperation(updateDividendoNuevo, { input: {id: dividendoID, div_repartido: formData.dividendoRepartir + periodos[aux].div_repartido} }));
       } else {
         var response = await API.graphql(graphqlOperation(createDividendoNuevo, { input: dividendo }));
         dividendoID = response.data.createDividendoNuevo.id
@@ -852,14 +852,16 @@ export default function Dividendos() {
       }
       console.log("dividendoID",dividendoID);
       console.log("listaAccionistasDividendo",listaAccionistasDividendo);
-      var aux_titulos;
+      var aux_titulos=0;
       if (listaAccionistasDividendo.length > 0) {
-        aux_titulos = await getTitulosTotales(listaAccionistasDividendo);
+        //aux_titulos = await getTitulosTotales(listaAccionistasDividendo);
+        console.log("No hace nada XD");
       }else{
-        const apiData3 = await API.graphql({ query: listAccionistas, variables: { filter: filter, ProjectionExpression: "id", select:"SPECIFIC_ATTRIBUTES"}, limit: 1000 });
-        const aux_listaIdsAccionistas = apiData3.data.listAccionistas.items;
-        console.log("aux_listaIdsAccionistas: ",aux_listaIdsAccionistas.length);
-        aux_titulos = await getTitulosTotales(aux_listaIdsAccionistas);
+        //const apiData3 = await API.graphql({ query: listAccionistas, variables: { filter: filter, ProjectionExpression: "id", select:"SPECIFIC_ATTRIBUTES"}, limit: 1000 });
+        //const aux_listaIdsAccionistas = apiData3.data.listAccionistas.items;
+        //console.log("aux_listaIdsAccionistas: ",aux_listaIdsAccionistas.length);
+        //aux_titulos = await getTitulosTotales(aux_listaIdsAccionistas);
+        console.log("Tampoco hace nada XD");
       }
       console.log("aux titulos:",aux_titulos);
       const detalleDividendo={
@@ -971,7 +973,7 @@ export default function Dividendos() {
             rowsPerPageOptions={[20]}
           />
         </Grid>
-        <Dialog open={openAccionistas} onClose={handleClose} aria-labelledby="form-dialog-title" minWidth="lg">
+        <Dialog open={openAccionistas} onClose={handleClose} aria-labelledby="form-dialog-title" fullWidth maxWidth="xl">
           <DialogTitle id="form-dialog-title">
             <div style={{ display: 'flex', flexDirection: 'row', alignItems: 'center', justifyContent: 'space-around', width: '100%' }}>
               <Typography>{periodoSeleccionado.div_concepto}: {periodoSeleccionado.div_periodo} - {periodoSeleccionado.secuencial}</Typography>
@@ -1004,7 +1006,7 @@ export default function Dividendos() {
           </DialogActions>
         </Dialog>
 
-        <Dialog open={openAccionistasDividendos} onClose={handleCloseAccionistasDividendos} aria-labelledby="form-dialog-title" fullScreen>
+        <Dialog open={openAccionistasDividendos} onClose={handleCloseAccionistasDividendos} aria-labelledby="form-dialog-title" fullWidth maxWidth="xl">
           <DialogTitle id="form-dialog-title">
             <div style={{ display: 'flex', flexDirection: 'row', alignItems: 'center', justifyContent: 'space-around', width: '100%' }}>
               Ejercicio {periodoSeleccionado.periodo}
@@ -1035,7 +1037,7 @@ export default function Dividendos() {
           </DialogActions>
         </Dialog>
 
-        <Dialog open={openCrearDividendo} onClose={handleCloseCrearDividendo} aria-labelledby="form-dialog-title" maxWidth='lg'>
+        <Dialog open={openCrearDividendo} onClose={handleCloseCrearDividendo} aria-labelledby="form-dialog-title" fullWidth maxWidth='md'>
           <DialogTitle id="form-dialog-title">Crear nuevo dividendo</DialogTitle>
           <DialogContent style={{ height: '450px' }}>
             <div style={{ display: 'flex', flexDirection: 'row', alignItems: 'flex-start', justifyContent: 'space-between', width: '100%', }}>
