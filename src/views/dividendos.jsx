@@ -836,7 +836,8 @@ export default function Dividendos() {
       var aux = periodos.findIndex(x => x.periodo === formData.periodo);
       if (aux != -1 && periodos[aux].tipo != "Nuevo") {
         dividendoID = periodos[aux].id;
-        dividendo.div_repartido = formData.dividendoRepartir + periodos[aux].div_repartido;
+        dividendo.div_repartido = parseFloat(formData.dividendoRepartir) + parseFloat(periodos[aux].div_repartido);
+        console.log("dividendo.div_repartido = formData.dividendoRepartir + periodos[aux].div_repartido",dividendo.div_repartido, formData.dividendoRepartir, periodos[aux].div_repartido);
         await API.graphql(graphqlOperation(updateDividendoNuevo, { input: {id: dividendoID, div_repartido: dividendo.div_repartido} }));
         aux = periodos[aux].hijos + 1;
       } else {
