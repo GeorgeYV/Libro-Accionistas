@@ -798,14 +798,14 @@ export default function Dividendos() {
     setFormData({ ...formData, 
       'dividendo': event.target.value, 
       'dividendoRepartir': (event.target.value * formData.porcentajeRepartir / 100.00).toFixed(2), 
-      'saldoDividendo': (event.target.value - (event.target.value * formData.porcentajeRepartir / 100.00) - formData.saldoDividendo).toFixed(2), 
+      'saldoDividendo': (event.target.value - (event.target.value * formData.porcentajeRepartir / 100.00)).toFixed(2), 
       'saldoPorcentajeDividendo': 100.00 - formData.porcentajeRepartir })
   };
 
   const handlePorcentajeRepartirChange = (event) => {
     setFormData({ ...formData, 'porcentajeRepartir': event.target.value, 
       'dividendoRepartir': (event.target.value * formData.dividendo / 100.00).toFixed(2), 
-      'saldoDividendo': (formData.dividendo - (event.target.value * formData.dividendo / 100.00) - formData.saldoDividendo).toFixed(2), 
+      'saldoDividendo': (formData.dividendo - (event.target.value * formData.dividendo / 100.00)).toFixed(2), 
       'saldoPorcentajeDividendo': 100.00 - event.target.value })
   };
 
@@ -1066,7 +1066,7 @@ export default function Dividendos() {
                   label="Dividendo (USD)"
                   value={formData.dividendo}
                   type='number'
-                  onBlur={handleDividendoChange}
+                  onChange={handleDividendoChange}
                   fullWidth
                   inputProps={inputProps}
                 />
@@ -1076,7 +1076,7 @@ export default function Dividendos() {
                   label="% a repartir"
                   value={formData.porcentajeRepartir}
                   type='number'
-                  onBlur={handlePorcentajeRepartirChange}
+                  onChange={handlePorcentajeRepartirChange}
                   fullWidth
                   inputProps={inputProps}
                 />
