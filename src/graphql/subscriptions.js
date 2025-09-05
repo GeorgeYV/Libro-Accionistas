@@ -1,6 +1,231 @@
 /* eslint-disable */
 // this is an auto generated file. This will be overwritten
 
+export const onCreateAumentoCapital = /* GraphQL */ `
+  subscription OnCreateAumentoCapital {
+    onCreateAumentoCapital {
+      id
+      aum_cap_valor_nominal
+      aum_cap_capital
+      createdAt
+      updatedAt
+      __typename
+    }
+  }
+`;
+export const onUpdateAumentoCapital = /* GraphQL */ `
+  subscription OnUpdateAumentoCapital {
+    onUpdateAumentoCapital {
+      id
+      aum_cap_valor_nominal
+      aum_cap_capital
+      createdAt
+      updatedAt
+      __typename
+    }
+  }
+`;
+export const onDeleteAumentoCapital = /* GraphQL */ `
+  subscription OnDeleteAumentoCapital {
+    onDeleteAumentoCapital {
+      id
+      aum_cap_valor_nominal
+      aum_cap_capital
+      createdAt
+      updatedAt
+      __typename
+    }
+  }
+`;
+export const onCreateAccionistaOperacion = /* GraphQL */ `
+  subscription OnCreateAccionistaOperacion {
+    onCreateAccionistaOperacion {
+      id
+      acc_ope_detalle
+      acc_ope_operacion_id
+      acc_ope_accionista_id
+      createdAt
+      updatedAt
+      __typename
+    }
+  }
+`;
+export const onUpdateAccionistaOperacion = /* GraphQL */ `
+  subscription OnUpdateAccionistaOperacion {
+    onUpdateAccionistaOperacion {
+      id
+      acc_ope_detalle
+      acc_ope_operacion_id
+      acc_ope_accionista_id
+      createdAt
+      updatedAt
+      __typename
+    }
+  }
+`;
+export const onDeleteAccionistaOperacion = /* GraphQL */ `
+  subscription OnDeleteAccionistaOperacion {
+    onDeleteAccionistaOperacion {
+      id
+      acc_ope_detalle
+      acc_ope_operacion_id
+      acc_ope_accionista_id
+      createdAt
+      updatedAt
+      __typename
+    }
+  }
+`;
+export const onCreateTituloPorOperacion = /* GraphQL */ `
+  subscription OnCreateTituloPorOperacion {
+    onCreateTituloPorOperacion {
+      id
+      tit_ope_acciones
+      tit_ope_titulo_id
+      tit_ope_operacion_id
+      createdAt
+      updatedAt
+      __typename
+    }
+  }
+`;
+export const onUpdateTituloPorOperacion = /* GraphQL */ `
+  subscription OnUpdateTituloPorOperacion {
+    onUpdateTituloPorOperacion {
+      id
+      tit_ope_acciones
+      tit_ope_titulo_id
+      tit_ope_operacion_id
+      createdAt
+      updatedAt
+      __typename
+    }
+  }
+`;
+export const onDeleteTituloPorOperacion = /* GraphQL */ `
+  subscription OnDeleteTituloPorOperacion {
+    onDeleteTituloPorOperacion {
+      id
+      tit_ope_acciones
+      tit_ope_titulo_id
+      tit_ope_operacion_id
+      createdAt
+      updatedAt
+      __typename
+    }
+  }
+`;
+export const onCreateOperacion = /* GraphQL */ `
+  subscription OnCreateOperacion {
+    onCreateOperacion {
+      id
+      ope_fecha
+      ope_tipo
+      ope_acciones
+      ope_estado
+      ope_ingresador
+      ope_aprobador
+      ope_fecha_aprobacion
+      ope_motivo_rechazo
+      ope_observacion
+      ope_documento
+      createdAt
+      updatedAt
+      __typename
+    }
+  }
+`;
+export const onUpdateOperacion = /* GraphQL */ `
+  subscription OnUpdateOperacion {
+    onUpdateOperacion {
+      id
+      ope_fecha
+      ope_tipo
+      ope_acciones
+      ope_estado
+      ope_ingresador
+      ope_aprobador
+      ope_fecha_aprobacion
+      ope_motivo_rechazo
+      ope_observacion
+      ope_documento
+      createdAt
+      updatedAt
+      __typename
+    }
+  }
+`;
+export const onDeleteOperacion = /* GraphQL */ `
+  subscription OnDeleteOperacion {
+    onDeleteOperacion {
+      id
+      ope_fecha
+      ope_tipo
+      ope_acciones
+      ope_estado
+      ope_ingresador
+      ope_aprobador
+      ope_fecha_aprobacion
+      ope_motivo_rechazo
+      ope_observacion
+      ope_documento
+      createdAt
+      updatedAt
+      __typename
+    }
+  }
+`;
+export const onCreateTitulo = /* GraphQL */ `
+  subscription OnCreateTitulo {
+    onCreateTitulo {
+      id
+      tit_acciones
+      tit_estado
+      tit_desde
+      tit_hasta
+      tit_padre
+      tit_nivel
+      tit_accionista_id
+      createdAt
+      updatedAt
+      __typename
+    }
+  }
+`;
+export const onUpdateTitulo = /* GraphQL */ `
+  subscription OnUpdateTitulo {
+    onUpdateTitulo {
+      id
+      tit_acciones
+      tit_estado
+      tit_desde
+      tit_hasta
+      tit_padre
+      tit_nivel
+      tit_accionista_id
+      createdAt
+      updatedAt
+      __typename
+    }
+  }
+`;
+export const onDeleteTitulo = /* GraphQL */ `
+  subscription OnDeleteTitulo {
+    onDeleteTitulo {
+      id
+      tit_acciones
+      tit_estado
+      tit_desde
+      tit_hasta
+      tit_padre
+      tit_nivel
+      tit_accionista_id
+      createdAt
+      updatedAt
+      __typename
+    }
+  }
+`;
 export const onCreatePersonaNatural = /* GraphQL */ `
   subscription OnCreatePersonaNatural {
     onCreatePersonaNatural {
@@ -13,17 +238,6 @@ export const onCreatePersonaNatural = /* GraphQL */ `
       pn_doc_identificacion
       createdAt
       updatedAt
-      PerNat_Conyuge {
-        id
-        con_tipo_identificacion
-        con_identificacion
-        con_nombre
-        con_nacionalidad
-        con_doc_identifcacion
-        createdAt
-        updatedAt
-        __typename
-      }
       __typename
     }
   }
@@ -40,17 +254,6 @@ export const onUpdatePersonaNatural = /* GraphQL */ `
       pn_doc_identificacion
       createdAt
       updatedAt
-      PerNat_Conyuge {
-        id
-        con_tipo_identificacion
-        con_identificacion
-        con_nombre
-        con_nacionalidad
-        con_doc_identifcacion
-        createdAt
-        updatedAt
-        __typename
-      }
       __typename
     }
   }
@@ -67,17 +270,6 @@ export const onDeletePersonaNatural = /* GraphQL */ `
       pn_doc_identificacion
       createdAt
       updatedAt
-      PerNat_Conyuge {
-        id
-        con_tipo_identificacion
-        con_identificacion
-        con_nombre
-        con_nacionalidad
-        con_doc_identifcacion
-        createdAt
-        updatedAt
-        __typename
-      }
       __typename
     }
   }
@@ -191,7 +383,9 @@ export const onCreateDividendosTitulos = /* GraphQL */ `
       div_tit_base_imponible
       div_tit_fecha_pago
       div_tit_documento
-      detalledividendoID
+      div_tit_ddiv_id
+      div_tit_titulo_id
+      div_tit_accionista_id
       createdAt
       updatedAt
       __typename
@@ -208,7 +402,9 @@ export const onUpdateDividendosTitulos = /* GraphQL */ `
       div_tit_base_imponible
       div_tit_fecha_pago
       div_tit_documento
-      detalledividendoID
+      div_tit_ddiv_id
+      div_tit_titulo_id
+      div_tit_accionista_id
       createdAt
       updatedAt
       __typename
@@ -225,7 +421,9 @@ export const onDeleteDividendosTitulos = /* GraphQL */ `
       div_tit_base_imponible
       div_tit_fecha_pago
       div_tit_documento
-      detalledividendoID
+      div_tit_ddiv_id
+      div_tit_titulo_id
+      div_tit_accionista_id
       createdAt
       updatedAt
       __typename
@@ -243,13 +441,9 @@ export const onCreateDetalleDividendo = /* GraphQL */ `
       ddiv_titulos
       ddiv_dividendo
       ddiv_porcentaje
-      dividendoID
+      ddiv_dividendo_id
       createdAt
       updatedAt
-      DetDiv_DividendosTitulos {
-        nextToken
-        __typename
-      }
       __typename
     }
   }
@@ -265,13 +459,9 @@ export const onUpdateDetalleDividendo = /* GraphQL */ `
       ddiv_titulos
       ddiv_dividendo
       ddiv_porcentaje
-      dividendoID
+      ddiv_dividendo_id
       createdAt
       updatedAt
-      DetDiv_DividendosTitulos {
-        nextToken
-        __typename
-      }
       __typename
     }
   }
@@ -287,13 +477,9 @@ export const onDeleteDetalleDividendo = /* GraphQL */ `
       ddiv_titulos
       ddiv_dividendo
       ddiv_porcentaje
-      dividendoID
+      ddiv_dividendo_id
       createdAt
       updatedAt
-      DetDiv_DividendosTitulos {
-        nextToken
-        __typename
-      }
       __typename
     }
   }
@@ -308,10 +494,6 @@ export const onCreateDividendoNuevo = /* GraphQL */ `
       div_repartido
       createdAt
       updatedAt
-      Div_DetalleDividendo {
-        nextToken
-        __typename
-      }
       __typename
     }
   }
@@ -326,10 +508,6 @@ export const onUpdateDividendoNuevo = /* GraphQL */ `
       div_repartido
       createdAt
       updatedAt
-      Div_DetalleDividendo {
-        nextToken
-        __typename
-      }
       __typename
     }
   }
@@ -344,10 +522,6 @@ export const onDeleteDividendoNuevo = /* GraphQL */ `
       div_repartido
       createdAt
       updatedAt
-      Div_DetalleDividendo {
-        nextToken
-        __typename
-      }
       __typename
     }
   }
@@ -503,38 +677,10 @@ export const onCreateAccionista = /* GraphQL */ `
       acc_cantidad_acciones
       acc_participacion
       acc_tipo_acciones
+      acc_tipo_persona
+      acc_nombre_completo
       createdAt
       updatedAt
-      Acc_PerNat {
-        id
-        pn_primer_nombre
-        pn_segundo_nombre
-        pn_apellido_paterno
-        pn_apellido_materno
-        pn_estado_civil
-        pn_doc_identificacion
-        createdAt
-        updatedAt
-        __typename
-      }
-      Acc_PerJur {
-        id
-        pj_rl_tipo_identificacion
-        pj_razon_social
-        pj_rl_identificacion
-        pj_rl_nombre
-        pj_rl_nacionalidad
-        pj_rl_telefono
-        pj_rl_email
-        pj_doc_nombramiento
-        createdAt
-        updatedAt
-        __typename
-      }
-      titulos {
-        nextToken
-        __typename
-      }
       __typename
     }
   }
@@ -567,38 +713,10 @@ export const onUpdateAccionista = /* GraphQL */ `
       acc_cantidad_acciones
       acc_participacion
       acc_tipo_acciones
+      acc_tipo_persona
+      acc_nombre_completo
       createdAt
       updatedAt
-      Acc_PerNat {
-        id
-        pn_primer_nombre
-        pn_segundo_nombre
-        pn_apellido_paterno
-        pn_apellido_materno
-        pn_estado_civil
-        pn_doc_identificacion
-        createdAt
-        updatedAt
-        __typename
-      }
-      Acc_PerJur {
-        id
-        pj_rl_tipo_identificacion
-        pj_razon_social
-        pj_rl_identificacion
-        pj_rl_nombre
-        pj_rl_nacionalidad
-        pj_rl_telefono
-        pj_rl_email
-        pj_doc_nombramiento
-        createdAt
-        updatedAt
-        __typename
-      }
-      titulos {
-        nextToken
-        __typename
-      }
       __typename
     }
   }
@@ -631,93 +749,8 @@ export const onDeleteAccionista = /* GraphQL */ `
       acc_cantidad_acciones
       acc_participacion
       acc_tipo_acciones
-      createdAt
-      updatedAt
-      Acc_PerNat {
-        id
-        pn_primer_nombre
-        pn_segundo_nombre
-        pn_apellido_paterno
-        pn_apellido_materno
-        pn_estado_civil
-        pn_doc_identificacion
-        createdAt
-        updatedAt
-        __typename
-      }
-      Acc_PerJur {
-        id
-        pj_rl_tipo_identificacion
-        pj_razon_social
-        pj_rl_identificacion
-        pj_rl_nombre
-        pj_rl_nacionalidad
-        pj_rl_telefono
-        pj_rl_email
-        pj_doc_nombramiento
-        createdAt
-        updatedAt
-        __typename
-      }
-      titulos {
-        nextToken
-        __typename
-      }
-      __typename
-    }
-  }
-`;
-export const onCreateTitulo = /* GraphQL */ `
-  subscription OnCreateTitulo {
-    onCreateTitulo {
-      id
-      accionistaID
-      titulo
-      acciones
-      fechaCompra
-      estado
-      idCedenteHereda
-      nombreCedenteHereda
-      desde
-      hasta
-      createdAt
-      updatedAt
-      __typename
-    }
-  }
-`;
-export const onUpdateTitulo = /* GraphQL */ `
-  subscription OnUpdateTitulo {
-    onUpdateTitulo {
-      id
-      accionistaID
-      titulo
-      acciones
-      fechaCompra
-      estado
-      idCedenteHereda
-      nombreCedenteHereda
-      desde
-      hasta
-      createdAt
-      updatedAt
-      __typename
-    }
-  }
-`;
-export const onDeleteTitulo = /* GraphQL */ `
-  subscription OnDeleteTitulo {
-    onDeleteTitulo {
-      id
-      accionistaID
-      titulo
-      acciones
-      fechaCompra
-      estado
-      idCedenteHereda
-      nombreCedenteHereda
-      desde
-      hasta
+      acc_tipo_persona
+      acc_nombre_completo
       createdAt
       updatedAt
       __typename
@@ -766,252 +799,6 @@ export const onDeleteHeredero = /* GraphQL */ `
       idCedente
       nombreCedente
       estado
-      createdAt
-      updatedAt
-      __typename
-    }
-  }
-`;
-export const onCreateOperaciones = /* GraphQL */ `
-  subscription OnCreateOperaciones {
-    onCreateOperaciones {
-      id
-      fecha
-      operacion
-      idCedente
-      cedente
-      titulo
-      acciones
-      idCesionario
-      cesionario
-      estado
-      usuarioIngreso
-      usuarioAprobador
-      cs
-      cg
-      ci
-      es
-      cp
-      ced
-      cb
-      nom
-      fechaAprobacion
-      motivoRechazo
-      observacion
-      valorNominal
-      capital
-      fechaValor
-      createdAt
-      updatedAt
-      titulos {
-        nextToken
-        __typename
-      }
-      __typename
-    }
-  }
-`;
-export const onUpdateOperaciones = /* GraphQL */ `
-  subscription OnUpdateOperaciones {
-    onUpdateOperaciones {
-      id
-      fecha
-      operacion
-      idCedente
-      cedente
-      titulo
-      acciones
-      idCesionario
-      cesionario
-      estado
-      usuarioIngreso
-      usuarioAprobador
-      cs
-      cg
-      ci
-      es
-      cp
-      ced
-      cb
-      nom
-      fechaAprobacion
-      motivoRechazo
-      observacion
-      valorNominal
-      capital
-      fechaValor
-      createdAt
-      updatedAt
-      titulos {
-        nextToken
-        __typename
-      }
-      __typename
-    }
-  }
-`;
-export const onDeleteOperaciones = /* GraphQL */ `
-  subscription OnDeleteOperaciones {
-    onDeleteOperaciones {
-      id
-      fecha
-      operacion
-      idCedente
-      cedente
-      titulo
-      acciones
-      idCesionario
-      cesionario
-      estado
-      usuarioIngreso
-      usuarioAprobador
-      cs
-      cg
-      ci
-      es
-      cp
-      ced
-      cb
-      nom
-      fechaAprobacion
-      motivoRechazo
-      observacion
-      valorNominal
-      capital
-      fechaValor
-      createdAt
-      updatedAt
-      titulos {
-        nextToken
-        __typename
-      }
-      __typename
-    }
-  }
-`;
-export const onCreateTituloPorOperacion = /* GraphQL */ `
-  subscription OnCreateTituloPorOperacion {
-    onCreateTituloPorOperacion {
-      id
-      operacionID
-      tituloId
-      titulo
-      acciones
-      accionesTransferidas
-      desde
-      hasta
-      createdAt
-      updatedAt
-      __typename
-    }
-  }
-`;
-export const onUpdateTituloPorOperacion = /* GraphQL */ `
-  subscription OnUpdateTituloPorOperacion {
-    onUpdateTituloPorOperacion {
-      id
-      operacionID
-      tituloId
-      titulo
-      acciones
-      accionesTransferidas
-      desde
-      hasta
-      createdAt
-      updatedAt
-      __typename
-    }
-  }
-`;
-export const onDeleteTituloPorOperacion = /* GraphQL */ `
-  subscription OnDeleteTituloPorOperacion {
-    onDeleteTituloPorOperacion {
-      id
-      operacionID
-      tituloId
-      titulo
-      acciones
-      accionesTransferidas
-      desde
-      hasta
-      createdAt
-      updatedAt
-      __typename
-    }
-  }
-`;
-export const onCreateHerederoPorOperacion = /* GraphQL */ `
-  subscription OnCreateHerederoPorOperacion {
-    onCreateHerederoPorOperacion {
-      id
-      operacionId
-      numeroHeredero
-      herederoId
-      nombre
-      cantidad
-      createdAt
-      updatedAt
-      __typename
-    }
-  }
-`;
-export const onUpdateHerederoPorOperacion = /* GraphQL */ `
-  subscription OnUpdateHerederoPorOperacion {
-    onUpdateHerederoPorOperacion {
-      id
-      operacionId
-      numeroHeredero
-      herederoId
-      nombre
-      cantidad
-      createdAt
-      updatedAt
-      __typename
-    }
-  }
-`;
-export const onDeleteHerederoPorOperacion = /* GraphQL */ `
-  subscription OnDeleteHerederoPorOperacion {
-    onDeleteHerederoPorOperacion {
-      id
-      operacionId
-      numeroHeredero
-      herederoId
-      nombre
-      cantidad
-      createdAt
-      updatedAt
-      __typename
-    }
-  }
-`;
-export const onCreateNumeroSecuencial = /* GraphQL */ `
-  subscription OnCreateNumeroSecuencial {
-    onCreateNumeroSecuencial {
-      id
-      numerotitulo
-      createdAt
-      updatedAt
-      __typename
-    }
-  }
-`;
-export const onUpdateNumeroSecuencial = /* GraphQL */ `
-  subscription OnUpdateNumeroSecuencial {
-    onUpdateNumeroSecuencial {
-      id
-      numerotitulo
-      createdAt
-      updatedAt
-      __typename
-    }
-  }
-`;
-export const onDeleteNumeroSecuencial = /* GraphQL */ `
-  subscription OnDeleteNumeroSecuencial {
-    onDeleteNumeroSecuencial {
-      id
-      numerotitulo
       createdAt
       updatedAt
       __typename

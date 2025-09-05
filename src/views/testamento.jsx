@@ -7,7 +7,7 @@ import { makeStyles, Paper, Divider, Grid, Typography,TextField,Button,withStyle
 import Autocomplete from '@material-ui/lab/Autocomplete';
 import { API, Storage, graphqlOperation, Auth } from 'aws-amplify';
 import { listAccionistas, listTitulos } from './../graphql/queries';
-import {createOperaciones, createTituloPorOperacion, updateTitulo} from './../graphql/mutations';
+import {createOperacion, createTituloPorOperacion, updateTitulo} from './../graphql/mutations';
 
 import SaveIcon from '@material-ui/icons/Save';
 import CheckIcon from '@material-ui/icons/Check';
@@ -117,12 +117,12 @@ export default function Testamento() {
         const operacion = { ...formData }
 
         setFormData({ fecha: fecha, operacion: 'Testamento', idCedente: '', cedente: '', idCesionario: '', cesionario: 'JY',titulo: '' , acciones: '',  estado: 'Pendiente', usuarioIngreso: '', usuarioAprobador: '', cs: '', cg: '', ci: '', es: '', cp: ''})
-        const operID = await API.graphql(graphqlOperation(createOperaciones, { input: operacion }))
+        const operID = await API.graphql(graphqlOperation(createOperacion, { input: operacion }))
 
 
 
         const transferir = titulosPorOper.map(function(e) {
-          return {operacionID: operID.data.createOperaciones.id, tituloId : e.tituloId, titulo : e.titulo, acciones: e.acciones, accionesTransferidas: e.accionesTransferidas, desde: e.desde, hasta: e.hasta} ;
+          return {operacionID: operID.data.createOperacion.id, tituloId : e.tituloId, titulo : e.titulo, acciones: e.acciones, accionesTransferidas: e.accionesTransferidas, desde: e.desde, hasta: e.hasta} ;
         })
      
         console.log("grabar acciones", transferir)

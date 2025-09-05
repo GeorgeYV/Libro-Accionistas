@@ -4,11 +4,14 @@
     "serviceName": "AppSync",
     "defaultAuthType": {
       "mode": "API_KEY",
-      "expirationTime": 365,
-      "apiKeyExpirationDate": "2026-03-18T01:49:18.380Z",
-      "keyDescription": "da2-6mh5ednwfnfanh7743ohx5ubh4"
+      "keyDescription": "api key description",
+      "expirationTime": 30
     },
-    "conflictResolution": {},
+    "conflictResolution": {
+      "defaultResolutionStrategy": {
+        "type": "NONE"
+      }
+    },
     "apiName": "libroaccionistas",
     "additionalAuthTypes": [
       {

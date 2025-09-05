@@ -2,5 +2,5 @@
   "AppSyncApiName": "libroaccionistas",
   "DynamoDBBillingMode": "PAY_PER_REQUEST",
   "DynamoDBEnableServerSideEncryption": false,
-  "AuthModeLastUpdated": "2025-03-18T01:49:23.871Z"
+  "AuthModeLastUpdated": "2025-06-27T08:23:31.731Z"
 }

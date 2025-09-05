@@ -2,7 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { API, graphqlOperation } from 'aws-amplify';
 import { makeStyles } from '@material-ui/core/styles';
 import { createTheme } from '@material-ui/core/styles';
-import { listAccionistas, getParametro, listAccionistaArchives, listOperaciones, accionistaArchiveByFecha } from '../graphql/queries';
+import { listAccionistas, getParametro, listAccionistaArchives, listOperacions, accionistaArchiveByFecha } from '../graphql/queries';
 import { createAccionistaArchive, createParametroArchive } from './../graphql/mutations';
 
 import { DataGrid, GridToolbarContainer, GridToolbarExport } from '@mui/x-data-grid';
@@ -301,8 +301,8 @@ export default function AccionistasHistorico() {
 
     };
 
-    const apiData = await API.graphql({ query: listOperaciones, variables: { filter: filter, limit: 10000 }, });
-    const operacionesFromAPI = apiData.data.listOperaciones.items;
+    const apiData = await API.graphql({ query: listOperacions, variables: { filter: filter, limit: 10000 }, });
+    const operacionesFromAPI = apiData.data.listOperacions.items;
 
 
     operacionesFromAPI.sort(function (b, a) {
@@ -594,8 +594,8 @@ export default function AccionistasHistorico() {
           eq: 'Aprobada'
         }
       }
-      const apiData5 = await API.graphql({ query: listOperaciones, variables: { filter: filter2, limit: 10000 } });
-      let operacionesFromAPI5 = apiData5.data.listOperaciones.items;
+      const apiData5 = await API.graphql({ query: listOperacions, variables: { filter: filter2, limit: 10000 } });
+      let operacionesFromAPI5 = apiData5.data.listOperacions.items;
       console.log("Operaciones ", operacionesFromAPI5);
 
       //  update por cada operaciones

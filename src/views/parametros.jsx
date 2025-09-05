@@ -228,8 +228,6 @@ export default function Parametros() {
 
     }
 
-    //const apiDataUpdate =  async(nuevoSecuencial) => await API.graphql({ query: updateNumeroSecuencial, variables: { input: {id: '1', numerotitulo: nuevoSecuencial} } });
-
     const addCantidadEmitida = async () => {
         try {
 

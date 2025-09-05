@@ -5,7 +5,7 @@ import {
 } from '@material-ui/core';
 import Autocomplete from '@material-ui/lab/Autocomplete';
 import { API, Storage, graphqlOperation, Auth } from 'aws-amplify';
-import { listAccionistas, listOperaciones, listHerederoPorOperacions, listDividendosAccionistas} from './../graphql/queries';
+import { listAccionistas, listOperacions, listDividendosAccionistas} from './../graphql/queries';
 import CloudUploadOutlinedIcon from '@material-ui/icons/CloudUploadOutlined';
 import SaveIcon from '@material-ui/icons/Save';
 import CheckIcon from '@material-ui/icons/Check';
@@ -428,12 +428,10 @@ export default function Reportes() {
       { operacion: { eq: 'Testamento' } }]
     };
     // Procesamiento de datos
-    const apiData = await API.graphql({ query: listOperaciones, variables: { filter: filter, limit: 10000 }, });
-    const operacionesFromAPI = apiData.data.listOperaciones.items;
+    const apiData = await API.graphql({ query: listOperacions, variables: { filter: filter, limit: 10000 }, });
+    const operacionesFromAPI = apiData.data.listOperacions.items;
     console.log("Operacionesfromapi: ",operacionesFromAPI);
-    const apiData2 = await API.graphql({ query: listHerederoPorOperacions, variables: { limit: 10000 }, });
-    const operacionesFromAPI2 = apiData2.data.listHerederoPorOperacions.items;
-    console.log("Operacionesfromapi2: ",operacionesFromAPI2);
+    
     const apiData3 = await API.graphql({ query: listAccionistas });
     const listaAccionistas = apiData3.data.listAccionistas.items;
     const operacionesAccionistas = operacionesFromAPI.map(t1 => ({ ...t1, ...listaAccionistas.find(t2 => t2.decevale === t1.idCedente)}));
@@ -453,8 +451,8 @@ export default function Reportes() {
     });
     console.log("operacionesAccionistas2: ",operacionesAccionistas2);
 
-    const posisionEfectiva = operacionesFromAPI2.map(t1 => ({ ...t1, ...operacionesFromAPI.find(t2 => t2.id === t1.operacionId) }))
-    console.log("posisionEfectiva: ",posisionEfectiva);
+    const posisionEfectiva = [];
+    
     const operacionesSinPosesionEfectivas = operacionesFromAPI.filter((el) =>
       el.operacion != 'Posesión Efectiva'
     );
@@ -661,8 +659,8 @@ export default function Reportes() {
       filter.operacion.ne = "NoEmpty";
     }
     console.log("Filter: ",filter)
-    const apiData = await API.graphql({ query: listOperaciones, variables: { filter: filter }});
-    const operacionesFromAPI = apiData.data.listOperaciones.items;
+    const apiData = await API.graphql({ query: listOperacions, variables: { filter: filter }});
+    const operacionesFromAPI = apiData.data.listOperacions.items;
     console.log("operacionesFromAPI: ",operacionesFromAPI);
     var dateHasta = new Date(operacionesHasta);
     dateHasta.setDate(dateHasta.getDate() + 1);

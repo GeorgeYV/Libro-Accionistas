@@ -684,22 +684,17 @@ export default function PersonaJuridica() {
       observacionTelefonoAux2: location.state.preloadedValue.obs3,
       emailAux1: location.state.preloadedValue.email2,
       emailAux2: location.state.preloadedValue.email3,
-
       tipoIdentificacionRepLegal : tipoIdentificacion.find(o => o.label === location.state.preloadedValue.repLegal_tipoIdentificacion) ? tipoIdentificacion.find(o => o.label === location.state.preloadedValue.repLegal_tipoIdentificacion).value : '1',
       identificacionRepLegal : location.state.preloadedValue.repLegal_identificacion,
       repLegal : location.state.preloadedValue.repLegal_nombre,
       nacionalidadRepLegal : nacionalidad.find(o => o.label === location.state.preloadedValue.repLegal_nacionalidad) ? nacionalidad.find(o => o.label === location.state.preloadedValue.repLegal_nacionalidad).value : '1',
       telefonoRepLegal : location.state.preloadedValue.repLegal_telefono,
       emailRepLegal : location.state.preloadedValue.repLegal_email,
-
       docIdentidadPrincipal : location.state.preloadedValue.docIdentidadPrincipal,
       docCertificadoBancario: location.state.preloadedValue.docCertificadoBancario,
       docIdentidadConyugue : location.state.preloadedValue.docIdentidadConyugue,
-
       nombreBeneficiario1: location.state.preloadedValue.nombreBeneficiario1,
       direccionPaisBeneficiario1 : pais.find(o => o.label === location.state.preloadedValue.direccionPaisBeneficiario1) ? pais.find(o => o.label === location.state.preloadedValue.direccionPaisBeneficiario1).value : '1',
-  
-
   }} : defaultValues;
 
 

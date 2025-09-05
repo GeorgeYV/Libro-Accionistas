@@ -1,3 +1,48 @@
+type AumentoCapital @model @auth(rules: [{allow: public}]) {
+  id: ID!
+  aum_cap_valor_nominal: Float
+  aum_cap_capital: Float
+}
+
+type AccionistaOperacion @model @auth(rules: [{allow: public}]) {
+  id: ID!
+  acc_ope_detalle: String
+  acc_ope_operacion_id: String
+  acc_ope_accionista_id: String
+}
+
+type TituloPorOperacion @model @auth(rules: [{allow: public}]) {
+  id: ID!
+  tit_ope_acciones: Int
+  tit_ope_titulo_id: String
+  tit_ope_operacion_id: String
+}
+
+type Operacion @model @auth(rules: [{allow: public}]) {
+  id: ID!
+  ope_fecha: String
+  ope_tipo: Int
+  ope_acciones: Int
+  ope_estado: Int
+  ope_ingresador: String
+  ope_aprobador: String
+  ope_fecha_aprobacion: String
+  ope_motivo_rechazo: Int
+  ope_observacion: String
+  ope_documento: String
+}
+
+type Titulo @model @auth(rules: [{allow: public}]) {
+  id: ID!
+  tit_acciones: Int
+  tit_estado: Int
+  tit_desde: Int
+  tit_hasta: Int
+  tit_padre: String
+  tit_nivel: Int
+  tit_accionista_id: String
+}
+
 type PersonaNatural @model @auth(rules: [{allow: public}]) {
   id: ID!
   pn_primer_nombre: String
@@ -6,7 +51,6 @@ type PersonaNatural @model @auth(rules: [{allow: public}]) {
   pn_apellido_materno: String
   pn_estado_civil: String
   pn_doc_identificacion: String
-  PerNat_Conyuge: Conyuge @connection
 }
 
 type PersonaJuridica @model @auth(rules: [{allow: public}]) {
@@ -30,7 +74,7 @@ type Conyuge @model @auth(rules: [{allow: public}]) {
   con_doc_identifcacion: String
 }
 
-type DividendosTitulos @model @auth(rules: [{allow: public}]) @key(name: "byDetalleDividendo", fields: ["detalledividendoID"]) {
+type DividendosTitulos @model @auth(rules: [{allow: public}]) {
   id: ID!
   div_tit_participacion: Float
   div_tit_dividendo: Float
@@ -38,10 +82,12 @@ type DividendosTitulos @model @auth(rules: [{allow: public}]) @key(name: "byDeta
   div_tit_base_imponible: Float
   div_tit_fecha_pago: String
   div_tit_documento: String
-  detalledividendoID: ID!
+  div_tit_ddiv_id: String
+  div_tit_titulo_id: String
+  div_tit_accionista_id: String
 }
 
-type DetalleDividendo @model @auth(rules: [{allow: public}]) @key(name: "byDividendoNuevo", fields: ["dividendoID"]) {
+type DetalleDividendo @model @auth(rules: [{allow: public}]) {
   id: ID!
   ddiv_usuario: String
   ddiv_secuencial: Int
@@ -50,8 +96,7 @@ type DetalleDividendo @model @auth(rules: [{allow: public}]) @key(name: "byDivid
   ddiv_titulos: Int
   ddiv_dividendo: Float
   ddiv_porcentaje: Float
-  DetDiv_DividendosTitulos: [DividendosTitulos] @connection(keyName: "byDetalleDividendo", fields: ["id"])
-  dividendoID: ID!
+  ddiv_dividendo_id: String
 }
 
 type DividendoNuevo @model @auth(rules: [{allow: public}]) {
@@ -60,7 +105,6 @@ type DividendoNuevo @model @auth(rules: [{allow: public}]) {
   div_concepto: String
   div_dividendo: Float
   div_repartido: Float
-  Div_DetalleDividendo: [DetalleDividendo] @connection(keyName: "byDividendoNuevo", fields: ["id"])
 }
 
 type Pais @model @auth(rules: [{allow: public}]) {
@@ -88,7 +132,6 @@ type Ciudad @model @auth(rules: [{allow: public}]) {
 
 type Accionista @model @auth(rules: [{allow: public}]) {
   id: ID!
-  titulos: [Titulo] @connection(keyName: "byAccionista", fields: ["id"])
   acc_decevale: String
   acc_estado: Int
   acc_tipo_identificacion: Int
@@ -113,21 +156,8 @@ type Accionista @model @auth(rules: [{allow: public}]) {
   acc_cantidad_acciones: Int
   acc_participacion: Float
   acc_tipo_acciones: Int
-  Acc_PerNat: PersonaNatural @connection
-  Acc_PerJur: PersonaJuridica @connection
-}
-
-type Titulo @model @key(name: "byAccionista", fields: ["accionistaID"]) @auth(rules: [{allow: public}]) {
-  id: ID!
-  accionistaID: ID!
-  titulo: String!
-  acciones: Int!
-  fechaCompra: String
-  estado: String
-  idCedenteHereda: ID
-  nombreCedenteHereda: String
-  desde: Int
-  hasta: Int
+  acc_tipo_persona: Int
+  acc_nombre_completo: String
 }
 
 type Heredero @model @auth(rules: [{allow: public}]) {
@@ -138,61 +168,6 @@ type Heredero @model @auth(rules: [{allow: public}]) {
   idCedente: String!
   nombreCedente: String!
   estado: String
-}
-
-type Operaciones @model @auth(rules: [{allow: public}]) {
-  id: ID!
-  fecha: String!
-  operacion: String!
-  idCedente: String!
-  cedente: String!
-  titulo: String!
-  acciones: Int!
-  idCesionario: String!
-  cesionario: String!
-  estado: String!
-  usuarioIngreso: String
-  usuarioAprobador: String
-  titulos: [TituloPorOperacion] @connection(keyName: "PorOperacion", fields: ["id"])
-  cs: String
-  cg: String
-  ci: String
-  es: String
-  cp: String
-  ced: String
-  cb: String
-  nom: String
-  fechaAprobacion: String
-  motivoRechazo: String
-  observacion: String
-  valorNominal: Float
-  capital: Float
-  fechaValor: String
-}
-
-type TituloPorOperacion @model @key(name: "PorOperacion", fields: ["operacionID", "titulo"]) @auth(rules: [{allow: public}]) {
-  id: ID!
-  operacionID: ID!
-  tituloId: String
-  titulo: String!
-  acciones: Int!
-  accionesTransferidas: Int
-  desde: Int
-  hasta: Int
-}
-
-type HerederoPorOperacion @model @auth(rules: [{allow: public}]) {
-  id: ID!
-  operacionId: String!
-  numeroHeredero: Int
-  herederoId: String!
-  nombre: String
-  cantidad: Int
-}
-
-type NumeroSecuencial @model @auth(rules: [{allow: public}]) {
-  id: ID!
-  numerotitulo: Int
 }
 
 type Parametro @model @auth(rules: [{allow: public}]) {
@@ -243,6 +218,7 @@ type Parametro @model @auth(rules: [{allow: public}]) {
   modeloCartaCesion: String
   modeloCartaGerente: String
   modeloCartaInstrucciones: String
+  titulos_totales: Int
 }
 
 type ParametroArchive @model @auth(rules: [{allow: public}]) {

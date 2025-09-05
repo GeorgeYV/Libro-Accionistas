@@ -1,9 +1,9 @@
 import React, { useState, useEffect } from 'react';
-import { API, Storage } from 'aws-amplify';
+import { API, Storage,graphqlOperation } from 'aws-amplify';
 import { makeStyles } from '@material-ui/core/styles';
 import { createTheme } from '@material-ui/core/styles';
-import { Link } from "react-router-dom";
-import { listAccionistas, listTitulos, listOperaciones, getParametro, listHerederos } from '../graphql/queries';
+import { Link, Route, BrowserRouter } from "react-router-dom";
+import { listAccionistas, listTitulos, listOperacions, getParametro, listHerederos, listPersonaNaturals, listPersonaJuridicas, getTitulo } from '../graphql/queries';
 
 import { DataGrid } from '@mui/x-data-grid';
 
@@ -41,6 +41,7 @@ import {
 } from '@material-ui/core';
 
 import { styled } from '@material-ui//styles';
+import { createTitulo, updateAccionista } from '../graphql/mutations';
 
 const defaultTheme = createTheme();
 const useStyles = makeStyles(
@@ -96,10 +97,8 @@ QuickSearchToolbar.propTypes = {
 
 function QuickSearchToolbar(props) {
   const classes = useStyles();
-
   return (
     <div className={classes.root}>
-
       <TextField
         variant="standard"
         value={props.value}
@@ -116,7 +115,6 @@ function QuickSearchToolbar(props) {
               style={{ visibility: props.value ? 'visible' : 'hidden' }}
               onClick={props.clearSearch}
             >
-
               <ClearIcon fontSize="small" />
             </IconButton>
           ),
@@ -173,68 +171,35 @@ export default function Accionistas() {
 
   const [estado, setEstado] = useState(1);
 
-  function getParticipacion(params) {
-    return `${(params.getValue(params.id, 'acc_participacion') * 100 / cantidadEmitido).toFixed(8) || ''} `;
-  }
-
   let columns = []
   if (consultaDetallada) {
     columns = [
+      { field: 'acc_tipo_identificacion', headerName: 'Tipo Id', },
       {
-        field: 'secuencial',
-        headerName: 'Nro',
-        type: 'number',
-        width: 50,
-        //filterable: false,        
-        //renderCell:(index) => index.api.getRowIndex(index.row.id) + 1
-      },
-      { field: 'tipoIdentificacion', headerName: 'Tipo Id', width: 100, },
-      {
-        field: 'identificacion',
+        field: 'acc_identificacion',
         headerName: 'Identificacion',
-        width: 100,
       },
       {
-        field: 'decevale',
+        field: 'acc_decevale',
         headerName: 'Decevale',
-        width: 100,
       },
-
       {
-        field: 'nombre2',
+        field: 'acc_nombre_completo',
         headerName: 'Nombre',
-        width: 250,
       },
-
-      //{  field: 'nombre', headerName: 'Nombre', width: 100,},
-      { field: 'direccionCalle', headerName: 'Calle', width: 100, },
-      { field: 'direccionNumero', headerName: 'Numero', width: 100, },
-      { field: 'nombreBanco', headerName: 'Banco', width: 100, },
-      { field: 'tipoCuenta', headerName: 'Tipo Cta', width: 100, },
-      { field: 'cuentaBancaria', headerName: 'Cuenta', width: 100, },
-      { field: 'paisNacionalidad', headerName: 'Nacionalidad', width: 100, },
-      { field: 'cantidadAcciones', headerName: 'Acciones', width: 100, align: "right", },
-      { field: 'participacion', headerName: 'Participacion', width: 100, type: 'number', valueGetter: getParticipacion, },
-      { field: 'tipoAcciones', headerName: 'Tipo Acciones', width: 100, },
-      { field: 'pn_estadoCivil', headerName: 'E. Civil', width: 100, },
-      { field: 'telefono1', headerName: 'Telef 1', width: 100, },
-      { field: 'obs1', headerName: 'Obs Tel 1', width: 100, },
-      { field: 'telefono2', headerName: 'Telef 2', width: 100, },
-      { field: 'obs2', headerName: 'Obs Tel 2', width: 100, },
-      { field: 'telefono3', headerName: 'Telef 3', width: 100, },
-      { field: 'obs3', headerName: 'Obs Tel 1', width: 100, },
-      { field: 'email1', headerName: 'Email1', width: 100, },
-      { field: 'email2', headerName: 'Email2', width: 100, },
-      { field: 'email3', headerName: 'Email3', width: 100, },
-      { field: 'tipoPersona', headerName: 'Persona', width: 100, },
-      { field: 'repLegal_tipoIdentificacion', headerName: 'RL Tipo Id', width: 100, },
-      { field: 'repLegal_identificacion', headerName: 'RL Id', width: 100, },
-      { field: 'repLegal_nombre', headerName: 'RL Nombre', width: 100, },
-      { field: 'repLegal_nacionalidad', headerName: 'RL Nacionalidad', width: 100, },
-      { field: 'repLegal_telefono', headerName: 'RL Telef', width: 100, },
-      { field: 'repLegal_email', headerName: 'RL Email', width: 100, },
+      { field: 'acc_direccion', headerName: 'Calle', },
+      { field: 'acc_dir_numero', headerName: 'Numero', },
+      { field: 'acc_banco', headerName: 'Banco', },
+      { field: 'acc_tipo_cuenta', headerName: 'Tipo Cta', },
+      { field: 'acc_cuenta_bancaria', headerName: 'Cuenta', },
+      { field: 'acc_pais', headerName: 'Nacionalidad', },
+      { field: 'acc_cantidad_acciones', headerName: 'Acciones', align: "right", },
+      { field: 'acc_participacion', headerName: 'Participacion', type: 'number' },
+      { field: 'acc_tipo_acciones', headerName: 'Tipo Acciones', },
+      { field: 'acc_telefonos', headerName: 'Telefonos', },
+      { field: 'acc_correos', headerName: 'Correos', },
+      { field: 'acc_tipo_persona', headerName: 'Persona', },
     ]
-
   } else {
     columns = [
       {
@@ -248,7 +213,7 @@ export default function Accionistas() {
         width: 90,
       },
       {
-        field: 'nombre2',
+        field: 'acc_nombre_completo',
         headerName: 'Nombre',
         width: 250,
         flex: 1,
@@ -275,7 +240,6 @@ export default function Accionistas() {
         headerName: 'Participación',
         type: 'number',
         width: 100,
-        //valueGetter: getParticipacion,
       },
       {
         field: 'acc_tipo_acciones',
@@ -297,7 +261,7 @@ export default function Accionistas() {
         headerName: 'Estado',
         width: 110,
         renderCell: (cellValues) => {
-          return <Chip variant="outlined" icon={<Avatar>{cellValues.row.acc_estado == 0 ? 'I' : cellValues.row.acc_estado == 1 ? 'A' : 'B'}</Avatar>} color={cellValues.row.acc_estado == 1 ? 'primary' : 'secondary'} />
+          return <Chip variant="outlined" size="small" label={cellValues.row.acc_estado == 0 ? 'Inactivo' : cellValues.row.acc_estado == 1 ? 'Activo' : 'Bloqueado'} color={cellValues.row.acc_estado == 1 ? 'primary' : 'secondary'} />
         }
       },
 
@@ -305,8 +269,7 @@ export default function Accionistas() {
         field: "Info",
         width: 70,
         renderCell: (cellValues) => {
-          return <IconButton onClick={() =>
-          {
+          return <IconButton onClick={() => {
             fetchTitulos(cellValues.row);
           }
           } color='primary'><PageviewIcon /></IconButton>
@@ -324,38 +287,9 @@ export default function Accionistas() {
             state: {
               preloadedValue: cellValues.row,
             },
-          }} color='primary'><EditIcon/></Link>;
-
-
+          }} color='primary'><EditIcon /></Link>;
         }
-      },
-      /*
-            {
-              field: "Herederos",
-              width: 100,
-              renderCell: (cellValues) => {
-                return cellValues.row.herederos ? 
-                <Tooltip title="Tiene herederos" >
-      
-                  <GroupOutlinedIcon /> 
-                </Tooltip>
-                : null
-              }
-            },
-      */
-      /*
-      {
-        field: "Operaciones",
-        width: 180,
-        renderCell: (cellValues) => {
-          return <Link to={{
-            pathname: "/transferencias",
-            state: {
-              accionistaId: cellValues.row.id,
-            },
-          }} >Cesión</Link>;
-        }
-      },*/
+      }
     ];
   }
 
@@ -367,21 +301,19 @@ export default function Accionistas() {
   const [titulosHerencia, setTitulosHerencia] = useState([])
   const [accionistaSeleccionado, setAccionistaSeleccionado] = useState({});
   const [operaciones, setOperaciones] = useState([]);
+  const [value, setValue] = useState(0);
 
   const handleChange = (event) => {
     console.log("estado", event.target.value)
-    setEstado(event.target.value=="Activo"? 1:0);
+    setEstado(event.target.value);
   };
 
 
 
 
   useEffect(() => {
-
     fetchParametros();
     fetchAccionistas();
-
-
   }, [estado]);
 
 
@@ -395,30 +327,167 @@ export default function Accionistas() {
   }
 
   async function fetchAccionistas() {
-    console.log("entro a buscar con estado", estado)
-    const filter = {
+    const filtro = {
       acc_estado: {
         eq: estado
       },
     }
-    console.log("filter fetchAccionistas", filter)
-    const apiData = await API.graphql({ query: listAccionistas, variables: { limit: 1000 } });
+    var apiData = await API.graphql({ query: listAccionistas, variables: {filter: filtro, limit: 1000 } });
     const accionistasFromAPI = apiData.data.listAccionistas.items;
-    setRows(accionistasFromAPI);
+    /*var apiData = await API.graphql({ query: getTitulo, variables: { id: 'IDTituloPadreDeTodos' } });
+    const tituloPadre = apiData.data.getTitulo;
+    var tituloAux = {
+      tit_accionista_id: "",
+      tit_estado: 1,
+      tit_acciones: 0,
+      tit_desde: 0,
+      tit_hasta: 0,
+      tit_padre: tituloPadre.id,
+      tit_nivel: 1,
+    }
+    var desde=1;
+    accionistasFromAPI.map(async accionistaAux => {
+      tituloAux = {
+        tit_accionista_id: accionistaAux.id,
+        tit_estado: 1,
+        tit_acciones: accionistaAux.acc_cantidad_acciones,
+        tit_desde: parseInt(desde),
+        tit_hasta: parseInt(desde + accionistaAux.acc_cantidad_acciones-1),
+        tit_padre: tituloPadre.id,
+        tit_nivel: 1,
+      }
+      desde = desde + accionistaAux.acc_cantidad_acciones;
+      await API.graphql(graphqlOperation(createTitulo, { input: tituloAux }));
+      await API.graphql(graphqlOperation(updateAccionista, { input: {id:accionistaAux.id,acc_estado:1} }));
+    })*/
+    apiData = await API.graphql({ query: listPersonaNaturals, variables: { limit: 1000 } });
+    const personasNaturales = apiData.data.listPersonaNaturals.items;
+    apiData = await API.graphql({ query: listPersonaJuridicas, variables: { limit: 1000 } });
+    const personasJuridicas = apiData.data.listPersonaJuridicas.items;
+    var nombre_completo="",pnAux,pjAux,
+    pjVar={
+      pj_rl_tipo_identificacion: "",
+      pj_razon_social: "",
+      pj_rl_identificacion: "",
+      pj_rl_nombre: "",
+      pj_rl_nacionalidad: "",
+      pj_rl_telefono: "",
+      pj_rl_email: "",
+      pj_doc_nombramiento: "",
+    },
+    pnVar={
+      pn_primer_nombre: "",
+      pn_segundo_nombre: "",
+      pn_apellido_paterno: "",
+      pn_apellido_materno: "",
+      pn_estado_civil: "",
+      pn_doc_identificacion: ""
+    };
+    const accFinal = accionistasFromAPI.map(accionistaMap => {
+      /*if (accionistaMap.acc_tipo_persona == 0) {
+        pnAux = personasNaturales.find(({ id }) => id === accionistaMap.id);
+        nombre_completo = pnAux.pn_primer_nombre + ' ' + pnAux.pn_apellido_paterno;
+        pnVar.pn_primer_nombre = pnAux.pn_primer_nombre;
+        pnVar.pn_segundo_nombre = pnAux.pn_segundo_nombre;
+        pnVar.pn_apellido_paterno = pnAux.pn_apellido_paterno;
+        pnVar.pn_apellido_materno = pnAux.pn_apellido_materno;
+        pnVar.pn_estado_civil = pnAux.pn_estado_civil;
+        pnVar.pn_doc_identificacion = pnAux.pn_doc_identificacion;
+        pjVar={
+          pj_rl_tipo_identificacion: "",
+          pj_razon_social: "",
+          pj_rl_identificacion: "",
+          pj_rl_nombre: "",
+          pj_rl_nacionalidad: "",
+          pj_rl_telefono: "",
+          pj_rl_email: "",
+          pj_doc_nombramiento: "",
+        };
+      }
+      if (accionistaMap.acc_tipo_persona == 1) {
+        pjAux = personasJuridicas.find(({ id }) => id === accionistaMap.id);
+        nombre_completo = pjAux.pj_razon_social;
+        pjVar.pj_rl_tipo_identificacion = pjAux.pj_rl_tipo_identificacion;
+        pjVar.pj_razon_social= pjAux.pj_razon_social;
+        pjVar.pj_rl_identificacion= pjAux.pj_rl_identificacion;
+        pjVar.pj_rl_nombre= pjAux.pj_rl_nombre;
+        pjVar.pj_rl_nacionalidad= pjAux.pj_rl_nacionalidad;
+        pjVar.pj_rl_telefono= pjAux.pj_rl_telefono;
+        pjVar.pj_rl_email= pjAux.pj_rl_email;
+        pjVar.pj_doc_nombramiento= pjAux.pj_doc_nombramiento;
+        pnVar={
+          pn_primer_nombre: "",
+          pn_segundo_nombre: "",
+          pn_apellido_paterno: "",
+          pn_apellido_materno: "",
+          pn_estado_civil: "",
+          pn_doc_identificacion: ""
+        };
+      }*/
+      return {
+        id: accionistaMap.id,
+        acc_decevale: accionistaMap.acc_decevale,
+        acc_estado: accionistaMap.acc_estado,
+        acc_tipo_identificacion: accionistaMap.acc_tipo_identificacion,
+        acc_identificacion: accionistaMap.acc_identificacion,
+        acc_nacionalidad: accionistaMap.acc_nacionalidad,
+        acc_residencia: accionistaMap.acc_residencia,
+        acc_pais: accionistaMap.acc_pais,
+        acc_provincia: accionistaMap.acc_provincia,
+        acc_ciudad: accionistaMap.acc_ciudad,
+        acc_direccion: accionistaMap.acc_direccion,
+        acc_dir_numero: accionistaMap.acc_dir_numero,
+        acc_banco: accionistaMap.acc_banco,
+        acc_tipo_cuenta: accionistaMap.acc_tipo_cuenta,
+        acc_cuenta_bancaria: accionistaMap.acc_cuenta_bancaria,
+        acc_doc_certificado_bancario: accionistaMap.acc_doc_certificado_bancario,
+        acc_doc_actualizacion_datos: accionistaMap.acc_doc_actualizacion_datos,
+        acc_doc_uso_datos: accionistaMap.acc_doc_uso_datos,
+        acc_doc_posesion_efectiva: accionistaMap.acc_doc_posesion_efectiva,
+        acc_telefonos: accionistaMap.acc_telefonos,
+        acc_obs_telefonos: accionistaMap.acc_obs_telefonos,
+        acc_correos: accionistaMap.acc_correos,
+        acc_cantidad_acciones: accionistaMap.acc_cantidad_acciones,
+        acc_participacion: accionistaMap.acc_participacion,
+        acc_tipo_acciones: accionistaMap.acc_tipo_acciones,
+        acc_tipo_persona: accionistaMap.acc_tipo_persona,
+        /*pn_primer_nombre: pnVar.pn_primer_nombre,
+        pn_segundo_nombre: pnVar.pn_segundo_nombre,
+        pn_apellido_paterno: pnVar.pn_apellido_paterno,
+        pn_apellido_materno: pnVar.pn_apellido_materno,
+        pn_estado_civil: pnVar.pn_estado_civil,
+        pn_doc_identificacion: pnVar.pn_doc_identificacion,
+        pj_rl_tipo_identificacion: pjVar.pj_rl_tipo_identificacion,
+        pj_razon_social: pjVar.pj_razon_social,
+        pj_rl_identificacion: pjVar.pj_rl_identificacion,
+        pj_rl_nombre: pjVar.pj_rl_nombre,
+        pj_rl_nacionalidad: pjVar.pj_rl_nacionalidad,
+        pj_rl_telefono: pjVar.pj_rl_telefono,
+        pj_rl_email: pjVar.pj_rl_email,
+        pj_doc_nombramiento: pjVar.pj_doc_nombramiento,*/
+        acc_nombre_completo: accionistaMap.acc_nombre_completo
+      }
+    });
+    setAccionistas(accFinal);
+    setRows(accFinal);
   }
 
   const requestSearch = (searchValue) => {
-    setSearchText(searchValue);
-    const searchRegex = new RegExp(escapeRegExp(searchValue), 'i');
-    const filteredRows = accionistas.filter((row) => {
-      return Object.keys(row).some((field) => {
-        //if (row[field] != null) {
-        return row[field] && searchRegex.test(row[field].toString());
-        //}
-
+    if (searchValue) {
+      setSearchText(searchValue);
+      const searchRegex = new RegExp(escapeRegExp(searchValue), 'i');
+      const filteredRows = rows.filter((row) => {
+        return Object.keys(row).some((field) => {
+          if (row[field] != null) {
+            return row[field] && searchRegex.test(row[field].toString());
+          }
+        });
       });
-    });
-    setRows(filteredRows);
+      setRows(filteredRows);
+    }else{
+      setSearchText('');
+      setRows(accionistas)
+    }
   };
 
   async function fetchTitulos(row) {
@@ -426,11 +495,11 @@ export default function Accionistas() {
     console.log('entro', row)
 
     let filter = {
-      accionistaID: {
-        eq: row.id // filter priority = 1
+      tit_accionista_id: {
+        eq: row.id 
       },
-      estado: {
-        ne: 'Inactivo'
+      tit_estado: {
+        eq: 1
       }
     };
 
@@ -439,132 +508,10 @@ export default function Accionistas() {
 
     setTitulos(titulosFromAPI);
     setAccionistaSeleccionado(row)
-
-    let filterOper = {
-      //idCedente: {
-      //    eq: row.id 
-      // }
-
-      or: [{ idCedente: { eq: row.id } },
-      { idCesionario: { eq: row.id } }]
-
-    };
-    const apiDataOper = await API.graphql({ query: listOperaciones, variables: { filter: filterOper, limit: 1000 } });
-    const OperacionesFromAPI = apiDataOper.data.listOperaciones.items;
-
-    OperacionesFromAPI.sort(function (b, a) {
-      if (new Date(+a.fecha.split("-")[2], a.fecha.split("-")[1] - 1, +a.fecha.split("-")[0]) > new Date(+b.fecha.split("-")[2], b.fecha.split("-")[1] - 1, +b.fecha.split("-")[0])) return 1;
-      if (new Date(+a.fecha.split("-")[2], a.fecha.split("-")[1] - 1, +a.fecha.split("-")[0]) < new Date(+b.fecha.split("-")[2], b.fecha.split("-")[1] - 1, +b.fecha.split("-")[0])) return -1;
-      return 0;
-    });
-
-    setOperaciones(OperacionesFromAPI);
-
     setOpenTitulos(true)
     console.log('titulos', titulosFromAPI)
-
-    //Historia, buscar por data.id
-    const myInit = { // OPTIONAL
-      queryStringParameters: {  // OPTIONAL
-        identificacion: row.identificacion,
-      },
-    };
-
-    console.log('Parametro', myInit);
-    const historia = await API.get('LibroApiQLDB', '/registro/otro', myInit);
-    console.log('Historia', historia);
-
   }
-
-  //async function fetchTitulosPorHeredar(row) {
-  const fetchTitulosPorHeredar = async (row) => {
-
-    console.log('entro titulos por heredar', row)
-
-    let filter = {
-      accionistaHerederoId: {
-        eq: row.id // filter priority = 1
-      },
-      estado: {
-        eq: 'Pendiente'
-      }
-    };
-
-    const apiData = await API.graphql({ query: listHerederos, variables: { filter: filter, limit: 1000 } });
-    const titulosHerenciaFromAPI = apiData.data.listHerederos.items;
-    setTitulosHerencia(titulosHerenciaFromAPI);
-    console.log('titulos a heredar', titulosHerenciaFromAPI)
-
-    //Buscar acciones en titulos del idCedente que esten bloqueados y que sumen la cantidad de herencia
-    //Barrer listado
-
-
-    //for (const tituloHerencia of titulosHerencia) {
-    //const herederos = titulosHerencia.map(function(e) {
-
-    const herederos = titulosHerenciaFromAPI.map(async (e) => {
-
-      let filterTitulos = {
-        accionistaID: {
-          eq: e.idCedente // filter priority = 1
-        },
-        estado: {
-          eq: 'Bloqueado' // o estado Herencia
-        }
-      };
-
-
-      const apiDataTitulos = await API.graphql({ query: listTitulos, variables: { filter: filterTitulos, limit: 1000 } });
-      const titulosFromAPI = apiDataTitulos.data.listTitulos.items;
-
-      let totalAccionesCedente = 0;
-      titulosFromAPI.map(titulo => { totalAccionesCedente = totalAccionesCedente + titulo.acciones })
-
-
-      if (totalAccionesCedente > 0 && totalAccionesCedente == e.cantidad) {
-        //show
-        //const herederos = formHerederos.map(function(e) {
-        //  return {numeroHeredero:  e.numeroHeredero, operacionId : operID.data.createOperaciones.id, herederoId: e.herederoId, nombre: e.nombre, cantidad: e.cantidad  }
-        //})
-
-        return { id: e.id, accionistaHerederoId: e.accionistaHerederoId.id, nombre: e.nombre, cantidad: e.cantidad, idCedente: e.idCedente, nombreCedente: e.nombreCedente, estado: 'Si' }
-      } else {
-        //hide
-        return { id: e.id, accionistaHerederoId: e.accionistaHerederoId.id, nombre: e.nombre, cantidad: e.cantidad, idCedente: e.idCedente, nombreCedente: e.nombreCedente, estado: 'No' }
-      }
-
-
-
-    })
-
-
-    console.log('Mostrar titulos a heredar', herederos)
-
-
-
-
-
-    /*
-            let filterOper = {
-              //idCedente: {
-              //    eq: row.id 
-              // }
-    
-              or: [{ idCedente: {eq:row.id} },
-                { idCesionario: {eq:row.id}} ]
-    
-            };
-            const apiDataOper = await API.graphql({ query: listOperaciones, variables: { filter: filterOper, limit : 1000} });
-            const OperacionesFromAPI = apiDataOper.data.listOperaciones.items;        
-            setOperaciones(OperacionesFromAPI);
-            setOpenTitulos(true)
-            console.log('titulos', titulosFromAPI)
-    */
-
-  }
-
-  const [value, setValue] = useState(0);
-
+  
   const handleChangeTab = (event, newValue) => {
     setValue(newValue);
   };
@@ -619,14 +566,6 @@ export default function Accionistas() {
   };
 
   const exportPDFCertificado = async () => {
-    /*const miInit = {
-      queryStringParameters: {
-        id: accionistaSeleccionado.id,
-      },
-    };
-    const data = await API.get('apiQLDBprod', '/crearRegistro-prod', miInit)
-    console.log("miInit: ",miInit);
-    console.log("data aiQLDBprod: ",data);*/
     let base64Image = document.getElementById('qrcode').toDataURL()
 
     const unit = "pt";
@@ -663,7 +602,7 @@ export default function Accionistas() {
 
     doc.setFont("helvetica", "bold");
     doc.setFontSize(22);
-    const texto2 = accionistaSeleccionado.nombre;
+    const texto2 = accionistaSeleccionado.nombre_completo;
     doc.text(texto2, 220, 290);
 
     doc.setDrawColor(100);
@@ -672,7 +611,7 @@ export default function Accionistas() {
 
     doc.setFont("helvetica", "normal");
     doc.setFontSize(11);
-    const texto3 = "ES PROPIETARIO DE " + accionistaSeleccionado.cantidadAcciones + " ACCIONES DE US$ 0.04 CENTAVOS DE DOLAR";
+    const texto3 = "ES PROPIETARIO DE " + accionistaSeleccionado.acc_cantidad_acciones + " ACCIONES DE US$ 0.04 CENTAVOS DE DOLAR";
     doc.text(texto3, 230, 320);
 
     const texto4 = "DE LOS ESTADOS UNIDOS DE AMERICA, CON TODOS LOS DERECHOS Y OBLIGACIONES ";
@@ -692,7 +631,6 @@ export default function Accionistas() {
 
     doc.setFont("helvetica", "bold");
     doc.setTextColor(137, 34, 28);
-    //const texto6 = "EXPEDIDO EL " + d.getDate() + " DE " + months[d.getMonth()] + " DEL " + d.getFullYear();
     const texto6 = "EXPEDIDO EL " + d.getDate() + " DE " + months[d.getMonth()] + " DEL " + d.getFullYear() + " A LAS " + d.getHours() + ":" + ('0' + d.getMinutes()).slice(-2) + ".";
     doc.text(texto6, 280, 400);
 
@@ -710,9 +648,7 @@ export default function Accionistas() {
     doc.text(texto8, 195, 470);
     const texto9 = "El código QR lo direccionará a la página de verificación";
     doc.text(texto9, 195, 490);
-    //const texto10 = data[0].hash;
-    //doc.text(texto10, 195, 500);
-    doc.save("CertificadoAccionistas.pdf")   
+    doc.save("CertificadoAccionistas.pdf")
   }
 
   const classes = useStyles();
@@ -729,20 +665,17 @@ export default function Accionistas() {
               name="controlled-radio-buttons-group"
               value={estado}
               onChange={handleChange}
-
             >
-
-              <FormControlLabel value="Activo" control={<Radio color="secondary" size="small" />} label={<span style={{ fontSize: '0.8rem' }}>Activos</span>} />
-              <FormControlLabel value="Bloqueado" control={<Radio color="secondary" size="small" />} label={<span style={{ fontSize: '0.8rem' }}>Bloqueados</span>} />
-              <FormControlLabel value="Inactivo" control={<Radio color="secondary" size="small" />} label={<span style={{ fontSize: '0.8rem' }}>Inactivos</span>} />
-
+              <FormControlLabel checked={estado == 1} value="1" control={<Radio color="secondary" size="small" />} label={<span style={{ fontSize: '0.8rem' }}>Activos</span>} />
+              <FormControlLabel checked={estado == 3} value="3" control={<Radio color="secondary" size="small" />} label={<span style={{ fontSize: '0.8rem' }}>Bloqueados</span>} />
+              <FormControlLabel checked={estado == 2} value="2" control={<Radio color="secondary" size="small" />} label={<span style={{ fontSize: '0.8rem' }}>Inactivos</span>} />
+              <FormControlLabel checked={estado == 0} value="0" control={<Radio color="secondary" size="small" />} label={<span style={{ fontSize: '0.8rem' }}>Herederos</span>} />
               <IconButton color={consultaDetallada ? "default" : "primary"} onClick={() => { setConsultaDetallada(false) }}>
                 <BorderAllIcon />
               </IconButton>
               <IconButton color={consultaDetallada ? "primary" : "default"} onClick={() => { setConsultaDetallada(true) }}>
                 <ViewColumnIcon />
               </IconButton>
-
             </RadioGroup>
           </FormControl>
 
@@ -771,7 +704,7 @@ export default function Accionistas() {
           />
         </Grid>
         <Dialog open={openTitulos} onClose={handleClose} aria-labelledby="form-dialog-title" maxWidth='md' fullWidth={true}>
-          <DialogTitle id="form-dialog-title">{accionistaSeleccionado.nombre2}</DialogTitle>
+          <DialogTitle id="form-dialog-title">{accionistaSeleccionado.acc_nombre_completo}</DialogTitle>
           <DialogContent style={{ height: '60vh' }}>
             <Box sx={{ borderBottom: 1, borderColor: 'divider' }}>
               <Tabs value={value} onChange={handleChangeTab} aria-label="basic tabs example">
@@ -789,7 +722,8 @@ export default function Accionistas() {
                     <strong>Tipo Identificación</strong>
                   </Typography>
                   <Typography variant='body2'>
-                    {accionistaSeleccionado.tipoIdentificacion}
+                    {accionistaSeleccionado.acc_tipo_identificacion==0?"Cedula":
+                    accionistaSeleccionado.acc_tipo_identificacion==1?"RUC":"Pasaporte"}
                   </Typography>
                 </Grid>
                 <Grid item xs={12} sm={6} md={4} lg={3}>
@@ -797,7 +731,7 @@ export default function Accionistas() {
                     <strong>Identificación</strong>
                   </Typography>
                   <Typography variant='body2'>
-                    {accionistaSeleccionado.identificacion}
+                    {accionistaSeleccionado.acc_identificacion}
                   </Typography>
                 </Grid>
                 <Grid item xs={12} sm={6} md={4} lg={3}>
@@ -805,7 +739,7 @@ export default function Accionistas() {
                     <strong>Nacionalidad</strong>
                   </Typography>
                   <Typography variant='body2'>
-                    {accionistaSeleccionado.paisNacionalidad}
+                    {accionistaSeleccionado.acc_nacionalidad}
                   </Typography>
                 </Grid>
                 <Grid item xs={12} sm={6} md={4} lg={3}>
@@ -813,7 +747,7 @@ export default function Accionistas() {
                     <strong>Dirección</strong>
                   </Typography>
                   <Typography variant='body2'>
-                    {accionistaSeleccionado.direccionPais == null ? '-' : accionistaSeleccionado.direccionPais + ' ' + accionistaSeleccionado.direccionProvincia + ' ' + accionistaSeleccionado.direccionCiudad + ' ' + accionistaSeleccionado.direccionCalle + ' ' + accionistaSeleccionado.direccionNumero}
+                    {accionistaSeleccionado.acc_direccion + ' ' + accionistaSeleccionado.acc_dir_numero}
                   </Typography>
                 </Grid>
                 <Grid item xs={12} sm={6} md={4} lg={3}>
@@ -821,20 +755,23 @@ export default function Accionistas() {
                     <strong>Cuenta Bancaria</strong>
                   </Typography>
                   <Typography variant='body2'>
-                    {accionistaSeleccionado.nombreBanco == null ? '-' : accionistaSeleccionado.nombreBanco + ' ' + accionistaSeleccionado.tipoCuenta + ' ' + accionistaSeleccionado.cuentaBancaria}
+                    {accionistaSeleccionado.acc_banco == null ? '-' : accionistaSeleccionado.acc_banco + ' ' + accionistaSeleccionado.acc_tipo_cuenta + ' ' + accionistaSeleccionado.acc_cuenta_bancaria}
                   </Typography>
                 </Grid>
-                {accionistaSeleccionado.tipoPersona == 'PN' &&
+                {accionistaSeleccionado.acc_tipo_persona == 0 &&
                   <Grid item xs={12} sm={6} md={4} lg={3}>
                     <Typography variant='caption'>
                       <strong>Estado Civil</strong>
                     </Typography>
                     <Typography variant='body2'>
-                      {accionistaSeleccionado.pn_estadoCivil == null ? '-' : accionistaSeleccionado.pn_estadoCivil}
+                      {accionistaSeleccionado.pn_estado_civil == 0 ? 'soltero' : 
+                      accionistaSeleccionado.pn_estado_civil == 1 ? "Casado":
+                      accionistaSeleccionado.pn_estado_civil == 2 ? "Unión de hecho":
+                      accionistaSeleccionado.pn_estado_civil == 3 ? "Divorciado": "Viudo"}
                     </Typography>
                   </Grid>
                 }
-                {accionistaSeleccionado.pn_estadoCivil == 'Casado' &&
+                {accionistaSeleccionado.pn_estado_civil == 1 || accionistaSeleccionado.pn_estado_civil == 2 &&
                   <Grid container>
                     <Grid item xs={12}>
                       <Typography variant='caption'>
@@ -846,7 +783,7 @@ export default function Accionistas() {
                         <strong>Tipo Identificación</strong>
                       </Typography>
                       <Typography variant='body2'>
-                        {accionistaSeleccionado.conyugue_tipoIdentificacion}
+                        {accionistaSeleccionado.con_}
                       </Typography>
                     </Grid>
                     <Grid item xs={12} sm={6} md={4} lg={3}>
@@ -1105,15 +1042,15 @@ export default function Accionistas() {
                   </ListSubheader>
                 }>
                 {
-                  titulos.sort((a, b) => (parseInt(a.titulo) > parseInt(b.titulo)) ? 1 : ((parseInt(b.titulo) > parseInt(a.titulo)) ? -1 : 0)).map(item => (
+                  titulos.map(item => (
                     <ListItem key={item.id}>
                       <div style={{ display: 'flex', flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', width: '100%', paddingLeft: '100px' }}>
-                        <ListItemText style={{ flex: 2 }}>{item.fechaCompra}</ListItemText>
-                        <ListItemText style={{ flex: 1 }}>{item.titulo}</ListItemText>
-                        <ListItemText style={{ flex: 1, display: 'flex', alignItems: 'flex-end', justifyContent: 'flex-end', paddingRight: '30px' }}>{item.acciones}</ListItemText>
-                        <ListItemText style={{ flex: 1, display: 'flex', alignItems: 'flex-end', justifyContent: 'flex-end', paddingRight: '30px' }}>{item.desde}</ListItemText>
-                        <ListItemText style={{ flex: 1, display: 'flex', alignItems: 'flex-end', justifyContent: 'flex-end', paddingRight: '30px' }}>{item.hasta}</ListItemText>
-                        <ListItemText style={{ flex: 2 }}>{item.estado}</ListItemText>
+                        <ListItemText style={{ flex: 2 }}>{item.updatedAt}</ListItemText>
+                        <ListItemText style={{ flex: 1 }}>{item.id}</ListItemText>
+                        <ListItemText style={{ flex: 1, display: 'flex', alignItems: 'flex-end', justifyContent: 'flex-end', paddingRight: '30px' }}>{item.tit_acciones}</ListItemText>
+                        <ListItemText style={{ flex: 1, display: 'flex', alignItems: 'flex-end', justifyContent: 'flex-end', paddingRight: '30px' }}>{item.tit_desde}</ListItemText>
+                        <ListItemText style={{ flex: 1, display: 'flex', alignItems: 'flex-end', justifyContent: 'flex-end', paddingRight: '30px' }}>{item.tit_hasta}</ListItemText>
+                        <ListItemText style={{ flex: 2 }}>{item.tit_estado}</ListItemText>
                       </div>
                     </ListItem>))}
               </List>
@@ -1170,8 +1107,14 @@ export default function Accionistas() {
               </List>
             </TabPanel>
             <TabPanel value={value} index={4}>
-              <QRcode value={'https://production.dnyw5qmklx2h.amplifyapp.com/?id='} id='qrcode' size={75} />
-              <Button startIcon={<PrintIcon />} size="small" variant="contained" color="primary" style={{ textTransform: 'none', height: '22px', marginTop: '15px' }} onClick={exportPDFCertificado}><small>Imprimir Certificado de Acciones</small></Button>
+              <Grid container justifyContent="center" alignItems="center" direction="column">
+                <Grid item>
+                  <QRcode value={'https://production.dnyw5qmklx2h.amplifyapp.com/?id='} id='qrcode' size={100} />
+                </Grid>
+                <Grid item>
+                  <Button startIcon={<PrintIcon />} size="small" variant="contained" color="primary" style={{ textTransform: 'none', height: '22px', marginTop: '15px' }} onClick={exportPDFCertificado}><small>Imprimir Certificado de Acciones</small></Button>
+                </Grid>
+              </Grid>
             </TabPanel>
           </DialogContent>
           <DialogActions>

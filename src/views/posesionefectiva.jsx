@@ -5,7 +5,7 @@ import { makeStyles, Paper, Divider, Grid, Typography,TextField,Button,withStyle
 import Autocomplete from '@material-ui/lab/Autocomplete';
 import { API, Storage, graphqlOperation, Auth } from 'aws-amplify';
 import { listAccionistas, listTitulos } from './../graphql/queries';
-import {createOperaciones, createTituloPorOperacion, createHerederoPorOperacion, updateTitulo, createTitulo} from './../graphql/mutations';
+import {createOperacion, createTituloPorOperacion, updateTitulo, createTitulo} from './../graphql/mutations';
 
 import SaveIcon from '@material-ui/icons/Save';
 import CheckIcon from '@material-ui/icons/Check';
@@ -110,10 +110,10 @@ export default function PosesionEfectiva() {
 
         setFormData({ fecha: fecha, operacion: 'Posesión Efectiva', idCedente: '', cedente: '', idCesionario: '', cesionario: 'JY',titulo: '' , acciones: '',  estado: 'Pendiente', usuarioIngreso: '', usuarioAprobador: '', cs: '', cg: '', ci: '', es: '', cp: ''})
         setFormDataTitulos({ titulos : {operacionID: '', titulo: '',acciones: '' }})
-        const operID = await API.graphql(graphqlOperation(createOperaciones, { input: operacion }))
+        const operID = await API.graphql(graphqlOperation(createOperacion, { input: operacion }))
 
         const transferir = titulos.map(function(e) {
-          return {operacionID: operID.data.createOperaciones.id, titulo : e.titulo, acciones: e.acciones, tituloId: e.id, desde: e.desde, hasta: e.hasta} ;
+          return {operacionID: operID.data.createOperacion.id, titulo : e.titulo, acciones: e.acciones, tituloId: e.id, desde: e.desde, hasta: e.hasta} ;
         })
 
         Promise.all(
@@ -124,19 +124,10 @@ export default function PosesionEfectiva() {
         });
 
         const herederos = formHerederos.map(function(e) {
-          return {numeroHeredero:  e.numeroHeredero, operacionId : operID.data.createOperaciones.id, herederoId: e.herederoId, nombre: e.nombre, cantidad: e.cantidad  }
+          return {numeroHeredero:  e.numeroHeredero, operacionId : operID.data.createOperacion.id, herederoId: e.herederoId, nombre: e.nombre, cantidad: e.cantidad  }
         })
 
-        Promise.all(
-          herederos.map(input => API.graphql(graphqlOperation(createHerederoPorOperacion, { input: input })))
-        ).then(values => {          
-          setCountHeredero(1);          
-          setFormHerederos([ ]);
-          setOpenSnack(true);
-          setOperacion(operacion + 1 );
-          setTotalAccionesHerencia(0);
-
-        });
+        
 
         console.log('que es transferir', transferir)
         //Bloquear lo titulos

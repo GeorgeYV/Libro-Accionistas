@@ -1,6 +1,204 @@
 /* eslint-disable */
 // this is an auto generated file. This will be overwritten
 
+export const getAumentoCapital = /* GraphQL */ `
+  query GetAumentoCapital($id: ID!) {
+    getAumentoCapital(id: $id) {
+      id
+      aum_cap_valor_nominal
+      aum_cap_capital
+      createdAt
+      updatedAt
+      __typename
+    }
+  }
+`;
+export const listAumentoCapitals = /* GraphQL */ `
+  query ListAumentoCapitals(
+    $filter: ModelAumentoCapitalFilterInput
+    $limit: Int
+    $nextToken: String
+  ) {
+    listAumentoCapitals(filter: $filter, limit: $limit, nextToken: $nextToken) {
+      items {
+        id
+        aum_cap_valor_nominal
+        aum_cap_capital
+        createdAt
+        updatedAt
+        __typename
+      }
+      nextToken
+      __typename
+    }
+  }
+`;
+export const getAccionistaOperacion = /* GraphQL */ `
+  query GetAccionistaOperacion($id: ID!) {
+    getAccionistaOperacion(id: $id) {
+      id
+      acc_ope_detalle
+      acc_ope_operacion_id
+      acc_ope_accionista_id
+      createdAt
+      updatedAt
+      __typename
+    }
+  }
+`;
+export const listAccionistaOperacions = /* GraphQL */ `
+  query ListAccionistaOperacions(
+    $filter: ModelAccionistaOperacionFilterInput
+    $limit: Int
+    $nextToken: String
+  ) {
+    listAccionistaOperacions(
+      filter: $filter
+      limit: $limit
+      nextToken: $nextToken
+    ) {
+      items {
+        id
+        acc_ope_detalle
+        acc_ope_operacion_id
+        acc_ope_accionista_id
+        createdAt
+        updatedAt
+        __typename
+      }
+      nextToken
+      __typename
+    }
+  }
+`;
+export const getTituloPorOperacion = /* GraphQL */ `
+  query GetTituloPorOperacion($id: ID!) {
+    getTituloPorOperacion(id: $id) {
+      id
+      tit_ope_acciones
+      tit_ope_titulo_id
+      tit_ope_operacion_id
+      createdAt
+      updatedAt
+      __typename
+    }
+  }
+`;
+export const listTituloPorOperacions = /* GraphQL */ `
+  query ListTituloPorOperacions(
+    $filter: ModelTituloPorOperacionFilterInput
+    $limit: Int
+    $nextToken: String
+  ) {
+    listTituloPorOperacions(
+      filter: $filter
+      limit: $limit
+      nextToken: $nextToken
+    ) {
+      items {
+        id
+        tit_ope_acciones
+        tit_ope_titulo_id
+        tit_ope_operacion_id
+        createdAt
+        updatedAt
+        __typename
+      }
+      nextToken
+      __typename
+    }
+  }
+`;
+export const getOperacion = /* GraphQL */ `
+  query GetOperacion($id: ID!) {
+    getOperacion(id: $id) {
+      id
+      ope_fecha
+      ope_tipo
+      ope_acciones
+      ope_estado
+      ope_ingresador
+      ope_aprobador
+      ope_fecha_aprobacion
+      ope_motivo_rechazo
+      ope_observacion
+      ope_documento
+      createdAt
+      updatedAt
+      __typename
+    }
+  }
+`;
+export const listOperacions = /* GraphQL */ `
+  query ListOperacions(
+    $filter: ModelOperacionFilterInput
+    $limit: Int
+    $nextToken: String
+  ) {
+    listOperacions(filter: $filter, limit: $limit, nextToken: $nextToken) {
+      items {
+        id
+        ope_fecha
+        ope_tipo
+        ope_acciones
+        ope_estado
+        ope_ingresador
+        ope_aprobador
+        ope_fecha_aprobacion
+        ope_motivo_rechazo
+        ope_observacion
+        ope_documento
+        createdAt
+        updatedAt
+        __typename
+      }
+      nextToken
+      __typename
+    }
+  }
+`;
+export const getTitulo = /* GraphQL */ `
+  query GetTitulo($id: ID!) {
+    getTitulo(id: $id) {
+      id
+      tit_acciones
+      tit_estado
+      tit_desde
+      tit_hasta
+      tit_padre
+      tit_nivel
+      tit_accionista_id
+      createdAt
+      updatedAt
+      __typename
+    }
+  }
+`;
+export const listTitulos = /* GraphQL */ `
+  query ListTitulos(
+    $filter: ModelTituloFilterInput
+    $limit: Int
+    $nextToken: String
+  ) {
+    listTitulos(filter: $filter, limit: $limit, nextToken: $nextToken) {
+      items {
+        id
+        tit_acciones
+        tit_estado
+        tit_desde
+        tit_hasta
+        tit_padre
+        tit_nivel
+        tit_accionista_id
+        createdAt
+        updatedAt
+        __typename
+      }
+      nextToken
+      __typename
+    }
+  }
+`;
 export const getPersonaNatural = /* GraphQL */ `
   query GetPersonaNatural($id: ID!) {
     getPersonaNatural(id: $id) {
@@ -13,17 +211,6 @@ export const getPersonaNatural = /* GraphQL */ `
       pn_doc_identificacion
       createdAt
       updatedAt
-      PerNat_Conyuge {
-        id
-        con_tipo_identificacion
-        con_identificacion
-        con_nombre
-        con_nacionalidad
-        con_doc_identifcacion
-        createdAt
-        updatedAt
-        __typename
-      }
       __typename
     }
   }
@@ -148,7 +335,9 @@ export const getDividendosTitulos = /* GraphQL */ `
       div_tit_base_imponible
       div_tit_fecha_pago
       div_tit_documento
-      detalledividendoID
+      div_tit_ddiv_id
+      div_tit_titulo_id
+      div_tit_accionista_id
       createdAt
       updatedAt
       __typename
@@ -174,7 +363,9 @@ export const listDividendosTitulos = /* GraphQL */ `
         div_tit_base_imponible
         div_tit_fecha_pago
         div_tit_documento
-        detalledividendoID
+        div_tit_ddiv_id
+        div_tit_titulo_id
+        div_tit_accionista_id
         createdAt
         updatedAt
         __typename
@@ -195,13 +386,9 @@ export const getDetalleDividendo = /* GraphQL */ `
       ddiv_titulos
       ddiv_dividendo
       ddiv_porcentaje
-      dividendoID
+      ddiv_dividendo_id
       createdAt
       updatedAt
-      DetDiv_DividendosTitulos {
-        nextToken
-        __typename
-      }
       __typename
     }
   }
@@ -226,7 +413,7 @@ export const listDetalleDividendos = /* GraphQL */ `
         ddiv_titulos
         ddiv_dividendo
         ddiv_porcentaje
-        dividendoID
+        ddiv_dividendo_id
         createdAt
         updatedAt
         __typename
@@ -246,10 +433,6 @@ export const getDividendoNuevo = /* GraphQL */ `
       div_repartido
       createdAt
       updatedAt
-      Div_DetalleDividendo {
-        nextToken
-        __typename
-      }
       __typename
     }
   }
@@ -410,38 +593,10 @@ export const getAccionista = /* GraphQL */ `
       acc_cantidad_acciones
       acc_participacion
       acc_tipo_acciones
+      acc_tipo_persona
+      acc_nombre_completo
       createdAt
       updatedAt
-      Acc_PerNat {
-        id
-        pn_primer_nombre
-        pn_segundo_nombre
-        pn_apellido_paterno
-        pn_apellido_materno
-        pn_estado_civil
-        pn_doc_identificacion
-        createdAt
-        updatedAt
-        __typename
-      }
-      Acc_PerJur {
-        id
-        pj_rl_tipo_identificacion
-        pj_razon_social
-        pj_rl_identificacion
-        pj_rl_nombre
-        pj_rl_nacionalidad
-        pj_rl_telefono
-        pj_rl_email
-        pj_doc_nombramiento
-        createdAt
-        updatedAt
-        __typename
-      }
-      titulos {
-        nextToken
-        __typename
-      }
       __typename
     }
   }
@@ -479,52 +634,8 @@ export const listAccionistas = /* GraphQL */ `
         acc_cantidad_acciones
         acc_participacion
         acc_tipo_acciones
-        createdAt
-        updatedAt
-        __typename
-      }
-      nextToken
-      __typename
-    }
-  }
-`;
-export const getTitulo = /* GraphQL */ `
-  query GetTitulo($id: ID!) {
-    getTitulo(id: $id) {
-      id
-      accionistaID
-      titulo
-      acciones
-      fechaCompra
-      estado
-      idCedenteHereda
-      nombreCedenteHereda
-      desde
-      hasta
-      createdAt
-      updatedAt
-      __typename
-    }
-  }
-`;
-export const listTitulos = /* GraphQL */ `
-  query ListTitulos(
-    $filter: ModelTituloFilterInput
-    $limit: Int
-    $nextToken: String
-  ) {
-    listTitulos(filter: $filter, limit: $limit, nextToken: $nextToken) {
-      items {
-        id
-        accionistaID
-        titulo
-        acciones
-        fechaCompra
-        estado
-        idCedenteHereda
-        nombreCedenteHereda
-        desde
-        hasta
+        acc_tipo_persona
+        acc_nombre_completo
         createdAt
         updatedAt
         __typename
@@ -565,210 +676,6 @@ export const listHerederos = /* GraphQL */ `
         idCedente
         nombreCedente
         estado
-        createdAt
-        updatedAt
-        __typename
-      }
-      nextToken
-      __typename
-    }
-  }
-`;
-export const getOperaciones = /* GraphQL */ `
-  query GetOperaciones($id: ID!) {
-    getOperaciones(id: $id) {
-      id
-      fecha
-      operacion
-      idCedente
-      cedente
-      titulo
-      acciones
-      idCesionario
-      cesionario
-      estado
-      usuarioIngreso
-      usuarioAprobador
-      cs
-      cg
-      ci
-      es
-      cp
-      ced
-      cb
-      nom
-      fechaAprobacion
-      motivoRechazo
-      observacion
-      valorNominal
-      capital
-      fechaValor
-      createdAt
-      updatedAt
-      titulos {
-        nextToken
-        __typename
-      }
-      __typename
-    }
-  }
-`;
-export const listOperaciones = /* GraphQL */ `
-  query ListOperaciones(
-    $filter: ModelOperacionesFilterInput
-    $limit: Int
-    $nextToken: String
-  ) {
-    listOperaciones(filter: $filter, limit: $limit, nextToken: $nextToken) {
-      items {
-        id
-        fecha
-        operacion
-        idCedente
-        cedente
-        titulo
-        acciones
-        idCesionario
-        cesionario
-        estado
-        usuarioIngreso
-        usuarioAprobador
-        cs
-        cg
-        ci
-        es
-        cp
-        ced
-        cb
-        nom
-        fechaAprobacion
-        motivoRechazo
-        observacion
-        valorNominal
-        capital
-        fechaValor
-        createdAt
-        updatedAt
-        __typename
-      }
-      nextToken
-      __typename
-    }
-  }
-`;
-export const getTituloPorOperacion = /* GraphQL */ `
-  query GetTituloPorOperacion($id: ID!) {
-    getTituloPorOperacion(id: $id) {
-      id
-      operacionID
-      tituloId
-      titulo
-      acciones
-      accionesTransferidas
-      desde
-      hasta
-      createdAt
-      updatedAt
-      __typename
-    }
-  }
-`;
-export const listTituloPorOperacions = /* GraphQL */ `
-  query ListTituloPorOperacions(
-    $filter: ModelTituloPorOperacionFilterInput
-    $limit: Int
-    $nextToken: String
-  ) {
-    listTituloPorOperacions(
-      filter: $filter
-      limit: $limit
-      nextToken: $nextToken
-    ) {
-      items {
-        id
-        operacionID
-        tituloId
-        titulo
-        acciones
-        accionesTransferidas
-        desde
-        hasta
-        createdAt
-        updatedAt
-        __typename
-      }
-      nextToken
-      __typename
-    }
-  }
-`;
-export const getHerederoPorOperacion = /* GraphQL */ `
-  query GetHerederoPorOperacion($id: ID!) {
-    getHerederoPorOperacion(id: $id) {
-      id
-      operacionId
-      numeroHeredero
-      herederoId
-      nombre
-      cantidad
-      createdAt
-      updatedAt
-      __typename
-    }
-  }
-`;
-export const listHerederoPorOperacions = /* GraphQL */ `
-  query ListHerederoPorOperacions(
-    $filter: ModelHerederoPorOperacionFilterInput
-    $limit: Int
-    $nextToken: String
-  ) {
-    listHerederoPorOperacions(
-      filter: $filter
-      limit: $limit
-      nextToken: $nextToken
-    ) {
-      items {
-        id
-        operacionId
-        numeroHeredero
-        herederoId
-        nombre
-        cantidad
-        createdAt
-        updatedAt
-        __typename
-      }
-      nextToken
-      __typename
-    }
-  }
-`;
-export const getNumeroSecuencial = /* GraphQL */ `
-  query GetNumeroSecuencial($id: ID!) {
-    getNumeroSecuencial(id: $id) {
-      id
-      numerotitulo
-      createdAt
-      updatedAt
-      __typename
-    }
-  }
-`;
-export const listNumeroSecuencials = /* GraphQL */ `
-  query ListNumeroSecuencials(
-    $filter: ModelNumeroSecuencialFilterInput
-    $limit: Int
-    $nextToken: String
-  ) {
-    listNumeroSecuencials(
-      filter: $filter
-      limit: $limit
-      nextToken: $nextToken
-    ) {
-      items {
-        id
-        numerotitulo
         createdAt
         updatedAt
         __typename
