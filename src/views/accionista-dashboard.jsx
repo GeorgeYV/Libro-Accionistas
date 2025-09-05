@@ -18,8 +18,8 @@ import fondo from '../images/Cert1.jpg';
 //import QRcode from '../images/QRcode.png';
 import marco from '../images/Recurso 1.png'
 import fondoUnacem from '../images/Recurso 2.png'
-import logoSolo from '../images/Recurso 3.png'
-import logoCompleto from '../images/Recurso 4.png'
+import logoSolo from '../images/Unacem2.png'
+import logoCompleto from '../images/logoUNACEMmedMarco2.png'
 import bienvenida from '../images/Comunicado.jpeg'
 
 import PropTypes from 'prop-types';
@@ -867,7 +867,7 @@ setDividendos(accionistaCalculo);
         //console.log("Data API Parameter", miInit);
         //const data = await API.get('LibroApiQLDB','/registro',miInit )
 
-        const data = await API.get('apiQLDBprod','/crearRegistro-prod',miInit )
+        //const data = await API.get('apiQLDBprod','/crearRegistro-prod',miInit )
         //console.log("Data API", data[0].hash);
 
 
@@ -975,8 +975,8 @@ setDividendos(accionistaCalculo);
         doc.text(texto9, 195, 490);            
 
         //const texto10 = "prueba";
-        const texto10 = data[0].hash;
-        doc.text(texto10, 195, 500);            
+        //const texto10 = data[0].hash;
+        //doc.text(texto10, 195, 500);            
 
 
 
