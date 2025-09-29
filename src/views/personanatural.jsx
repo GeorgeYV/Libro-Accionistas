@@ -5,7 +5,7 @@ import {
   FormControl, FormHelperText
 } from '@material-ui/core';
 import { Controller, useForm } from "react-hook-form";
-import { useLocation,useParams } from 'react-router-dom'
+import { useLocation, useParams } from 'react-router-dom'
 
 import ControlPointIcon from '@material-ui/icons/ControlPoint';
 import CheckIcon from '@material-ui/icons/Check';
@@ -16,6 +16,7 @@ import { createAccionista, updateAccionista, createPersonaNatural, createConyuge
 
 import { uuid } from 'uuidv4';
 import MuiAlert from '@material-ui/lab/Alert';
+import {obtenerAccionistaCompleto} from './../components/manejoAccionistas';
 
 function Alert(props) {
   return <MuiAlert elevation={6} variant="filled" {...props} />;
@@ -81,26 +82,21 @@ const useStyles = makeStyles((theme) => ({
       fontSize: "10px"
     }
   },
-  textFieldEstandar:{
+  textFieldEstandar: {
     minWidth: '180px',
     margin: '5px'
   },
-  selectEstandar:{
+  selectEstandar: {
     minWidth: '180px',
     margin: '5px'
   },
-  inputLabelCustom:{
+  inputLabelCustom: {
     left: '5px'
   }
 }));
 
-const ParametrosDesdeAccionista = () => {
-  let {params} = useParams();
-  console.log("params: ",params);
-}
-
 export default function PersonaNatural() {
-  ParametrosDesdeAccionista();
+
   const tipoIdentificacion = [
     {
       label: "Cédula",
@@ -157,10 +153,16 @@ export default function PersonaNatural() {
       value: "2",
     },
   ];
-
-  var [accionistaGlobal, setAccionistaGlobal] = useState([]);
+  const location = useLocation();
+  var [accionistaGlobal, setAccionistaGlobal] = useState(location.state.preloadedValue? location.state.preloadedValue : {});
+  if (location.state.preloadedValue) {
+    console.log("location", location);
+    console.log("location.state.preloadedValue", location.state.preloadedValue);
+    var accprueba = obtenerAccionistaCompleto(location.state.preloadedValue);
+    console.log("location", accprueba);
+  }
   var [accionistaDefault, setAccionistaDefault] = useState({
-    id:"",
+    id: "",
     acc_decevale: "",
     acc_estado: 1,
     acc_tipo_identificacion: 0,
@@ -196,9 +198,9 @@ export default function PersonaNatural() {
     con_nombre: "",
     con_nacionalidad: 0,
     con_doc_identifcacion: "",
-    acc_telefonos1:"",
-    acc_telefonos2:"",
-    acc_telefonos3:"",
+    acc_telefonos1: "",
+    acc_telefonos2: "",
+    acc_telefonos3: "",
     acc_obs_telefonos1: "",
     acc_obs_telefonos2: "",
     acc_obs_telefonos3: "",
@@ -208,108 +210,35 @@ export default function PersonaNatural() {
   });
   //Metodos
   const asignarValores = (event) => {
-    console.log("value: ", event.target.value);
-    console.log("name: ", event.target.name);
     setAccionistaGlobal({ ...accionistaGlobal, [event.target.name]: event.target.value });
-    console.log("accionistaGlobal: ", accionistaGlobal);
   };
 
   const asignarValoresEnteros = (event) => {
-    console.log("value: ", event.target.value);
-    console.log("Name: ", event.target.name);
     setAccionistaGlobal({ ...accionistaGlobal, [event.target.name]: parseInt(event.target.value) });
   };
 
   const crearCadenas = (name) => {
-    var aux="";
-    if(accionistaGlobal[name+"1"]) aux=accionistaGlobal[name+"1"];
-    if(accionistaGlobal[name+"2"]) aux=aux+"&"+accionistaGlobal[name+"2"];
-    if(accionistaGlobal[name+"3"]) aux=aux+"&"+accionistaGlobal[name+"3"];
-    accionistaGlobal[name]=aux;
+    var aux = "";
+    if (accionistaGlobal[name + "1"]) aux = accionistaGlobal[name + "1"];
+    if (accionistaGlobal[name + "2"]) aux = aux + "&" + accionistaGlobal[name + "2"];
+    if (accionistaGlobal[name + "3"]) aux = aux + "&" + accionistaGlobal[name + "3"];
+    accionistaGlobal[name] = aux;
   }
 
-  function verificarCamposVacios () {
-    var result=true;
+  function verificarCamposVacios() {
+    var result = true;
     let claves = ["acc_decevale", "acc_identificacion", "pn_primer_nombre", "pn_apellido_paterno"];
-    for(let i=0; i< claves.length; i++){
-      if (accionistaGlobal[claves[i]]) result=false;
+    for (let i = 0; i < claves.length; i++) {
+      if (accionistaGlobal[claves[i]]) result = false;
     }
-    if (accionistaGlobal.pn_estado_civil==1 || accionistaGlobal.pn_estado_civil==2) {
+    if (accionistaGlobal.pn_estado_civil == 1 || accionistaGlobal.pn_estado_civil == 2) {
       claves = ["con_tipo_identificacion", "con_identificacion", "con_nombre", "con_nacionalidad"];
-      for(let i=0; i< claves.length; i++){
-        if (accionistaGlobal[claves[i]]) result=false;
+      for (let i = 0; i < claves.length; i++) {
+        if (accionistaGlobal[claves[i]]) result = false;
       }
     }
     return result;
   }
-
-  //aqui solo me manda la informacion en location
-  const location = useLocation();
-  
-  const { preloadedValue } = location.state ? {
-    preloadedValue:
-    {
-      id: location.state.preloadedValue.id,/*
-      acc_decevale: accionistaMap.acc_decevale,
-      acc_estado: accionistaMap.acc_estado,*/
-      acc_tipo_identificacion: location.state.preloadedValue.tipoIdentificacion,
-      acc_identificacion: location.state.preloadedValue.identificacion,/*
-      acc_nacionalidad: accionistaMap.acc_nacionalidad,
-      acc_residencia: accionistaMap.acc_residencia,
-      acc_pais: accionistaMap.acc_pais,
-      acc_provincia: accionistaMap.acc_provincia,
-      acc_ciudad: accionistaMap.acc_ciudad,
-      acc_direccion: accionistaMap.acc_direccion,
-      acc_dir_numero: accionistaMap.acc_dir_numero,
-      acc_banco: accionistaMap.acc_banco,
-      acc_tipo_cuenta: accionistaMap.acc_tipo_cuenta,
-      acc_cuenta_bancaria: accionistaMap.acc_cuenta_bancaria,
-      acc_doc_certificado_bancario: accionistaMap.acc_doc_certificado_bancario,
-      acc_doc_actualizacion_datos: accionistaMap.acc_doc_actualizacion_datos,
-      acc_doc_uso_datos: accionistaMap.acc_doc_uso_datos,
-      acc_doc_posesion_efectiva: accionistaMap.acc_doc_posesion_efectiva,
-      acc_telefonos: accionistaMap.acc_telefonos,
-      acc_obs_telefonos: accionistaMap.acc_obs_telefonos,
-      acc_correos: accionistaMap.acc_correos,
-      acc_cantidad_acciones: accionistaMap.acc_cantidad_acciones,
-      acc_participacion: accionistaMap.acc_participacion,
-      acc_tipo_acciones: accionistaMap.acc_tipo_acciones,
-      acc_tipo_persona: accionistaMap.acc_tipo_persona,*/
-/*
-      tipoIdentificacion: tipoIdentificacion.find(o => o.label === location.state.preloadedValue.tipoIdentificacion).value,
-      identificacion: location.state.preloadedValue.identificacion,
-      decevale: location.state.preloadedValue.decevale,
-      apellidoMaterno: location.state.preloadedValue.pn_apellidoMaterno,
-      apellidoPaterno: location.state.preloadedValue.pn_apellidoPaterno,
-      banco: banco.find(o => o.label === location.state.preloadedValue.nombreBanco) ? banco.find(o => o.label === location.state.preloadedValue.nombreBanco).value : '1',
-      calle: location.state.preloadedValue.direccionCalle,
-      ciudadDireccion: ciudad.find(o => o.label === location.state.preloadedValue.direccionCiudad) ? ciudad.find(o => o.label === location.state.preloadedValue.direccionCiudad).value : '1',
-      cuenta: location.state.preloadedValue.cuentaBancaria,
-      email: location.state.preloadedValue.email1,
-      estadoCivil: estadoCivil.find(o => o.label === location.state.preloadedValue.pn_estadoCivil) ? estadoCivil.find(o => o.label === location.state.preloadedValue.pn_estadoCivil).value : '1',
-      nacionalidad: nacionalidad.find(o => o.label === location.state.preloadedValue.paisNacionalidad) ? nacionalidad.find(o => o.label === location.state.preloadedValue.paisNacionalidad).value : '1',
-      cantidadAcciones: location.state.preloadedValue.cantidadAcciones,
-      numero: location.state.preloadedValue.direccionNumero,
-      paisBanco: pais.find(o => o.label === location.state.preloadedValue.paisNacionalidad) ? pais.find(o => o.label === location.state.preloadedValue.paisNacionalidad).value : '1',
-      paisDireccion: pais.find(o => o.label === location.state.preloadedValue.direccionPais) ? pais.find(o => o.label === location.state.preloadedValue.direccionPais).value : '1',
-      pn_primerNombre: location.state.preloadedValue.pn_primerNombre,
-      provinciaDireccion: provincia.find(o => o.label === location.state.preloadedValue.direccionProvincia) ? provincia.find(o => o.label === location.state.preloadedValue.direccionProvincia).value : '1',
-      segundoNombre: location.state.preloadedValue.pn_segundoNombre,
-      telefono: location.state.preloadedValue.telefono1,
-      tipoCuenta: tipoCuenta.find(o => o.label === location.state.preloadedValue.tipoCuenta) ? tipoCuenta.find(o => o.label === location.state.preloadedValue.tipoCuenta).value : '1',
-      tipoIdentificacionConyugue: tipoIdentificacion.find(o => o.label === location.state.preloadedValue.conyugue_tipoIdentificacion) ? tipoIdentificacion.find(o => o.label === location.state.preloadedValue.conyugue_tipoIdentificacion).value : '1',
-      identificacionConyugue: location.state.preloadedValue.conyugue_identificacion,
-      nacionalidadConyugue: nacionalidad.find(o => o.label === location.state.preloadedValue.conyugue_nacionalidad) ? nacionalidad.find(o => o.label === location.state.preloadedValue.conyugue_nacionalidad).value : '1',
-      nombreConyugue: location.state.preloadedValue.conyugue_nombre,
-      observacionTelefono: location.state.preloadedValue.obs1,
-      docIdentidadPrincipal: location.state.preloadedValue.docIdentidadPrincipal,
-      docCertificadoBancario: location.state.preloadedValue.docCertificadoBancario,
-      docIdentidadConyugue: location.state.preloadedValue.docIdentidadConyugue,
-      docPosesionEfectiva: location.state.preloadedValue.docPosesionEfectiva,
-*/
-    }
-  } : {};
-
 
   const classes = useStyles();
   const [countTelef, setCountTelef] = useState(1);
@@ -328,7 +257,7 @@ export default function PersonaNatural() {
   const [openSnack, setOpenSnack] = useState(false);
   const [openSnackDanger, setOpenSnackDanger] = useState(false);
 
-  const { handleSubmit, reset, control } = useForm({ accionistaDefault: location.state ? preloadedValue : {} });
+  //const { handleSubmit, reset, control } = useForm({ accionistaDefault: location.state ? accionistaDefault : {} });
 
   //location.state ? setFormData({ ...formData, docIdentidadPrincipal: location.state.preloadedValue.docIdentidadPrincipal }) :
   //setFormData({ ...formData, docIdentidadPrincipal: '', docCertificadoBancario: '', docIdentidadConyugue: '' });
@@ -336,10 +265,10 @@ export default function PersonaNatural() {
 
   const onSubmit = (data) => {
     console.log('onsubmit data', data);
-    console.log("accionistaGlobal",accionistaGlobal);
-    console.log("formdata",formData);
+    console.log("accionistaGlobal", accionistaGlobal);
+    console.log("formdata", formData);
     addAccionista(accionistaGlobal);
-    console.log("accionistaGlobal",accionistaGlobal);
+    console.log("accionistaGlobal", accionistaGlobal);
     //data.id ? editAccionista(data.id, accionista) : addAccionista(accionista);
   }
 
@@ -393,7 +322,7 @@ export default function PersonaNatural() {
       crearCadenas("acc_obs_telefonos");
       crearCadenas("acc_correos");
       var accionistaAux = {
-        id:accionista.acc_identificacion,
+        id: accionista.acc_identificacion,
         acc_decevale: accionista.acc_decevale,
         acc_estado: 2,
         acc_tipo_identificacion: accionista.acc_tipo_identificacion == null ? 0 : accionista.acc_tipo_identificacion,
@@ -419,11 +348,11 @@ export default function PersonaNatural() {
         acc_participacion: 0,
         acc_tipo_acciones: accionista.acc_tipo_acciones == null ? 1 : accionista.acc_tipo_acciones,
         acc_tipo_persona: 0,
-        acc_nombre_completo: accionista.pn_primer_nombre + ' ' +accionista.pn_segundo_nombre
-        + ' ' + accionista.pn_apellido_paterno + ' ' + accionista.pn_apellido_materno
+        acc_nombre_completo: accionista.pn_primer_nombre + ' ' + accionista.pn_segundo_nombre
+          + ' ' + accionista.pn_apellido_paterno + ' ' + accionista.pn_apellido_materno
       };
       var personaNaturalAux = {
-        id:accionista.acc_identificacion,
+        id: accionista.acc_identificacion,
         pn_primer_nombre: accionista.pn_primer_nombre,
         pn_segundo_nombre: accionista.pn_segundo_nombre,
         pn_apellido_paterno: accionista.pn_apellido_paterno,
@@ -432,22 +361,22 @@ export default function PersonaNatural() {
         pn_doc_identificacion: accionista.pn_doc_identificacion
       };
       var conyugeAux = {
-        id:accionista.acc_identificacion,
+        id: accionista.acc_identificacion,
         con_tipo_identificacion: accionista.con_tipo_identificacion,
         con_identificacion: accionista.con_identificacion,
         con_nombre: accionista.con_nombre,
         con_nacionalidad: accionista.con_nacionalidad,
         con_doc_identifcacion: accionista.con_doc_identifcacion
       };
-      console.log("AccionistaAux: ",accionistaAux);
-      console.log("personaNaturalAux: ",personaNaturalAux);
-      console.log("conyugeAux: ",conyugeAux);
+      console.log("AccionistaAux: ", accionistaAux);
+      console.log("personaNaturalAux: ", personaNaturalAux);
+      console.log("conyugeAux: ", conyugeAux);
       const accionistaIdNew = await API.graphql(graphqlOperation(createAccionista, { input: accionistaAux }));
-      console.log("accionistaIdNew: ",accionistaIdNew);
-      personaNaturalAux.id=accionistaIdNew.data.createAccionista.id;
+      console.log("accionistaIdNew: ", accionistaIdNew);
+      personaNaturalAux.id = accionistaIdNew.data.createAccionista.id;
       const personaNaturalIdNew = await API.graphql(graphqlOperation(createPersonaNatural, { input: personaNaturalAux }));
-      if (personaNaturalAux.pn_estado_civil==1 || personaNaturalAux.pn_estado_civil==2) {
-        conyugeAux.id=personaNaturalIdNew.data.createPersonaNatural.id;
+      if (personaNaturalAux.pn_estado_civil == 1 || personaNaturalAux.pn_estado_civil == 2) {
+        conyugeAux.id = personaNaturalIdNew.data.createPersonaNatural.id;
         await API.graphql(graphqlOperation(createConyuge, { input: conyugeAux }));
       }
       limpiarForm();
@@ -532,7 +461,7 @@ export default function PersonaNatural() {
 
       console.log('respuesta:', operID)
       setFormData({ docIdentidadPrincipal: '', docCertificadoBancario: '', docIdentidadConyugue: '', docPosesionEfectiva: '' })
-      
+
       setOpenSnack(true)
     } catch (err) {
       console.log('error updating accionista:', err)
@@ -550,7 +479,7 @@ export default function PersonaNatural() {
   const eliminarAccionista = async () => {
     const apiDataUpdateAccionista = await API.graphql({ query: updateAccionista, variables: { input: { id: location.state.preloadedValue.id, estado: 'Eliminado' } } });
     setFormData({ docIdentidadPrincipal: '', docCertificadoBancario: '', docIdentidadConyugue: '', docPosesionEfectiva: '' })
-    
+
   }
 
   const onChangeEstadoCivil = (e) => {
@@ -873,60 +802,60 @@ export default function PersonaNatural() {
                 </div>
                 <div className={classes.formSection}>
                   <TextField
-                  id="acc_telefonos1"
-                  name='acc_telefonos1'
-                  onChange={asignarValores} 
-                  value={accionistaGlobal.acc_telefonos1} 
-                  label={"Teléfono"} 
-                  variant='outlined' 
-                  style={{ minWidth: 130 }}/>
+                    id="acc_telefonos1"
+                    name='acc_telefonos1'
+                    onChange={asignarValores}
+                    value={accionistaGlobal.acc_telefonos1}
+                    label={"Teléfono"}
+                    variant='outlined'
+                    style={{ minWidth: 130 }} />
                   <TextField
-                  id="acc_obs_telefonos1"
-                  name='acc_obs_telefonos1'
-                  onChange={asignarValores} 
-                  value={accionistaGlobal.acc_obs_telefonos1} 
-                  label={"Observación"} 
-                  variant='outlined' 
-                  fullWidth/>
+                    id="acc_obs_telefonos1"
+                    name='acc_obs_telefonos1'
+                    onChange={asignarValores}
+                    value={accionistaGlobal.acc_obs_telefonos1}
+                    label={"Observación"}
+                    variant='outlined'
+                    fullWidth />
                 </div>
                 {countTelef > 1 &&
                   <div className={classes.formSection}>
                     <TextField
-                    id="acc_telefonos2"
-                    name='acc_telefonos2'
-                    onChange={asignarValores} 
-                    value={accionistaGlobal.acc_telefonos2} 
-                    label={"Teléfono Aux"} 
-                    variant='outlined' 
-                    style={{ minWidth: 130 }}/>
+                      id="acc_telefonos2"
+                      name='acc_telefonos2'
+                      onChange={asignarValores}
+                      value={accionistaGlobal.acc_telefonos2}
+                      label={"Teléfono Aux"}
+                      variant='outlined'
+                      style={{ minWidth: 130 }} />
                     <TextField
-                    id="acc_obs_telefonos2"
-                    name='acc_obs_telefonos2'
-                    onChange={asignarValores} 
-                    value={accionistaGlobal.acc_obs_telefonos2} 
-                    label={"Observación Aux"} 
-                    variant='outlined' 
-                    fullWidth/>
+                      id="acc_obs_telefonos2"
+                      name='acc_obs_telefonos2'
+                      onChange={asignarValores}
+                      value={accionistaGlobal.acc_obs_telefonos2}
+                      label={"Observación Aux"}
+                      variant='outlined'
+                      fullWidth />
                   </div>
                 }
                 {countTelef > 2 &&
                   <div className={classes.formSection}>
                     <TextField
-                    id="acc_telefonos3"
-                    name='acc_telefonos3'
-                    onChange={asignarValores} 
-                    value={accionistaGlobal.acc_telefonos3} 
-                    label={"Teléfono Aux"} 
-                    variant='outlined' 
-                    style={{ minWidth: 130 }}/>
+                      id="acc_telefonos3"
+                      name='acc_telefonos3'
+                      onChange={asignarValores}
+                      value={accionistaGlobal.acc_telefonos3}
+                      label={"Teléfono Aux"}
+                      variant='outlined'
+                      style={{ minWidth: 130 }} />
                     <TextField
-                    id="acc_obs_telefonos3"
-                    name='acc_obs_telefonos3'
-                    onChange={asignarValores} 
-                    value={accionistaGlobal.acc_obs_telefonos3} 
-                    label={"Observación Aux"} 
-                    variant='outlined' 
-                    fullWidth/>
+                      id="acc_obs_telefonos3"
+                      name='acc_obs_telefonos3'
+                      onChange={asignarValores}
+                      value={accionistaGlobal.acc_obs_telefonos3}
+                      label={"Observación Aux"}
+                      variant='outlined'
+                      fullWidth />
                   </div>
                 }
                 <div>
@@ -938,33 +867,33 @@ export default function PersonaNatural() {
                   <TextField
                     id="acc_correos1"
                     name='acc_correos1'
-                    onChange={asignarValores} 
-                    value={accionistaGlobal.acc_correos1} 
-                    label={"Correo Principal"} 
-                    variant='outlined' 
+                    onChange={asignarValores}
+                    value={accionistaGlobal.acc_correos1}
+                    label={"Correo Principal"}
+                    variant='outlined'
                     type='email'
-                    fullWidth/>
+                    fullWidth />
                   {countEmail > 1 &&
                     <TextField
-                    id="acc_correos2"
-                    name='acc_correos2'
-                    onChange={asignarValores} 
-                    value={accionistaGlobal.acc_correos2} 
-                    label={"Correo Auxiliar"} 
-                    variant='outlined' 
-                    type='email'
-                    fullWidth/>
+                      id="acc_correos2"
+                      name='acc_correos2'
+                      onChange={asignarValores}
+                      value={accionistaGlobal.acc_correos2}
+                      label={"Correo Auxiliar"}
+                      variant='outlined'
+                      type='email'
+                      fullWidth />
                   }
                   {countEmail > 2 &&
                     <TextField
-                    id="acc_correos3"
-                    name='acc_correos3'
-                    onChange={asignarValores} 
-                    value={accionistaGlobal.acc_correos3} 
-                    label={"Correo Auxiliar"} 
-                    variant='outlined' 
-                    type='email'
-                    fullWidth/>
+                      id="acc_correos3"
+                      name='acc_correos3'
+                      onChange={asignarValores}
+                      value={accionistaGlobal.acc_correos3}
+                      label={"Correo Auxiliar"}
+                      variant='outlined'
+                      type='email'
+                      fullWidth />
                   }
                   <div>
                     <IconButton color='primary' onClick={() => setCountEmail(countEmail + 1)} disabled={countEmail === 3 ? true : false}><ControlPointIcon /></IconButton>
@@ -1046,146 +975,17 @@ export default function PersonaNatural() {
               <div>
                 {checked && countHerederos > 0 &&
                   <div style={{ display: 'flex', flexDirection: 'row', justifyContent: 'space-evenly', alignItems: 'center', }}>
-                    <Controller
-                    name={"cedula"}
-                    control={control}
-                    render={({ field: { onChange, value } }) => (
-                      <TextField size='small' onChange={onChange} value={value} label={"Identificación"} variant='outlined' fullWidth margin='dense' style={{ marginRight: '15px' }} />
-                    )} />
-                    <Controller
-                      name={"nombreBeneficiario1"}
-                      control={control}
-                      render={({ field: { onChange, value } }) => (
-                        <TextField size='small' onChange={onChange} value={value} label={"Nombre Heredero"} variant='outlined' fullWidth margin='dense' style={{ marginRight: '15px' }} />
-                      )} />
+                    
                   </div>
                 }
                 {countHerederos > 1 &&
                   <div style={{ display: 'flex', flexDirection: 'row', justifyContent: 'space-evenly', alignItems: 'center', }}>
-                    <Controller
-                      name={"nombreBeneficiario2"}
-                      control={control}
-                      render={({ field: { onChange, value } }) => (
-                        <TextField size='small' onChange={onChange} value={value} label={"Nombre Heredero 2"} variant='outlined' fullWidth margin='dense' style={{ marginRight: '15px' }} />
-                      )} />
-                    <Controller
-                      name={"fechaBeneficiario2"}
-                      control={control}
-                      render={({ field: { onChange, value } }) => (
-                        <TextField size='small' onChange={onChange} defaultValue={Date.now()} value={value} label="Fecha Carga" variant="standard" id="datetime-local2" type="date" style={{ width: '140px' }} InputLabelProps={{ shrink: true, }} />
-                      )} />
+                    
                   </div>
                 }
                 {countHerederos > 2 &&
                   <div style={{ display: 'flex', flexDirection: 'row', justifyContent: 'space-evenly', alignItems: 'center', }}>
-                    <Controller
-                      name={"nombreBeneficiario3"}
-                      control={control}
-                      render={({ field: { onChange, value } }) => (
-                        <TextField size='small' onChange={onChange} value={value} label={"Nombre Heredero 3"} variant='outlined' fullWidth margin='dense' style={{ marginRight: '15px' }} />
-                      )} />
-                    <Controller
-                      name={"fechaBeneficiario3"}
-                      control={control}
-                      render={({ field: { onChange, value } }) => (
-                        <TextField size='small' onChange={onChange} defaultValue={Date.now()} value={value} label="Fecha Carga" variant="standard" id="datetime-local3" type="date" style={{ width: '140px' }} InputLabelProps={{ shrink: true, }} />
-                      )} />
-                  </div>
-                }
-                {countHerederos > 3 &&
-                  <div style={{ display: 'flex', flexDirection: 'row', justifyContent: 'space-evenly', alignItems: 'center', }}>
-                    <Controller
-                      name={"nombreBeneficiario4"}
-                      control={control}
-                      render={({ field: { onChange, value } }) => (
-                        <TextField size='small' onChange={onChange} value={value} label={"Nombre Heredero 4"} variant='outlined' fullWidth margin='dense' style={{ marginRight: '15px' }} />
-                      )} />
-                    <Controller
-                      name={"fechaBeneficiario4"}
-                      control={control}
-                      render={({ field: { onChange, value } }) => (
-                        <TextField size='small' onChange={onChange} defaultValue={Date.now()} value={value} label="Fecha Carga" variant="standard" id="datetime-local4" type="date" style={{ width: '140px' }} InputLabelProps={{ shrink: true, }} />
-                      )} />
-                  </div>
-                }
-                {countHerederos > 4 &&
-                  <div style={{ display: 'flex', flexDirection: 'row', justifyContent: 'space-evenly', alignItems: 'center', }}>
-                    <Controller
-                      name={"nombreBeneficiario5"}
-                      control={control}
-                      render={({ field: { onChange, value } }) => (
-                        <TextField size='small' onChange={onChange} value={value} label={"Nombre Heredero 5"} variant='outlined' fullWidth margin='dense' style={{ marginRight: '15px' }} />
-                      )} />
-                    <Controller
-                      name={"fechaBeneficiario5"}
-                      control={control}
-                      render={({ field: { onChange, value } }) => (
-                        <TextField size='small' onChange={onChange} defaultValue={Date.now()} value={value} label="Fecha Carga" variant="standard" id="datetime-local5" type="date" style={{ width: '140px' }} InputLabelProps={{ shrink: true, }} />
-                      )} />
-                  </div>
-                }
-                {countHerederos > 5 &&
-                  <div style={{ display: 'flex', flexDirection: 'row', justifyContent: 'space-evenly', alignItems: 'center', }}>
-                    <Controller
-                      name={"nombreBeneficiario6"}
-                      control={control}
-                      render={({ field: { onChange, value } }) => (
-                        <TextField size='small' onChange={onChange} value={value} label={"Nombre Heredero 6"} variant='outlined' fullWidth margin='dense' style={{ marginRight: '15px' }} />
-                      )} />
-                    <Controller
-                      name={"fechaBeneficiario6"}
-                      control={control}
-                      render={({ field: { onChange, value } }) => (
-                        <TextField size='small' onChange={onChange} defaultValue={Date.now()} value={value} label="Fecha Carga" variant="standard" id="datetime-local6" type="date" style={{ width: '140px' }} InputLabelProps={{ shrink: true, }} />
-                      )} />
-                  </div>
-                }
-                {countHerederos > 6 &&
-                  <div style={{ display: 'flex', flexDirection: 'row', justifyContent: 'space-evenly', alignItems: 'center', }}>
-                    <Controller
-                      name={"nombreBeneficiario7"}
-                      control={control}
-                      render={({ field: { onChange, value } }) => (
-                        <TextField size='small' onChange={onChange} value={value} label={"Nombre Heredero 7"} variant='outlined' fullWidth margin='dense' style={{ marginRight: '15px' }} />
-                      )} />
-                    <Controller
-                      name={"fechaBeneficiario7"}
-                      control={control}
-                      render={({ field: { onChange, value } }) => (
-                        <TextField size='small' onChange={onChange} defaultValue={Date.now()} value={value} label="Fecha Carga" variant="standard" id="datetime-local7" type="date" style={{ width: '140px' }} InputLabelProps={{ shrink: true, }} />
-                      )} />
-                  </div>
-                }
-                {countHerederos > 7 &&
-                  <div style={{ display: 'flex', flexDirection: 'row', justifyContent: 'space-evenly', alignItems: 'center', }}>
-                    <Controller
-                      name={"nombreBeneficiario8"}
-                      control={control}
-                      render={({ field: { onChange, value } }) => (
-                        <TextField size='small' onChange={onChange} value={value} label={"Nombre Heredero 8"} variant='outlined' fullWidth margin='dense' style={{ marginRight: '15px' }} />
-                      )} />
-                    <Controller
-                      name={"fechaBeneficiario8"}
-                      control={control}
-                      render={({ field: { onChange, value } }) => (
-                        <TextField size='small' onChange={onChange} defaultValue={Date.now()} value={value} label="Fecha Carga" variant="standard" id="datetime-local8" type="date" style={{ width: '140px' }} InputLabelProps={{ shrink: true, }} />
-                      )} />
-                  </div>
-                }
-                {countHerederos > 8 &&
-                  <div style={{ display: 'flex', flexDirection: 'row', justifyContent: 'space-evenly', alignItems: 'center', }}>
-                    <Controller
-                      name={"nombreBeneficiario9"}
-                      control={control}
-                      render={({ field: { onChange, value } }) => (
-                        <TextField size='small' onChange={onChange} value={value} label={"Nombre Heredero 9"} variant='outlined' fullWidth margin='dense' style={{ marginRight: '15px' }} />
-                      )} />
-                    <Controller
-                      name={"fechaBeneficiario9"}
-                      control={control}
-                      render={({ field: { onChange, value } }) => (
-                        <TextField size='small' onChange={onChange} defaultValue={Date.now()} value={value} label="Fecha Carga" variant="standard" id="datetime-local9" type="date" style={{ width: '140px' }} InputLabelProps={{ shrink: true, }} />
-                      )} />
+                    
                   </div>
                 }
                 {checked &&
@@ -1201,7 +1001,7 @@ export default function PersonaNatural() {
         <Divider className={classes.divider} />
         <div className={classes.formSectionEnd}>
           <Button size='small' onClick={limpiarForm} style={{ textTransform: 'none' }} color='primary'>Limpiar</Button>
-          <Button siza='small' onClick={handleSubmit(onSubmit)} variant='contained' color='primary' style={{ textTransform: 'none' }}>{location.state ? "Actualizar Accionista" : "Registrar Accionista"}</Button>
+          <Button siza='small' onClick={onSubmit} variant='contained' color='primary' style={{ textTransform: 'none' }}>{location.state ? "Actualizar Accionista" : "Registrar Accionista"}</Button>
           {location.state ? (location.state.preloadedValue.cantidadAcciones === 0 || location.state.preloadedValue.cantidadAcciones === null || location.state.preloadedValue.cantidadAcciones === undefined) && <Button siza='small' onClick={eliminarAccionista} variant='contained' color='secondary' style={{ textTransform: 'none' }}>Eliminar Accionista</Button> : null}
         </div>
         <Snackbar open={openSnack} autoHideDuration={6000} onClose={handleCloseSnack}>
