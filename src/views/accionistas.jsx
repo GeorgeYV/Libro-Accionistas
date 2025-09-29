@@ -37,8 +37,8 @@ import "jspdf-autotable";
 import QRcode from 'qrcode.react';
 import marco from '../images/Recurso 1.png';
 import fondoUnacem from '../images/Recurso 2.png';
-import logoSolo from '../images/Recurso 3.png';
-import logoCompleto from '../images/Recurso 4.png';
+import logoSolo from '../images/Unacem2.png';
+import logoCompleto from '../images/logoUNACEMmedMarco2.png';
 const defaultTheme = createTheme();
 const useStyles = makeStyles(
   (theme) => ({
@@ -707,7 +707,7 @@ export default function Accionistas() {
                 <Tab label="Documentos" {...a11yProps(1)} />
                 <Tab label="Títulos" {...a11yProps(2)} />
                 <Tab label="Operaciones" {...a11yProps(3)} />
-                <Tab label="Historial" {...a11yProps(4)} />
+                <Tab label="Certificado" {...a11yProps(4)} />
               </Tabs>
             </Box>
             <TabPanel value={value} index={0}>
