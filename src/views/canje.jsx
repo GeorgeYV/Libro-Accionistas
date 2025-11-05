@@ -96,6 +96,17 @@ export default function Canje() {
         acc_ope_detalle: "Canje"
       }
       await API.graphql(graphqlOperation(createAccionistaOperacion, { input: accionistaOperacion }));
+      const transferir = titulos.map(function (e) {
+        return { 
+          tit_ope_titulo_id: e.id, 
+          tit_ope_operacion_id: operacionIdNew.data.createOperacion.id, 
+          tit_ope_acciones: e.tit_acciones 
+        };
+      });
+      Promise.all(
+        transferir.map(input => API.graphql(graphqlOperation(createTituloPorOperacion, { input: input })))
+      );
+      console.log(accionistaOperacion, transferir);
       console.log('operacion:', operacion);
       console.log('accionistaOperacion:', accionistaOperacion);
       setTitulos([])
@@ -116,10 +127,10 @@ export default function Canje() {
   async function fetchAccionistas() {
     const filter = {
       acc_estado: {
-        eq: 1,
+        eq: 1
       },
       acc_tipo_acciones: {
-        eq: 0,
+        eq: 0
       },
     };
     const apiData = await API.graphql({ query: listAccionistas, variables: { filter: filter, limit: 1000 } });

@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import { useState, useEffect } from 'react';
 import {
   makeStyles, Paper, Divider, Grid, Typography, TextField, Button, withStyles, ListItem, ListItemText, ListSubheader, ListItemIcon,
   List, IconButton, Dialog, DialogActions, DialogContent, DialogContentText, DialogTitle, Checkbox, Snackbar, CircularProgress, Chip
@@ -6,10 +6,12 @@ import {
 import Autocomplete from '@material-ui/lab/Autocomplete';
 import { API, Storage, graphqlOperation, Auth } from 'aws-amplify';
 import { listAccionistas, listTitulos } from './../graphql/queries';
-import { createOperacion, createTituloPorOperacion, updateTitulo } from './../graphql/mutations';
+import { createAccionistaOperacion, createOperacion, createTituloPorOperacion } from './../graphql/mutations';
 import SaveIcon from '@material-ui/icons/Save';
-import CheckIcon from '@material-ui/icons/Check';
 import MuiAlert from '@material-ui/lab/Alert';
+import CloudUploadOutlinedIcon from '@material-ui/icons/CloudUploadOutlined';
+import DeleteOutlineIcon from '@material-ui/icons/DeleteOutline';
+import VisibilityIcon from '@material-ui/icons/Visibility';
 import { uuid } from 'uuidv4';
 function Alert(props) {
   return <MuiAlert elevation={6} variant="filled" {...props} />;
@@ -44,11 +46,11 @@ const useStyles = makeStyles((theme) => ({
 }));
 const today = new Date();
 const fecha = today.getDate() + '-' + (today.getMonth() + 1) + '-' + today.getFullYear();
-export default function Donacion() {
-  const [userName, setUserName] = useState("");
+export default function Cesion() {
   const classes = useStyles();
+  const [userName, setUserName] = useState("");
   const [formData, setFormData] = useState({
-    fecha: fecha, operacion: 'Donación',
+    fecha: fecha, operacion: 'Cesión',
     idCedente: '', cedente: '', idCesionario: '', cesionario: '',
     titulo: '', acciones: 0,
     estado: 'Pendiente', usuarioIngreso: '', usuarioAprobador: '',
@@ -59,11 +61,14 @@ export default function Donacion() {
   const [total, setTotal] = useState(0);
   const [checked, setChecked] = useState([0]);
   const [openTitulos, setOpenTitulos] = useState(false);
-  const [accionistas, setAccionistas] = useState([])
+  const [accionistas, setAccionistas] = useState([]);
+  var [listCesionarios, setListCesionarios] = useState([]);
+  var [listCedentes, setListCedentes] = useState([]);
   const [titulos, setTitulos] = useState([])
   const [titulosSelectos, setTitulosSelectos] = useState([])
   const [titulosPorOper, settitulosPorOper] = useState([])
   const [openSnack, setOpenSnack] = useState(false);
+  const [openSnackDanger, setOpenSnackDanger] = useState(false);
   const [circular, setCircular] = useState(false);
   const [cesionMayorCantidad, setCesionMayorCantidad] = useState(false);
   const handleToggle = (value) => () => {
@@ -78,80 +83,123 @@ export default function Donacion() {
   };
   const addOperacion = async () => {
     try {
-      if (!formData.cedente || !formData.cesionario) return
+      if (!valCedente || !valCesionario) {
+        setOpenSnackDanger(true);
+        return;
+      }
       setCircular(true);
-      const operacion = { ...formData }
-      setFormData({ fecha: fecha, operacion: 'Donación', idCedente: '', cedente: '', idCesionario: '', cesionario: 'JY', titulo: '', acciones: '', estado: 'Pendiente', usuarioIngreso: '', usuarioAprobador: '', cs: '', cg: '', ci: '', es: '', cp: '' })
-      const operID = await API.graphql(graphqlOperation(createOperacion, { input: operacion }))
-      const transferir = titulosPorOper.map(function (e) {
-        return { operacionID: operID.data.createOperacion.id, tituloId: e.tituloId, titulo: e.titulo, acciones: e.acciones, accionesTransferidas: e.accionesTransferidas, desde: e.desde, hasta: e.hasta };
-      })
-      console.log("grabar acciones", transferir)
+      const operacion = {
+        ope_fecha: fecha,
+        ope_tipo: 5,
+        ope_acciones: total,
+        ope_estado: 0,
+        ope_ingresador: userName,
+        ope_aprobador: "",
+        ope_fecha_aprobacion: "",
+        ope_motivo_rechazo: -1,
+        ope_observacion: "",
+        ope_documento: ""
+      }
+      var operacionIdNew = await API.graphql(graphqlOperation(createOperacion, { input: operacion }));
+      var accionistaOperacion = {
+        acc_ope_operacion_id: operacionIdNew.data.createOperacion.id,
+        acc_ope_accionista_id: valCedente.id,
+        acc_ope_detalle: "Cedente"
+      }
+      console.log(operacion, accionistaOperacion);
+      await API.graphql(graphqlOperation(createAccionistaOperacion, { input: accionistaOperacion }));
+      accionistaOperacion = {
+        acc_ope_operacion_id: operacionIdNew.data.createOperacion.id,
+        acc_ope_accionista_id: valCesionario.id,
+        acc_ope_detalle: "Cesionario"
+      }
+      await API.graphql(graphqlOperation(createAccionistaOperacion, { input: accionistaOperacion }));
+      const transferir = titulosSelectos.map(function (e) {
+        return {
+          tit_ope_titulo_id: e.id,
+          tit_ope_operacion_id: operacionIdNew.data.createOperacion.id,
+          tit_ope_acciones: e.tit_acciones
+        };
+      });
       Promise.all(
         transferir.map(input => API.graphql(graphqlOperation(createTituloPorOperacion, { input: input })))
-      ).then(values => {
-        setOpenSnack(true)
-        setChecked([])
-        setTitulos([])
-        setTitulosSelectos([])
-        settitulosPorOper([])
-        setTotal(0)
-        setValCedente({})
-        setValCesionario({})
-      });
-      //Bloquear lo titulos
-      Promise.all(
-        transferir.map(input => API.graphql({ query: updateTitulo, variables: { input: { id: input.tituloId, estado: 'Bloqueado' } } }))
       );
+      console.log(accionistaOperacion, transferir);
+      setChecked([])
+      setTitulos([])
+      setTitulosSelectos([])
+      settitulosPorOper([])
+      setTotal(0)
+      setValCedente({})
+      setValCesionario({})
       setCircular(false);
+      setOpenSnack(true);
     } catch (err) {
       console.log('error creating transaction:', err)
     }
   }
   useEffect(() => {
-    fetchAccionistas();
+    fetchAccionistas(1);
     let user = Auth.user;
     setUserName(user.username);
   }, [])
-  async function fetchAccionistas() {
-    const filter = {
-      estado: {
-        ne: 'Inactivo'
+  async function fetchAccionistas(estadoAcc) {
+    const filtro = {
+      acc_estado: {
+        eq: estadoAcc
       }
     };
-    const apiData = await API.graphql({ query: listAccionistas, variables: { filter: filter, limit: 1000 } });
+    console.log("filtrooo:", filtro);
+    const apiData = await API.graphql({ query: listAccionistas, variables: { filter: filtro, limit: 1000 } });
     const accionistasFromAPI = apiData.data.listAccionistas.items;
     setAccionistas(accionistasFromAPI);
+    console.log("filtrooo:", accionistasFromAPI);
+    setListCedentes(accionistasFromAPI.map(function (e) {
+      return {
+        id: e.id,
+        acc_nombre_completo: e.acc_nombre_completo
+      };
+    }));
+    setListCesionarios(accionistasFromAPI.map(function (e) {
+      return {
+        id: e.id,
+        acc_nombre_completo: e.acc_nombre_completo
+      };
+    }));
   }
   async function fetchTitulos(cedente) {
     const filter = {
-      accionistaID: {
-        eq: cedente // filter priority = 1
+      tit_accionista_id: {
+        eq: cedente
       },
-      estado: {
-        eq: 'Activo'
+      tit_estado: {
+        eq: 1
       }
     };
     const apiData = await API.graphql({ query: listTitulos, variables: { filter: filter, limit: 1000 } });
     const titulosFromAPI = apiData.data.listTitulos.items;
-    //await Promise.all(titulosFromAPI.map(async titulos => {
-    //return titulos;
-    //}))
-    console.log('busca titulos cedente', titulosFromAPI)
     setTitulos(titulosFromAPI);
   }
   const handleClickCedente = (option, value) => {
     if (value) {
-      setValCedente(value)
-      setFormData({ ...formData, 'idCedente': value.id, 'cedente': value.nombre, 'usuarioIngreso': userName })
+      setValCedente(value);
+      var aux;
+      aux = listCesionarios.findIndex(x => x.id === value.id);
+      console.log("aux", aux);
+      listCesionarios.splice(aux, 1);
+      //setFormData({ ...formData, 'idCedente': value.id, 'cedente': value.nombre2, 'usuarioIngreso': userName })
       fetchTitulos(value.id);
-      setChecked([])
-      setTitulosSelectos([])
-      settitulosPorOper([])
-      setTotal(0)
+      setChecked([]);
+      setTitulosSelectos([]);
+      settitulosPorOper([]);
+      setTotal(0);
     }
     else {
-      setFormData({ ...formData, 'idCedente': '', 'cedente': '' })
+      if (valCedente) {
+        console.log("valCedente", valCedente);
+        listCesionarios.push(valCedente);
+      }
+      //setFormData({ ...formData, 'idCedente': '', 'cedente': '' })
       setChecked([])
       setTitulos([])
       setTitulosSelectos([])
@@ -162,59 +210,64 @@ export default function Donacion() {
   }
   const handleClickCesionario = (option, value) => {
     if (value) {
-      setValCesionario(value)
-      setFormData({ ...formData, 'idCesionario': value.id, 'cesionario': value.nombre })
+      setValCesionario(value);
+      var aux;
+      aux = listCedentes.findIndex(x => x.id === value.id);
+      console.log("aux", aux);
+      listCedentes.splice(aux, 1);
+      //setFormData({ ...formData, 'idCesionario': value.id, 'cesionario': value.nombre2 })
     }
     else {
+      if (valCesionario) {
+        console.log("valCedente", valCesionario);
+        listCedentes.push(valCesionario);
+      }
       setValCesionario({})
-      setFormData({ ...formData, 'idCesionario': '', 'cesionario': '' })
+      //setFormData({ ...formData, 'idCesionario': '', 'cesionario': '' })
     }
   }
   const handleOpenTitulos = () => {
     setOpenTitulos(true);
   };
   const handleSeleccionarTitulos = () => {
-    //  var data = { records : [{ "empid": 1, "fname": "X", "lname": "Y" }, { "empid": 2, "fname": "A", "lname": "Y" }, { "empid": 3, "fname": "B", "lname": "Y" }, { "empid": 4, "fname": "C", "lname": "Y" }, { "empid": 5, "fname": "C", "lname": "Y" }] }
-    //var empIds = [1,4,5]
     var filteredTitulos = titulos.filter(function (itm) {
       return checked.indexOf(itm.id) > -1;
     });
-    //filteredTitulos = { records : filteredArray };
     setTitulosSelectos(filteredTitulos)
     console.log('filtrados', filteredTitulos)
     const tituloString = filteredTitulos.map(function (titulos) {
       return titulos.titulo;
     }).join(" | ");
-    //setFormData({ ...formData, 'titulo': tituloString })
     const sum = filteredTitulos.reduce(function (prev, current) {
       return prev + +current.acciones
     }, 0);
     setTotal(sum);
-    //setFormData({ ...formData, 'acciones': sum })
-    //  const transferir = filteredTitulos.map(function(e) {
-    //    return {operacionID: '', titulo : e.titulo, acciones: e.acciones, accionesTransferidas: e.accionesTransferidas} ;
-    //  })
-    //setFormDataTitulos({ ...formDataTitulos, 'titulos': transferir })
-    //setFormDataTitulos2({ ...formDataTitulos2,  transferir })
     setFormData({ ...formData, 'titulo': tituloString, 'acciones': sum })
     setOpenTitulos(false);
     const transferir = filteredTitulos.map(function (e) {
-      return { operacionID: e.operacionID, tituloId: e.id, titulo: e.titulo, acciones: e.acciones, accionesTransferidas: e.acciones, desde: e.desde, hasta: e.hasta };
+      return {
+        operacionID: e.operacionID,
+        tituloId: e.id,
+        titulo: e.titulo,
+        acciones: e.acciones,
+        accionesTransferidas: e.acciones,
+        desde: e.desde,
+        hasta: e.hasta
+      };
     })
     settitulosPorOper(transferir)
   };
-  /*
-  const handleInputAccionesChange = (e) => {
-    setTitulosSelectos({
-        [e.target.name]: e.target.value
-    });
-  }
-  */
   const handleCloseSnack = (event, reason) => {
     if (reason === 'clickaway') {
       return;
     }
     setOpenSnack(false);
+  };
+  const handleCloseSnackDanger = (event, reason) => {
+    if (reason === 'clickaway') {
+      return;
+    }
+    setOpenSnackDanger(false);
   };
   async function onChangeCS(e) {
     if (!e.target.files[0]) return
@@ -253,12 +306,19 @@ export default function Donacion() {
   }
   const handleChangeCantidad = (event, item) => {
     const cantidad = event.target.value.replace(/[^0-9]/g, '');
-    if (cantidad > item.acciones)
+    if (cantidad > item.tit_acciones)
       setCesionMayorCantidad(true)
     else
       setCesionMayorCantidad(false)
     const transferir = titulosPorOper.map(function (e) {
-      return { operacionID: e.operacionID, tituloId: e.tituloId, titulo: e.titulo, acciones: e.acciones, accionesTransferidas: e.titulo == item.titulo ? event.target.value : e.accionesTransferidas, desde: e.desde, hasta: e.hasta };
+      return {
+        operacionID: e.operacionID,
+        tituloId: e.tituloId,
+        titulo: e.titulo,
+        acciones: e.acciones,
+        accionesTransferidas: e.titulo == item.titulo ? event.target.value : e.accionesTransferidas,
+        desde: e.desde, hasta: e.hasta
+      };
     })
     settitulosPorOper(transferir)
     const sum = transferir.reduce(function (prev, current) {
@@ -266,31 +326,106 @@ export default function Donacion() {
     }, 0);
     setTotal(sum);
     setFormData({ ...formData, 'acciones': sum })
-    //console.log("titulos a transferir", event)
-    //console.log("titulos a transferir II", item)
+  };
+  async function eliminarDocumento(doc) {
+    setFormData({ ...formData, doc: '' })
+  }
+  const getPictureCS = e => {
+    e.stopPropagation();
+    Storage.get(formData.cs)
+      .then(url => {
+        var myRequest = new Request(url);
+        fetch(myRequest).then(function (response) {
+          if (response.status === 200) {
+            console.log("DOCUMENTOOOO CS", url);
+            //setImageCS(url);
+            window.open(url)
+          }
+        });
+      })
+      .catch(err => console.log(err));
+  };
+  const getPictureCG = e => {
+    e.stopPropagation();
+    Storage.get(formData.cg)
+      .then(url => {
+        var myRequest = new Request(url);
+        fetch(myRequest).then(function (response) {
+          if (response.status === 200) {
+            console.log("DOCUMENTOOOO CG", url.url);
+            //setImageCS(url);
+            window.open(url)
+          }
+        });
+      })
+      .catch(err => console.log(err));
+  };
+  const getPictureCI = e => {
+    e.stopPropagation();
+    Storage.get(formData.ci)
+      .then(url => {
+        var myRequest = new Request(url);
+        fetch(myRequest).then(function (response) {
+          if (response.status === 200) {
+            //setImageCS(url);
+            window.open(url)
+          }
+        });
+      })
+      .catch(err => console.log(err));
+  };
+  const getPictureES = e => {
+    e.stopPropagation();
+    Storage.get(formData.es)
+      .then(url => {
+        var myRequest = new Request(url);
+        fetch(myRequest).then(function (response) {
+          if (response.status === 200) {
+            //setImageCS(url);
+            window.open(url)
+          }
+        });
+      })
+      .catch(err => console.log(err));
+  };
+  const getPictureCP = e => {
+    e.stopPropagation();
+    Storage.get(formData.cp)
+      .then(url => {
+        var myRequest = new Request(url);
+        fetch(myRequest).then(function (response) {
+          if (response.status === 200) {
+            //setImageCS(url);
+            window.open(url)
+          }
+        });
+      })
+      .catch(err => console.log(err));
   };
   return (
     <main className={classes.content}>
       <div className={classes.appBarSpacer} />
       <Paper variant="outlined" className={classes.paper}>
-        <Dialog open={openTitulos} onClose={handleSeleccionarTitulos} aria-labelledby="form-dialog-title">
-          <DialogTitle id="form-dialog-title">Títulos de {formData.cedente}</DialogTitle>
+        <Dialog open={openTitulos} onClose={handleSeleccionarTitulos} aria-labelledby="form-dialog-title" maxWidth='lg' fullWidth='false'>
+          <DialogTitle id="form-dialog-title">Títulos de {valCedente.acc_nombre_completo}</DialogTitle>
           <DialogContent>
             <DialogContentText>
-              Seleccionar los títulos a transferir
+              Seleccionar los títulos a transferir:
             </DialogContentText>
             <List dense='true'
               subheader={
                 <ListSubheader component="div" id="nested-list-subheader">
-                  <Typography variant='caption'>
-                    F.Compra
-                  </Typography>
-                  <Typography variant='caption'>
-                    Título
-                  </Typography>
-                  <Typography variant='caption'>
-                    Cantidad
-                  </Typography>
+                  <div style={{ display: 'flex', flexDirection: 'row', justifyContent: 'space-around', width: '100%', marginTop: 10, paddingRight: 70 }}>
+                    <Typography variant='caption'>
+                      F.Compra
+                    </Typography>
+                    <Typography variant='caption'>
+                      Título
+                    </Typography>
+                    <Typography variant='caption'>
+                      Cantidad
+                    </Typography>
+                  </div>
                 </ListSubheader>
               }
             >
@@ -298,8 +433,6 @@ export default function Donacion() {
                 <ListItem
                   key={item.id}
                   button onClick={handleToggle(item.id)}
-                //button
-                //onClick={()=>history.push(item.path)}
                 >
                   <ListItemIcon>
                     <Checkbox
@@ -310,9 +443,9 @@ export default function Donacion() {
                       inputProps={{ 'aria-labelledby': `checkbox-list-label-${item.id}` }}
                     />
                   </ListItemIcon>
-                  <ListItemText>{item.fechaCompra}</ListItemText>
-                  <ListItemText>{item.titulo}</ListItemText>
-                  <ListItemText>{item.acciones}</ListItemText>
+                  <ListItemText>{item.createdAt}</ListItemText>
+                  <ListItemText>{item.id}</ListItemText>
+                  <ListItemText>{item.tit_acciones}</ListItemText>
                 </ListItem>
               ))}
             </List>
@@ -332,8 +465,8 @@ export default function Donacion() {
               value={valCedente}
               size='small'
               id="combo-box-cedente"
-              options={accionistas}
-              getOptionLabel={(option) => option.nombre}
+              options={listCedentes}
+              getOptionLabel={(option) => option.acc_nombre_completo}
               style={{ width: 'calc(100%)' }}
               renderInput={(params) => <TextField {...params} label="Cedente" margin="normal" variant='outlined' />}
               onChange={(option, value) => handleClickCedente(option, value)}
@@ -343,8 +476,8 @@ export default function Donacion() {
               value={valCesionario}
               size='small'
               id="combo-box-cecionario"
-              options={accionistas}
-              getOptionLabel={(option) => option.nombre}
+              options={listCesionarios}
+              getOptionLabel={(option) => option.acc_nombre_completo}
               style={{ width: 'calc(100%)' }}
               renderInput={(params) => <TextField {...params} label="Cesionario" margin="normal" variant='outlined' />}
               onChange={(option, value) => handleClickCesionario(option, value)}
@@ -378,20 +511,16 @@ export default function Donacion() {
               }
             >
               {titulosSelectos.map(item => (
-                <ListItem
-                  key={item.titulo}
-                //button
-                //onClick={()=>history.push(item.path)}
-                >
+                <ListItem key={item.titulo}>
                   <div style={{ display: 'flex', flexDirection: 'row', justifyContent: 'space-around', width: '100%' }}>
                     <div style={{ flex: 1 }}>
-                      <ListItemText>{item.titulo}</ListItemText>
+                      <ListItemText>{item.id}</ListItemText>
                     </div>
                     <div style={{ flex: 1 }}>
-                      <ListItemText>{item.acciones}</ListItemText>
+                      <ListItemText>{item.tit_acciones}</ListItemText>
                     </div>
                     <div style={{ flex: 2 }}>
-                      <TextField size='small' defaultValue={item.acciones} type="number" inputProps={{ inputMode: 'numeric', pattern: '[0-9]*', style: { textAlign: 'right' } }} onChange={(event) => handleChangeCantidad(event, item)} />
+                      <TextField size='small' defaultValue={item.tit_acciones} type="number" inputProps={{ inputMode: 'numeric', pattern: '[0-9]*', style: { textAlign: 'right' } }} onChange={(event) => handleChangeCantidad(event, item)} />
                     </div>
                   </div>
                 </ListItem>
@@ -411,30 +540,30 @@ export default function Donacion() {
             <BlaclTextTypography variant='h6' >
               Documentos requeridos
             </BlaclTextTypography>
-            <label htmlFor="upload-photo1">
+            <label htmlFor="upload-photo1" style={{ marginTop: '10px', display: 'flex', flexDirection: 'row', alignItems: 'center' }}>
               <input style={{ display: 'none' }} id="upload-photo1" name="upload-photo1" type="file" accept="application/pdf" onChange={onChangeCS} />
-              <Button component="span" color="primary" size='small' style={{ marginTop: 20 }}>Carta de Donación</Button>
-              {formData.cs.length > 0 && <IconButton ><CheckIcon /></IconButton>}
+              <Button startIcon={<CloudUploadOutlinedIcon />} variant='outlined' component="span" color="primary" size='small' style={{ textTransform: 'none', }}>Carta de Donación</Button>
+              {formData.cs.length > 0 && <div style={{ display: 'flex', flexDirection: 'row', alignItems: 'center' }}> <IconButton onClick={() => setFormData({ ...formData, 'cs': '' })} ><DeleteOutlineIcon color='disabled' /></IconButton> <IconButton ><VisibilityIcon color='primary' /></IconButton> </div>}
             </label>
-            <label htmlFor="upload-photo2">
+            <label htmlFor="upload-photo2" style={{ marginTop: '10px', display: 'flex', flexDirection: 'row', alignItems: 'center' }}>
               <input style={{ display: 'none' }} id="upload-photo2" name="upload-photo2" type="file" accept="application/pdf" onChange={onChangeCG} />
-              <Button component="span" color="primary" size='small' >Escritura de Donación de Bienes</Button>
-              {formData.cg.length > 0 && <IconButton ><CheckIcon /></IconButton>}
+              <Button startIcon={<CloudUploadOutlinedIcon />} variant='outlined' component="span" color="primary" size='small' style={{ textTransform: 'none', }}>Escritura de Donación de Bienes</Button>
+              {formData.cg.length > 0 && <div style={{ display: 'flex', flexDirection: 'row', alignItems: 'center' }}> <IconButton onClick={() => setFormData({ ...formData, 'cg': '' })}><DeleteOutlineIcon color='disabled' /></IconButton> <IconButton><VisibilityIcon color='primary' /></IconButton> </div>}
             </label>
-            <label htmlFor="upload-photo3">
+            <label htmlFor="upload-photo3" style={{ marginTop: '10px', display: 'flex', flexDirection: 'row', alignItems: 'center' }}>
               <input style={{ display: 'none' }} id="upload-photo3" name="upload-photo3" type="file" accept="application/pdf" onChange={onChangeCI} />
-              <Button component="span" color="primary" size='small' >Pago de Impuestos</Button>
-              {formData.ci.length > 0 && <IconButton ><CheckIcon /></IconButton>}
+              <Button startIcon={<CloudUploadOutlinedIcon />} variant='outlined' component="span" color="primary" size='small' style={{ textTransform: 'none', }}>Pago de Impuestos</Button>
+              {formData.ci.length > 0 && <div style={{ display: 'flex', flexDirection: 'row', alignItems: 'center' }}> <IconButton onClick={() => setFormData({ ...formData, 'ci': '' })}><DeleteOutlineIcon color='disabled' /></IconButton> <IconButton ><VisibilityIcon color='primary' /></IconButton> </div>}
             </label>
-            <label htmlFor="upload-photo4">
-              <input style={{ display: 'none' }} id="upload-photo4" name="upload-photo4" type="file" accept="application/pdf" onChange={onChangeES} />
-              <Button component="span" color="primary" size='small' >Declaración Jurada</Button>
-              {formData.es.length > 0 && <IconButton ><CheckIcon /></IconButton>}
-            </label>
-            <label htmlFor="upload-photo5">
+            <label htmlFor="upload-photo5" style={{ marginTop: '10px', display: 'flex', flexDirection: 'row', alignItems: 'center' }}>
               <input style={{ display: 'none' }} id="upload-photo5" name="upload-photo5" type="file" accept="application/pdf" onChange={onChangeCP} />
-              <Button component="span" color="primary" size='small' >Poder</Button>
-              {formData.cp.length > 0 && <IconButton ><CheckIcon /></IconButton>}
+              <Button startIcon={<CloudUploadOutlinedIcon />} variant='outlined' component="span" color="primary" size='small' style={{ textTransform: 'none', }}>Declaración Jurada</Button>
+              {formData.cp.length > 0 && <div style={{ display: 'flex', flexDirection: 'row', alignItems: 'center' }}>  <IconButton onClick={() => setFormData({ ...formData, 'cp': '' })}><DeleteOutlineIcon color='disabled' /></IconButton> <IconButton ><VisibilityIcon color='primary' /></IconButton> </div>}
+            </label>
+            <label htmlFor="upload-photo4" style={{ marginTop: '10px', display: 'flex', flexDirection: 'row', alignItems: 'center' }}>
+              <input style={{ display: 'none' }} id="upload-photo4" name="upload-photo4" type="file" accept="application/pdf" onChange={onChangeES} />
+              <Button startIcon={<CloudUploadOutlinedIcon />} variant='outlined' component="span" color="primary" size='small' style={{ textTransform: 'none', }}>Poder</Button>
+              {formData.es.length > 0 && <div style={{ display: 'flex', flexDirection: 'row', alignItems: 'center' }}>  <IconButton onClick={() => setFormData({ ...formData, 'es': '' })}><DeleteOutlineIcon color='disabled' /></IconButton> <IconButton ><VisibilityIcon color='primary' /></IconButton> </div>}
             </label>
           </Grid>
           <Grid item xs={12} style={{ paddingTop: 20 }} >
@@ -456,7 +585,12 @@ export default function Donacion() {
         </Grid>
         <Snackbar open={openSnack} autoHideDuration={6000} onClose={handleCloseSnack}>
           <Alert onClose={handleCloseSnack} severity="success">
-            Se registró exitosamente la solicitud de Donación
+            Se registró exitosamente la solicitud de Cesión
+          </Alert>
+        </Snackbar>
+        <Snackbar open={openSnackDanger} autoHideDuration={6000} onClose={handleCloseSnackDanger}>
+          <Alert onClose={handleCloseSnackDanger} severity="error">
+            Registre todos los campos requeridos!
           </Alert>
         </Snackbar>
       </Paper>

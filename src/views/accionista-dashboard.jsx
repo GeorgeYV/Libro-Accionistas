@@ -748,7 +748,7 @@ export default function Accionistadashboard() {
     fetchParametros();
     fetchPerfilUsuario(user);
 
-    consultarHashAccionista();
+    //consultarHashAccionista();
 
     fetchAsambleas();
 
@@ -756,7 +756,7 @@ export default function Accionistadashboard() {
 
     //fetchDividendos();
 
-    fetchAccionistas();
+    //fetchAccionistas();
 
     if (accionista.length > 0) fetchSolicitudes();
 
@@ -770,7 +770,7 @@ export default function Accionistadashboard() {
   };
 
   function getUser() {
-    //console.log("AUTH.USER",Auth.user);
+    console.log("AUTH.USER",Auth.user);
     let user
     if (Auth.user != null) user = Auth.user.username;
     return user;
@@ -780,16 +780,16 @@ export default function Accionistadashboard() {
   async function fetchPerfilUsuario(user) {
 
     let filter = {
-      identificacion: {
+      id: {
         eq: user // filter priority = 1
       },
     };
 
-    //console.log("PARAMETRO", user);
+    console.log("PARAMETRO", user);
     const apiData = await API.graphql({ query: listAccionistas, variables: { filter: filter, limit: 1000 } });
     const accionistaFromAPI = apiData.data.listAccionistas.items;
     setAccionista(accionistaFromAPI);
-    //console.log("Accionista", accionistaFromAPI);      
+    console.log("Accionista", accionistaFromAPI);      
   }
 
 
@@ -849,7 +849,7 @@ export default function Accionistadashboard() {
     //console.log("Data API Parameter", miInit);
     //const data = await API.get('LibroApiQLDB','/registro',miInit )
 
-    const data = await API.get('apiQLDBprod', '/crearRegistro-prod', miInit)
+    //const data = await API.get('apiQLDBprod', '/crearRegistro-prod', miInit)
     //console.log("Data API", data[0].hash);
 
 
@@ -893,7 +893,7 @@ export default function Accionistadashboard() {
     //const texto2 = accionista[0].nombre + " con Identificacion " + accionista[0].tipoIdentificacion + " " + accionista[0].identificacion;
     doc.setFont("helvetica", "bold");
     doc.setFontSize(22);
-    const texto2 = accionista[0].nombre
+    const texto2 = accionista[0].acc_nombre_completo
     doc.text(texto2, 220, 290);
 
     doc.setDrawColor(100);
@@ -902,7 +902,7 @@ export default function Accionistadashboard() {
 
     doc.setFont("helvetica", "normal");
     doc.setFontSize(11);
-    const texto3 = "ES PROPIETARIO DE " + accionista[0].cantidadAcciones + " ACCIONES DE US$ 0.04 CENTAVOS DE DOLAR";
+    const texto3 = "ES PROPIETARIO DE " + accionista[0].acc_cantidad_acciones + " ACCIONES DE US$ 0.04 CENTAVOS DE DOLAR";
     doc.text(texto3, 230, 320);
 
     const texto4 = "DE LOS ESTADOS UNIDOS DE AMERICA, CON TODOS LOS DERECHOS Y OBLIGACIONES ";
@@ -940,596 +940,16 @@ export default function Accionistadashboard() {
     doc.text(texto8, 195, 470);
     const texto9 = "El código QR lo direccionará a la página de verificación";
     doc.text(texto9, 195, 490);
-    const texto10 = data[0].hash;
+    const texto10 = "a313e28f-4e99-4ffd-9205-33e445afa103";
     doc.text(texto10, 195, 500);
     doc.save("CertificadoAccionistas.pdf")   
   }
 
   function numberWithCommas(x) {
-    return x.toString().replace(/\B(?=(\d{3})+(?!\d))/g, ",");
+    //return x.toString().replace(/\B(?=(\d{3})+(?!\d))/g, ",");
+    return x;
   }
 
-
-  const exportPDFCartaCesion = async () => {
-
-    const unit = "pt";
-    const size = "A4"; // Use A1, A2, A3 or A4
-    const orientation = "portrait"; // portrait or landscape
-    //const orientation = "landscape"; // portrait or landscape
-
-    const marginLeft = 40;
-    const doc = new jsPDF(orientation, unit, size);
-
-    doc.setFontSize(12);
-
-    const title = "CARTA DE CESIÓN DE ACCIONES";
-
-    doc.setFont("helvetica", "bold");
-    //doc.setTextColor(100);
-    doc.setFontSize(12);
-    doc.text(title, 200, 50);
-
-    //doc.setTextColor(100);
-    doc.setFont("helvetica", "normal");
-    doc.setFontSize(10);
-    const texto1 = "Comparecen     a     la     celebración       de      la      presente      cesión      de      acciones,       por      una      parte,";
-    doc.text(texto1, 30, 80);
-
-    console.log("Cantidad de caracteres", accionista[0].nombre.length + accionista[0].tipoIdentificacion.length + accionista[0].identificacion.length);
-    let texto2 = accionista[0].nombre + " con " + accionista[0].tipoIdentificacion + " " + accionista[0].identificacion + ", denominado en adelante el CEDENTE";
-    if (accionista[0].nombre.length + accionista[0].tipoIdentificacion.length + accionista[0].identificacion.length === 32) texto2 = accionista[0].nombre + "      con       " + accionista[0].tipoIdentificacion + "     " + accionista[0].identificacion + ",      denominado       en       adelante       el       CEDENTE";
-    if (accionista[0].nombre.length + accionista[0].tipoIdentificacion.length + accionista[0].identificacion.length === 33) texto2 = accionista[0].nombre + "     con       " + accionista[0].tipoIdentificacion + "     " + accionista[0].identificacion + ",      denominado       en       adelante       el       CEDENTE";
-    if (accionista[0].nombre.length + accionista[0].tipoIdentificacion.length + accionista[0].identificacion.length === 34) texto2 = accionista[0].nombre + "     con      " + accionista[0].tipoIdentificacion + "     " + accionista[0].identificacion + ",      denominado       en       adelante       el       CEDENTE";
-    if (accionista[0].nombre.length + accionista[0].tipoIdentificacion.length + accionista[0].identificacion.length === 35) texto2 = accionista[0].nombre + "     con      " + accionista[0].tipoIdentificacion + "    " + accionista[0].identificacion + ",      denominado       en       adelante       el       CEDENTE";
-    if (accionista[0].nombre.length + accionista[0].tipoIdentificacion.length + accionista[0].identificacion.length === 36) texto2 = accionista[0].nombre + "     con      " + accionista[0].tipoIdentificacion + "    " + accionista[0].identificacion + ",     denominado       en       adelante       el       CEDENTE";
-    if (accionista[0].nombre.length + accionista[0].tipoIdentificacion.length + accionista[0].identificacion.length === 37) texto2 = accionista[0].nombre + "     con      " + accionista[0].tipoIdentificacion + "    " + accionista[0].identificacion + ",     denominado      en       adelante       el       CEDENTE";
-    if (accionista[0].nombre.length + accionista[0].tipoIdentificacion.length + accionista[0].identificacion.length === 38) texto2 = accionista[0].nombre + "     con      " + accionista[0].tipoIdentificacion + "    " + accionista[0].identificacion + ",     denominado      en      adelante       el       CEDENTE";
-    if (accionista[0].nombre.length + accionista[0].tipoIdentificacion.length + accionista[0].identificacion.length === 39) texto2 = accionista[0].nombre + "     con      " + accionista[0].tipoIdentificacion + "    " + accionista[0].identificacion + ",     denominado      en      adelante      el       CEDENTE";
-    if (accionista[0].nombre.length + accionista[0].tipoIdentificacion.length + accionista[0].identificacion.length === 40) texto2 = accionista[0].nombre + "     con      " + accionista[0].tipoIdentificacion + "    " + accionista[0].identificacion + ",     denominado      en      adelante      el      CEDENTE";
-    if (accionista[0].nombre.length + accionista[0].tipoIdentificacion.length + accionista[0].identificacion.length === 41) texto2 = accionista[0].nombre + "    con      " + accionista[0].tipoIdentificacion + "    " + accionista[0].identificacion + ",     denominado      en      adelante      el      CEDENTE";
-    if (accionista[0].nombre.length + accionista[0].tipoIdentificacion.length + accionista[0].identificacion.length === 42) texto2 = accionista[0].nombre + "    con     " + accionista[0].tipoIdentificacion + "    " + accionista[0].identificacion + ",     denominado      en      adelante      el      CEDENTE";
-    if (accionista[0].nombre.length + accionista[0].tipoIdentificacion.length + accionista[0].identificacion.length === 43) texto2 = accionista[0].nombre + "    con     " + accionista[0].tipoIdentificacion + "   " + accionista[0].identificacion + ",     denominado      en      adelante      el      CEDENTE";
-    if (accionista[0].nombre.length + accionista[0].tipoIdentificacion.length + accionista[0].identificacion.length === 44) texto2 = accionista[0].nombre + "    con     " + accionista[0].tipoIdentificacion + "   " + accionista[0].identificacion + ",    denominado      en      adelante      el      CEDENTE";
-    if (accionista[0].nombre.length + accionista[0].tipoIdentificacion.length + accionista[0].identificacion.length === 45) texto2 = accionista[0].nombre + "    con     " + accionista[0].tipoIdentificacion + "   " + accionista[0].identificacion + ",    denominado     en      adelante      el      CEDENTE";
-    if (accionista[0].nombre.length + accionista[0].tipoIdentificacion.length + accionista[0].identificacion.length === 46) texto2 = accionista[0].nombre + "    con     " + accionista[0].tipoIdentificacion + "   " + accionista[0].identificacion + ",    denominado     en     adelante      el      CEDENTE";
-    if (accionista[0].nombre.length + accionista[0].tipoIdentificacion.length + accionista[0].identificacion.length === 47) texto2 = accionista[0].nombre + "    con     " + accionista[0].tipoIdentificacion + "   " + accionista[0].identificacion + ",    denominado     en     adelante     el      CEDENTE";
-    if (accionista[0].nombre.length + accionista[0].tipoIdentificacion.length + accionista[0].identificacion.length === 48) texto2 = accionista[0].nombre + "    con     " + accionista[0].tipoIdentificacion + "   " + accionista[0].identificacion + ",    denominado     en     adelante     el     CEDENTE"; //pivot
-    if (accionista[0].nombre.length + accionista[0].tipoIdentificacion.length + accionista[0].identificacion.length === 49) texto2 = accionista[0].nombre + "    con     " + accionista[0].tipoIdentificacion + "   " + accionista[0].identificacion + ",    denominado     en     adelante     el    CEDENTE";
-    if (accionista[0].nombre.length + accionista[0].tipoIdentificacion.length + accionista[0].identificacion.length === 50) texto2 = accionista[0].nombre + "    con     " + accionista[0].tipoIdentificacion + "   " + accionista[0].identificacion + ",    denominado     en     adelante    el    CEDENTE";
-    if (accionista[0].nombre.length + accionista[0].tipoIdentificacion.length + accionista[0].identificacion.length === 51) texto2 = accionista[0].nombre + "    con     " + accionista[0].tipoIdentificacion + "   " + accionista[0].identificacion + ",    denominado     en    adelante    el    CEDENTE";
-    if (accionista[0].nombre.length + accionista[0].tipoIdentificacion.length + accionista[0].identificacion.length === 52) texto2 = accionista[0].nombre + "    con     " + accionista[0].tipoIdentificacion + "   " + accionista[0].identificacion + ",    denominado    en    adelante    el    CEDENTE";
-    if (accionista[0].nombre.length + accionista[0].tipoIdentificacion.length + accionista[0].identificacion.length === 53) texto2 = accionista[0].nombre + "    con     " + accionista[0].tipoIdentificacion + "   " + accionista[0].identificacion + ",   denominado    en    adelante    el    CEDENTE";
-    if (accionista[0].nombre.length + accionista[0].tipoIdentificacion.length + accionista[0].identificacion.length === 54) texto2 = accionista[0].nombre + "    con     " + accionista[0].tipoIdentificacion + "  " + accionista[0].identificacion + ",   denominado    en    adelante    el    CEDENTE";
-    if (accionista[0].nombre.length + accionista[0].tipoIdentificacion.length + accionista[0].identificacion.length === 55) texto2 = accionista[0].nombre + "    con    " + accionista[0].tipoIdentificacion + "  " + accionista[0].identificacion + ",   denominado    en    adelante    el    CEDENTE";
-    if (accionista[0].nombre.length + accionista[0].tipoIdentificacion.length + accionista[0].identificacion.length === 56) texto2 = accionista[0].nombre + "   con    " + accionista[0].tipoIdentificacion + "  " + accionista[0].identificacion + ",   denominado    en    adelante    el    CEDENTE";
-    if (accionista[0].nombre.length + accionista[0].tipoIdentificacion.length + accionista[0].identificacion.length === 57) texto2 = accionista[0].nombre + "   con    " + accionista[0].tipoIdentificacion + "  " + accionista[0].identificacion + ",   denominado    en    adelante    el   CEDENTE";
-    if (accionista[0].nombre.length + accionista[0].tipoIdentificacion.length + accionista[0].identificacion.length === 58) texto2 = accionista[0].nombre + "   con    " + accionista[0].tipoIdentificacion + "  " + accionista[0].identificacion + ",   denominado    en    adelante   el   CEDENTE";
-    if (accionista[0].nombre.length + accionista[0].tipoIdentificacion.length + accionista[0].identificacion.length === 59) texto2 = accionista[0].nombre + "   con    " + accionista[0].tipoIdentificacion + "  " + accionista[0].identificacion + ",   denominado    en   adelante   el   CEDENTE";
-    if (accionista[0].nombre.length + accionista[0].tipoIdentificacion.length + accionista[0].identificacion.length === 60) texto2 = accionista[0].nombre + "   con    " + accionista[0].tipoIdentificacion + "  " + accionista[0].identificacion + ",   denominado   en   adelante   el   CEDENTE";
-    if (accionista[0].nombre.length + accionista[0].tipoIdentificacion.length + accionista[0].identificacion.length === 61) texto2 = accionista[0].nombre + "   con    " + accionista[0].tipoIdentificacion + "  " + accionista[0].identificacion + ",  denominado   en   adelante   el   CEDENTE";
-    if (accionista[0].nombre.length + accionista[0].tipoIdentificacion.length + accionista[0].identificacion.length === 62) texto2 = accionista[0].nombre + "   con    " + accionista[0].tipoIdentificacion + " " + accionista[0].identificacion + ",  denominado   en   adelante   el   CEDENTE";
-    if (accionista[0].nombre.length + accionista[0].tipoIdentificacion.length + accionista[0].identificacion.length === 63) texto2 = accionista[0].nombre + "   con   " + accionista[0].tipoIdentificacion + " " + accionista[0].identificacion + ",  denominado   en   adelante   el   CEDENTE";
-    if (accionista[0].nombre.length + accionista[0].tipoIdentificacion.length + accionista[0].identificacion.length === 64) texto2 = accionista[0].nombre + "  con   " + accionista[0].tipoIdentificacion + " " + accionista[0].identificacion + ",  denominado   en   adelante   el   CEDENTE";
-    if (accionista[0].nombre.length + accionista[0].tipoIdentificacion.length + accionista[0].identificacion.length === 65) texto2 = accionista[0].nombre + "  con   " + accionista[0].tipoIdentificacion + " " + accionista[0].identificacion + ",  denominado   en   adelante   el  CEDENTE";
-    if (accionista[0].nombre.length + accionista[0].tipoIdentificacion.length + accionista[0].identificacion.length === 66) texto2 = accionista[0].nombre + "  con   " + accionista[0].tipoIdentificacion + " " + accionista[0].identificacion + ",  denominado   en   adelante  el  CEDENTE";
-    if (accionista[0].nombre.length + accionista[0].tipoIdentificacion.length + accionista[0].identificacion.length === 67) texto2 = accionista[0].nombre + "  con   " + accionista[0].tipoIdentificacion + " " + accionista[0].identificacion + ",  denominado   en  adelante  el  CEDENTE";
-    if (accionista[0].nombre.length + accionista[0].tipoIdentificacion.length + accionista[0].identificacion.length === 68) texto2 = accionista[0].nombre + "  con   " + accionista[0].tipoIdentificacion + " " + accionista[0].identificacion + ",  denominado  en  adelante  el  CEDENTE";
-    if (accionista[0].nombre.length + accionista[0].tipoIdentificacion.length + accionista[0].identificacion.length === 69) texto2 = accionista[0].nombre + "  con   " + accionista[0].tipoIdentificacion + " " + accionista[0].identificacion + ", denominado  en  adelante  el  CEDENTE";
-    if (accionista[0].nombre.length + accionista[0].tipoIdentificacion.length + accionista[0].identificacion.length === 70) texto2 = accionista[0].nombre + "  con  " + accionista[0].tipoIdentificacion + " " + accionista[0].identificacion + ", denominado  en  adelante  el  CEDENTE";
-    if (accionista[0].nombre.length + accionista[0].tipoIdentificacion.length + accionista[0].identificacion.length === 71) texto2 = accionista[0].nombre + "  con " + accionista[0].tipoIdentificacion + " " + accionista[0].identificacion + ", denominado  en  adelante  el  CEDENTE";
-    if (accionista[0].nombre.length + accionista[0].tipoIdentificacion.length + accionista[0].identificacion.length === 72) texto2 = accionista[0].nombre + " con " + accionista[0].tipoIdentificacion + " " + accionista[0].identificacion + ", denominado  en  adelante  el  CEDENTE";
-    if (accionista[0].nombre.length + accionista[0].tipoIdentificacion.length + accionista[0].identificacion.length === 73) texto2 = accionista[0].nombre + " con " + accionista[0].tipoIdentificacion + " " + accionista[0].identificacion + ", denominado  en  adelante  el CEDENTE";
-    if (accionista[0].nombre.length + accionista[0].tipoIdentificacion.length + accionista[0].identificacion.length === 74) texto2 = accionista[0].nombre + " con " + accionista[0].tipoIdentificacion + " " + accionista[0].identificacion + ", denominado  en  adelante el CEDENTE";
-    if (accionista[0].nombre.length + accionista[0].tipoIdentificacion.length + accionista[0].identificacion.length === 75) texto2 = accionista[0].nombre + " con " + accionista[0].tipoIdentificacion + " " + accionista[0].identificacion + ", denominado  en adelante el CEDENTE";
-    if (accionista[0].nombre.length + accionista[0].tipoIdentificacion.length + accionista[0].identificacion.length === 76) texto2 = accionista[0].nombre + " con " + accionista[0].tipoIdentificacion + " " + accionista[0].identificacion + ", denominado en adelante el CEDENTE";
-
-    doc.text(texto2, 30, 100);
-
-    console.log("Nro2", nombreCesionario.length + identificacionCesionario.length);
-    let texto3 = "y por otra parte " + nombreCesionario + " con identificación " + " " + identificacionCesionario + ", denominado";
-    if (nombreCesionario.length + identificacionCesionario.length === 26) texto3 = "y         por         otra         parte         " + nombreCesionario + "         con         identificación         " + identificacionCesionario + ",         denominado";
-    doc.text(texto3, 30, 120);
-
-    const texto4 = "en adelante el CESIONARIO, quienes libre y voluntariamente convienen en celebrar la presente cesión de acciones.";
-    doc.text(texto4, 30, 140);
-
-    const texto5 = "El CEDENTE  transfiere a título oneroso al CESIONARIO,  las acciones de la compañía  UNACEM ECUADOR S.A.,";
-    doc.text(texto5, 30, 180);
-
-    const texto6 = "con Ruc. No. 1790236862001, de la siguiente manera:";
-    doc.text(texto6, 30, 200);
-
-    //doc.setDrawColor(137, 34, 28);
-    doc.setLineWidth(0.5);
-    doc.line(150, 230, 350, 230);
-
-    const texto7 = "No. de Acciones : " + accionesTransferir;
-    doc.text(texto7, 180, 250);
-
-    doc.setLineWidth(0.5);
-    doc.line(150, 260, 350, 260);
-
-    const texto8 = "Valor de Venta ($) : " + numberWithCommas(valorVenta);
-    doc.text(texto8, 180, 280);
-
-    doc.setLineWidth(0.5);
-    doc.line(150, 290, 350, 290);
-
-    const texto9 = "Total ($): " + numberWithCommas(totalVenta.toFixed(2));
-    doc.text(texto9, 180, 310);
-
-    doc.setLineWidth(0.5);
-    doc.line(150, 320, 350, 320);
-
-    const texto10 = "Particular que ponemos en conocimiento a la empresa UNACEM ECUADOR S.A., en persona de su representante";
-    doc.text(texto10, 30, 350);
-
-    const texto11 = "legal,  a  fin  de  que,  de acuerdo con las disposiciones de la  Ley de Compañías,  se sirva ordenar el registro de la";
-    doc.text(texto11, 30, 370);
-
-    const texto12 = "CESIÓN a favor del nuevo titular en el libro de acciones y accionistas de la compañía.";
-    doc.text(texto12, 30, 390);
-
-    const texto13 = "Para   dar   constancia   de   la   aceptación   de   esta   transferencia   suscribimos,    en    la    ciudad    de    Quito,";
-    doc.text(texto13, 30, 430);
-
-
-    const months = ["Enero", "Febrero", "Marzo", "Abril", "Mayo", "Junio", "Julio", "Agosto", "Septiembre", "Octubre", "Noviembre", "Diciembre"];
-    const d = new Date();
-
-    const texto14 = "el " + d.getDate() + " de " + months[d.getMonth()] + " del " + d.getFullYear() + ".";
-    doc.text(texto14, 30, 450);
-
-    doc.setFont("helvetica", "bold");
-    const texto15 = "CEDENTE";
-    doc.text(texto15, 30, 510);
-    const texto16 = accionista[0].nombre;
-    doc.text(texto16, 30, 570);
-    const texto17 = accionista[0].tipoIdentificacion + " " + accionista[0].identificacion;
-    doc.text(texto17, 30, 590);
-
-    const texto18 = "CESIONARIO";
-    doc.text(texto18, 300, 510);
-    const texto19 = nombreCesionario;
-    doc.text(texto19, 300, 570);
-    const texto20 = "Cédula " + identificacionCesionario;
-    doc.text(texto20, 300, 590);
-
-
-    doc.save("CartaCesion.pdf")
-
-
-  }
-
-
-  const exportPDFCartaCesionCasado = async () => {
-
-    const unit = "pt";
-    const size = "A4"; // Use A1, A2, A3 or A4
-    const orientation = "portrait"; // portrait or landscape
-    //const orientation = "landscape"; // portrait or landscape
-
-    const marginLeft = 40;
-    const doc = new jsPDF(orientation, unit, size);
-
-    doc.setFontSize(12);
-
-    const title = "CARTA DE CESIÓN DE ACCIONES";
-
-    doc.setFont("helvetica", "bold");
-    //doc.setTextColor(100);
-    doc.setFontSize(12);
-    doc.text(title, 200, 50);
-
-    //doc.setTextColor(100);
-    doc.setFont("helvetica", "normal");
-    doc.setFontSize(10);
-    const texto1 = "Comparecen     a     la     celebración       de      la      presente      cesión      de      acciones,       por      una      parte,";
-    doc.text(texto1, 30, 80);
-
-    console.log("Cantidad de caracteres", accionista[0].nombre.length + accionista[0].tipoIdentificacion.length + accionista[0].identificacion.length);
-    let texto2 = accionista[0].nombre + " con " + accionista[0].tipoIdentificacion + " " + accionista[0].identificacion + ",     legalmente    casado/a    con";
-    if (accionista[0].nombre.length + accionista[0].tipoIdentificacion.length + accionista[0].identificacion.length === 32) texto2 = accionista[0].nombre + "      con       " + accionista[0].tipoIdentificacion + "     " + accionista[0].identificacion + ",            legalmente             casado/a             con";
-    if (accionista[0].nombre.length + accionista[0].tipoIdentificacion.length + accionista[0].identificacion.length === 33) texto2 = accionista[0].nombre + "     con       " + accionista[0].tipoIdentificacion + "     " + accionista[0].identificacion + ",            legalmente             casado/a             con";
-    if (accionista[0].nombre.length + accionista[0].tipoIdentificacion.length + accionista[0].identificacion.length === 34) texto2 = accionista[0].nombre + "     con      " + accionista[0].tipoIdentificacion + "     " + accionista[0].identificacion + ",            legalmente             casado/a             con";
-    if (accionista[0].nombre.length + accionista[0].tipoIdentificacion.length + accionista[0].identificacion.length === 35) texto2 = accionista[0].nombre + "     con      " + accionista[0].tipoIdentificacion + "    " + accionista[0].identificacion + ",            legalmente             casado/a             con";
-    if (accionista[0].nombre.length + accionista[0].tipoIdentificacion.length + accionista[0].identificacion.length === 36) texto2 = accionista[0].nombre + "     con      " + accionista[0].tipoIdentificacion + "    " + accionista[0].identificacion + ",            legalmente             casado/a            con";
-    if (accionista[0].nombre.length + accionista[0].tipoIdentificacion.length + accionista[0].identificacion.length === 37) texto2 = accionista[0].nombre + "     con      " + accionista[0].tipoIdentificacion + "    " + accionista[0].identificacion + ",            legalmente            casado/a            con";
-    if (accionista[0].nombre.length + accionista[0].tipoIdentificacion.length + accionista[0].identificacion.length === 38) texto2 = accionista[0].nombre + "     con      " + accionista[0].tipoIdentificacion + "    " + accionista[0].identificacion + ",            legalmente            casado/a           con";
-    if (accionista[0].nombre.length + accionista[0].tipoIdentificacion.length + accionista[0].identificacion.length === 39) texto2 = accionista[0].nombre + "     con      " + accionista[0].tipoIdentificacion + "    " + accionista[0].identificacion + ",            legalmente           casado/a           con";
-    if (accionista[0].nombre.length + accionista[0].tipoIdentificacion.length + accionista[0].identificacion.length === 40) texto2 = accionista[0].nombre + "     con      " + accionista[0].tipoIdentificacion + "    " + accionista[0].identificacion + ",           legalmente           casado/a           con";
-    if (accionista[0].nombre.length + accionista[0].tipoIdentificacion.length + accionista[0].identificacion.length === 41) texto2 = accionista[0].nombre + "    con      " + accionista[0].tipoIdentificacion + "    " + accionista[0].identificacion + ",           legalmente           casado/a           con";
-    if (accionista[0].nombre.length + accionista[0].tipoIdentificacion.length + accionista[0].identificacion.length === 42) texto2 = accionista[0].nombre + "    con     " + accionista[0].tipoIdentificacion + "    " + accionista[0].identificacion + ",           legalmente           casado/a           con";
-    if (accionista[0].nombre.length + accionista[0].tipoIdentificacion.length + accionista[0].identificacion.length === 43) texto2 = accionista[0].nombre + "    con     " + accionista[0].tipoIdentificacion + "   " + accionista[0].identificacion + ",           legalmente           casado/a           con";
-    if (accionista[0].nombre.length + accionista[0].tipoIdentificacion.length + accionista[0].identificacion.length === 44) texto2 = accionista[0].nombre + "    con     " + accionista[0].tipoIdentificacion + "   " + accionista[0].identificacion + ",          legalmente           casado/a           con";
-    if (accionista[0].nombre.length + accionista[0].tipoIdentificacion.length + accionista[0].identificacion.length === 45) texto2 = accionista[0].nombre + "    con     " + accionista[0].tipoIdentificacion + "   " + accionista[0].identificacion + ",          legalmente           casado/a          con";
-    if (accionista[0].nombre.length + accionista[0].tipoIdentificacion.length + accionista[0].identificacion.length === 46) texto2 = accionista[0].nombre + "    con     " + accionista[0].tipoIdentificacion + "   " + accionista[0].identificacion + ",          legalmente          casado/a          con";
-    if (accionista[0].nombre.length + accionista[0].tipoIdentificacion.length + accionista[0].identificacion.length === 47) texto2 = accionista[0].nombre + "    con     " + accionista[0].tipoIdentificacion + "   " + accionista[0].identificacion + ",         legalmente          casado/a          con";
-    if (accionista[0].nombre.length + accionista[0].tipoIdentificacion.length + accionista[0].identificacion.length === 48) texto2 = accionista[0].nombre + "    con     " + accionista[0].tipoIdentificacion + "   " + accionista[0].identificacion + "         legalmente          casado/a          con"; //pivot
-    if (accionista[0].nombre.length + accionista[0].tipoIdentificacion.length + accionista[0].identificacion.length === 49) texto2 = accionista[0].nombre + "    con     " + accionista[0].tipoIdentificacion + "   " + accionista[0].identificacion + "         legalmente          casado/a         con";
-    if (accionista[0].nombre.length + accionista[0].tipoIdentificacion.length + accionista[0].identificacion.length === 50) texto2 = accionista[0].nombre + "    con     " + accionista[0].tipoIdentificacion + "   " + accionista[0].identificacion + "         legalmente         casado/a         con";
-    if (accionista[0].nombre.length + accionista[0].tipoIdentificacion.length + accionista[0].identificacion.length === 51) texto2 = accionista[0].nombre + "    con     " + accionista[0].tipoIdentificacion + "   " + accionista[0].identificacion + "        legalmente         casado/a         con";
-    if (accionista[0].nombre.length + accionista[0].tipoIdentificacion.length + accionista[0].identificacion.length === 52) texto2 = accionista[0].nombre + "    con     " + accionista[0].tipoIdentificacion + "   " + accionista[0].identificacion + "         legalmente        casado/a        con";
-    if (accionista[0].nombre.length + accionista[0].tipoIdentificacion.length + accionista[0].identificacion.length === 53) texto2 = accionista[0].nombre + "    con     " + accionista[0].tipoIdentificacion + "   " + accionista[0].identificacion + "        legalmente        casado/a        con";
-    if (accionista[0].nombre.length + accionista[0].tipoIdentificacion.length + accionista[0].identificacion.length === 54) texto2 = accionista[0].nombre + "    con     " + accionista[0].tipoIdentificacion + "  " + accionista[0].identificacion + "        legalmente        casado/a        con";
-    if (accionista[0].nombre.length + accionista[0].tipoIdentificacion.length + accionista[0].identificacion.length === 55) texto2 = accionista[0].nombre + "    con    " + accionista[0].tipoIdentificacion + "  " + accionista[0].identificacion + "        legalmente        casado/a        con";
-    if (accionista[0].nombre.length + accionista[0].tipoIdentificacion.length + accionista[0].identificacion.length === 56) texto2 = accionista[0].nombre + "   con    " + accionista[0].tipoIdentificacion + "  " + accionista[0].identificacion + "        legalmente        casado/a        con";
-    if (accionista[0].nombre.length + accionista[0].tipoIdentificacion.length + accionista[0].identificacion.length === 57) texto2 = accionista[0].nombre + "   con    " + accionista[0].tipoIdentificacion + "  " + accionista[0].identificacion + "       legalmente        casado/a        con";
-    if (accionista[0].nombre.length + accionista[0].tipoIdentificacion.length + accionista[0].identificacion.length === 58) texto2 = accionista[0].nombre + "   con    " + accionista[0].tipoIdentificacion + "  " + accionista[0].identificacion + "       legalmente        casado/a       con";
-    if (accionista[0].nombre.length + accionista[0].tipoIdentificacion.length + accionista[0].identificacion.length === 59) texto2 = accionista[0].nombre + "   con    " + accionista[0].tipoIdentificacion + "  " + accionista[0].identificacion + "       legalmente       casado/a       con";
-    if (accionista[0].nombre.length + accionista[0].tipoIdentificacion.length + accionista[0].identificacion.length === 60) texto2 = accionista[0].nombre + "   con    " + accionista[0].tipoIdentificacion + "  " + accionista[0].identificacion + "      legalmente       casado/a       con";
-    if (accionista[0].nombre.length + accionista[0].tipoIdentificacion.length + accionista[0].identificacion.length === 61) texto2 = accionista[0].nombre + "   con    " + accionista[0].tipoIdentificacion + "  " + accionista[0].identificacion + "      legalmente       casado/a      con";
-    if (accionista[0].nombre.length + accionista[0].tipoIdentificacion.length + accionista[0].identificacion.length === 62) texto2 = accionista[0].nombre + "   con    " + accionista[0].tipoIdentificacion + " " + accionista[0].identificacion + "      legalmente       casado/a      con";
-    if (accionista[0].nombre.length + accionista[0].tipoIdentificacion.length + accionista[0].identificacion.length === 63) texto2 = accionista[0].nombre + "   con   " + accionista[0].tipoIdentificacion + " " + accionista[0].identificacion + "      legalmente       casado/a      con";
-    if (accionista[0].nombre.length + accionista[0].tipoIdentificacion.length + accionista[0].identificacion.length === 64) texto2 = accionista[0].nombre + "  con   " + accionista[0].tipoIdentificacion + " " + accionista[0].identificacion + "      legalmente       casado/a      con";
-    if (accionista[0].nombre.length + accionista[0].tipoIdentificacion.length + accionista[0].identificacion.length === 65) texto2 = accionista[0].nombre + "  con   " + accionista[0].tipoIdentificacion + " " + accionista[0].identificacion + "      legalmente      casado/a      con";
-    if (accionista[0].nombre.length + accionista[0].tipoIdentificacion.length + accionista[0].identificacion.length === 66) texto2 = accionista[0].nombre + "  con   " + accionista[0].tipoIdentificacion + " " + accionista[0].identificacion + "     legalmente      casado/a      con";
-    if (accionista[0].nombre.length + accionista[0].tipoIdentificacion.length + accionista[0].identificacion.length === 67) texto2 = accionista[0].nombre + "  con   " + accionista[0].tipoIdentificacion + " " + accionista[0].identificacion + "     legalmente      casado/a     con";
-    if (accionista[0].nombre.length + accionista[0].tipoIdentificacion.length + accionista[0].identificacion.length === 68) texto2 = accionista[0].nombre + "  con   " + accionista[0].tipoIdentificacion + " " + accionista[0].identificacion + "     legalmente     casado/a     con";
-    if (accionista[0].nombre.length + accionista[0].tipoIdentificacion.length + accionista[0].identificacion.length === 69) texto2 = accionista[0].nombre + "  con   " + accionista[0].tipoIdentificacion + " " + accionista[0].identificacion + "    legalmente     casado/a     con";
-    if (accionista[0].nombre.length + accionista[0].tipoIdentificacion.length + accionista[0].identificacion.length === 70) texto2 = accionista[0].nombre + "  con  " + accionista[0].tipoIdentificacion + " " + accionista[0].identificacion + "     legalmente     casado/a    con";
-    if (accionista[0].nombre.length + accionista[0].tipoIdentificacion.length + accionista[0].identificacion.length === 71) texto2 = accionista[0].nombre + "  con " + accionista[0].tipoIdentificacion + " " + accionista[0].identificacion + "    legalmente     casado/a     con";
-    if (accionista[0].nombre.length + accionista[0].tipoIdentificacion.length + accionista[0].identificacion.length === 72) texto2 = accionista[0].nombre + " con " + accionista[0].tipoIdentificacion + " " + accionista[0].identificacion + "    legalmente     casado/a     con";
-    if (accionista[0].nombre.length + accionista[0].tipoIdentificacion.length + accionista[0].identificacion.length === 73) texto2 = accionista[0].nombre + " con " + accionista[0].tipoIdentificacion + " " + accionista[0].identificacion + "    legalmente     casado/a    con";
-    if (accionista[0].nombre.length + accionista[0].tipoIdentificacion.length + accionista[0].identificacion.length === 74) texto2 = accionista[0].nombre + " con " + accionista[0].tipoIdentificacion + " " + accionista[0].identificacion + "    legalmente    casado/a    con";
-    if (accionista[0].nombre.length + accionista[0].tipoIdentificacion.length + accionista[0].identificacion.length === 75) texto2 = accionista[0].nombre + " con " + accionista[0].tipoIdentificacion + " " + accionista[0].identificacion + "   legalmente    casado/a    con";
-    if (accionista[0].nombre.length + accionista[0].tipoIdentificacion.length + accionista[0].identificacion.length === 76) texto2 = accionista[0].nombre + " con " + accionista[0].tipoIdentificacion + " " + accionista[0].identificacion + "  legalmente    casado/a    con";
-
-    let texto2y1 = accionista[0].conyugue_nombre + " con " + accionista[0].conyugue_tipoIdentificacion + " " + accionista[0].conyugue_identificacion + ", denominado en adelante el CEDENTE";
-    if (accionista[0].conyugue_nombre.length + accionista[0].conyugue_tipoIdentificacion.length + accionista[0].conyugue_identificacion.length === 32) texto2y1 = accionista[0].conyugue_nombre + "      con       " + accionista[0].conyugue_tipoIdentificacion + "     " + accionista[0].conyugue_identificacion + ",      denominado       en       adelante       el       CEDENTE";
-    if (accionista[0].conyugue_nombre.length + accionista[0].conyugue_tipoIdentificacion.length + accionista[0].conyugue_identificacion.length === 33) texto2y1 = accionista[0].conyugue_nombre + "     con       " + accionista[0].conyugue_tipoIdentificacion + "     " + accionista[0].conyugue_identificacion + ",      denominado       en       adelante       el       CEDENTE";
-    if (accionista[0].conyugue_nombre.length + accionista[0].conyugue_tipoIdentificacion.length + accionista[0].conyugue_identificacion.length === 34) texto2y1 = accionista[0].conyugue_nombre + "     con      " + accionista[0].conyugue_tipoIdentificacion + "     " + accionista[0].conyugue_identificacion + ",      denominado       en       adelante       el       CEDENTE";
-    if (accionista[0].conyugue_nombre.length + accionista[0].conyugue_tipoIdentificacion.length + accionista[0].conyugue_identificacion.length === 35) texto2y1 = accionista[0].conyugue_nombre + "     con      " + accionista[0].conyugue_tipoIdentificacion + "    " + accionista[0].conyugue_identificacion + ",      denominado       en       adelante       el       CEDENTE";
-    if (accionista[0].conyugue_nombre.length + accionista[0].conyugue_tipoIdentificacion.length + accionista[0].conyugue_identificacion.length === 36) texto2y1 = accionista[0].conyugue_nombre + "     con      " + accionista[0].conyugue_tipoIdentificacion + "    " + accionista[0].conyugue_identificacion + ",     denominado       en       adelante       el       CEDENTE";
-    if (accionista[0].conyugue_nombre.length + accionista[0].conyugue_tipoIdentificacion.length + accionista[0].conyugue_identificacion.length === 37) texto2y1 = accionista[0].conyugue_nombre + "     con      " + accionista[0].conyugue_tipoIdentificacion + "    " + accionista[0].conyugue_identificacion + ",     denominado      en       adelante       el       CEDENTE";
-    if (accionista[0].conyugue_nombre.length + accionista[0].conyugue_tipoIdentificacion.length + accionista[0].conyugue_identificacion.length === 38) texto2y1 = accionista[0].conyugue_nombre + "     con      " + accionista[0].conyugue_tipoIdentificacion + "    " + accionista[0].conyugue_identificacion + ",     denominado      en      adelante       el       CEDENTE";
-    if (accionista[0].conyugue_nombre.length + accionista[0].conyugue_tipoIdentificacion.length + accionista[0].conyugue_identificacion.length === 39) texto2y1 = accionista[0].conyugue_nombre + "     con      " + accionista[0].conyugue_tipoIdentificacion + "    " + accionista[0].conyugue_identificacion + ",     denominado      en      adelante      el       CEDENTE";
-    if (accionista[0].conyugue_nombre.length + accionista[0].conyugue_tipoIdentificacion.length + accionista[0].conyugue_identificacion.length === 40) texto2y1 = accionista[0].conyugue_nombre + "     con      " + accionista[0].conyugue_tipoIdentificacion + "    " + accionista[0].conyugue_identificacion + ",     denominado      en      adelante      el      CEDENTE";
-    if (accionista[0].conyugue_nombre.length + accionista[0].conyugue_tipoIdentificacion.length + accionista[0].conyugue_identificacion.length === 41) texto2y1 = accionista[0].conyugue_nombre + "    con      " + accionista[0].conyugue_tipoIdentificacion + "    " + accionista[0].conyugue_identificacion + ",     denominado      en      adelante      el      CEDENTE";
-    if (accionista[0].conyugue_nombre.length + accionista[0].conyugue_tipoIdentificacion.length + accionista[0].conyugue_identificacion.length === 42) texto2y1 = accionista[0].conyugue_nombre + "    con     " + accionista[0].conyugue_tipoIdentificacion + "    " + accionista[0].conyugue_identificacion + ",     denominado      en      adelante      el      CEDENTE";
-    if (accionista[0].conyugue_nombre.length + accionista[0].conyugue_tipoIdentificacion.length + accionista[0].conyugue_identificacion.length === 43) texto2y1 = accionista[0].conyugue_nombre + "    con     " + accionista[0].conyugue_tipoIdentificacion + "   " + accionista[0].conyugue_identificacion + ",     denominado      en      adelante      el      CEDENTE";
-    if (accionista[0].conyugue_nombre.length + accionista[0].conyugue_tipoIdentificacion.length + accionista[0].conyugue_identificacion.length === 44) texto2y1 = accionista[0].conyugue_nombre + "    con     " + accionista[0].conyugue_tipoIdentificacion + "   " + accionista[0].conyugue_identificacion + ",    denominado      en      adelante      el      CEDENTE";
-    if (accionista[0].conyugue_nombre.length + accionista[0].conyugue_tipoIdentificacion.length + accionista[0].conyugue_identificacion.length === 45) texto2y1 = accionista[0].conyugue_nombre + "    con     " + accionista[0].conyugue_tipoIdentificacion + "   " + accionista[0].conyugue_identificacion + ",    denominado     en      adelante      el      CEDENTE";
-    if (accionista[0].conyugue_nombre.length + accionista[0].conyugue_tipoIdentificacion.length + accionista[0].conyugue_identificacion.length === 46) texto2y1 = accionista[0].conyugue_nombre + "    con     " + accionista[0].conyugue_tipoIdentificacion + "   " + accionista[0].conyugue_identificacion + ",    denominado     en     adelante      el      CEDENTE";
-    if (accionista[0].conyugue_nombre.length + accionista[0].conyugue_tipoIdentificacion.length + accionista[0].conyugue_identificacion.length === 47) texto2y1 = accionista[0].conyugue_nombre + "    con     " + accionista[0].conyugue_tipoIdentificacion + "   " + accionista[0].conyugue_identificacion + ",    denominado     en     adelante     el      CEDENTE";
-    if (accionista[0].conyugue_nombre.length + accionista[0].conyugue_tipoIdentificacion.length + accionista[0].conyugue_identificacion.length === 48) texto2y1 = accionista[0].conyugue_nombre + "    con     " + accionista[0].conyugue_tipoIdentificacion + "   " + accionista[0].conyugue_identificacion + ",    denominado     en     adelante     el     CEDENTE"; //pivot
-    if (accionista[0].conyugue_nombre.length + accionista[0].conyugue_tipoIdentificacion.length + accionista[0].conyugue_identificacion.length === 49) texto2y1 = accionista[0].conyugue_nombre + "    con     " + accionista[0].conyugue_tipoIdentificacion + "   " + accionista[0].conyugue_identificacion + ",    denominado     en     adelante     el    CEDENTE";
-    if (accionista[0].conyugue_nombre.length + accionista[0].conyugue_tipoIdentificacion.length + accionista[0].conyugue_identificacion.length === 50) texto2y1 = accionista[0].conyugue_nombre + "    con     " + accionista[0].conyugue_tipoIdentificacion + "   " + accionista[0].conyugue_identificacion + ",    denominado     en     adelante    el    CEDENTE";
-    if (accionista[0].conyugue_nombre.length + accionista[0].conyugue_tipoIdentificacion.length + accionista[0].conyugue_identificacion.length === 51) texto2y1 = accionista[0].conyugue_nombre + "    con     " + accionista[0].conyugue_tipoIdentificacion + "   " + accionista[0].conyugue_identificacion + ",    denominado     en    adelante    el    CEDENTE";
-    if (accionista[0].conyugue_nombre.length + accionista[0].conyugue_tipoIdentificacion.length + accionista[0].conyugue_identificacion.length === 52) texto2y1 = accionista[0].conyugue_nombre + "    con     " + accionista[0].conyugue_tipoIdentificacion + "   " + accionista[0].conyugue_identificacion + ",    denominado    en    adelante    el    CEDENTE";
-    if (accionista[0].conyugue_nombre.length + accionista[0].conyugue_tipoIdentificacion.length + accionista[0].conyugue_identificacion.length === 53) texto2y1 = accionista[0].conyugue_nombre + "    con     " + accionista[0].conyugue_tipoIdentificacion + "   " + accionista[0].conyugue_identificacion + ",   denominado    en    adelante    el    CEDENTE";
-    if (accionista[0].conyugue_nombre.length + accionista[0].conyugue_tipoIdentificacion.length + accionista[0].conyugue_identificacion.length === 54) texto2y1 = accionista[0].conyugue_nombre + "    con     " + accionista[0].conyugue_tipoIdentificacion + "  " + accionista[0].conyugue_identificacion + ",   denominado    en    adelante    el    CEDENTE";
-    if (accionista[0].conyugue_nombre.length + accionista[0].conyugue_tipoIdentificacion.length + accionista[0].conyugue_identificacion.length === 55) texto2y1 = accionista[0].conyugue_nombre + "    con    " + accionista[0].conyugue_tipoIdentificacion + "  " + accionista[0].conyugue_identificacion + ",   denominado    en    adelante    el    CEDENTE";
-    if (accionista[0].conyugue_nombre.length + accionista[0].conyugue_tipoIdentificacion.length + accionista[0].conyugue_identificacion.length === 56) texto2y1 = accionista[0].conyugue_nombre + "   con    " + accionista[0].conyugue_tipoIdentificacion + "  " + accionista[0].conyugue_identificacion + ",   denominado    en    adelante    el    CEDENTE";
-    if (accionista[0].conyugue_nombre.length + accionista[0].conyugue_tipoIdentificacion.length + accionista[0].conyugue_identificacion.length === 57) texto2y1 = accionista[0].conyugue_nombre + "   con    " + accionista[0].conyugue_tipoIdentificacion + "  " + accionista[0].conyugue_identificacion + ",   denominado    en    adelante    el   CEDENTE";
-    if (accionista[0].conyugue_nombre.length + accionista[0].conyugue_tipoIdentificacion.length + accionista[0].conyugue_identificacion.length === 58) texto2y1 = accionista[0].conyugue_nombre + "   con    " + accionista[0].conyugue_tipoIdentificacion + "  " + accionista[0].conyugue_identificacion + ",   denominado    en    adelante   el   CEDENTE";
-    if (accionista[0].conyugue_nombre.length + accionista[0].conyugue_tipoIdentificacion.length + accionista[0].conyugue_identificacion.length === 59) texto2y1 = accionista[0].conyugue_nombre + "   con    " + accionista[0].conyugue_tipoIdentificacion + "  " + accionista[0].conyugue_identificacion + ",   denominado    en   adelante   el   CEDENTE";
-    if (accionista[0].conyugue_nombre.length + accionista[0].conyugue_tipoIdentificacion.length + accionista[0].conyugue_identificacion.length === 60) texto2y1 = accionista[0].conyugue_nombre + "   con    " + accionista[0].conyugue_tipoIdentificacion + "  " + accionista[0].conyugue_identificacion + ",   denominado   en   adelante   el   CEDENTE";
-    if (accionista[0].conyugue_nombre.length + accionista[0].conyugue_tipoIdentificacion.length + accionista[0].conyugue_identificacion.length === 61) texto2y1 = accionista[0].conyugue_nombre + "   con    " + accionista[0].conyugue_tipoIdentificacion + "  " + accionista[0].conyugue_identificacion + ",  denominado   en   adelante   el   CEDENTE";
-    if (accionista[0].conyugue_nombre.length + accionista[0].conyugue_tipoIdentificacion.length + accionista[0].conyugue_identificacion.length === 62) texto2y1 = accionista[0].conyugue_nombre + "   con    " + accionista[0].conyugue_tipoIdentificacion + " " + accionista[0].conyugue_identificacion + ",  denominado   en   adelante   el   CEDENTE";
-    if (accionista[0].conyugue_nombre.length + accionista[0].conyugue_tipoIdentificacion.length + accionista[0].conyugue_identificacion.length === 63) texto2y1 = accionista[0].conyugue_nombre + "   con   " + accionista[0].conyugue_tipoIdentificacion + " " + accionista[0].conyugue_identificacion + ",  denominado   en   adelante   el   CEDENTE";
-    if (accionista[0].conyugue_nombre.length + accionista[0].conyugue_tipoIdentificacion.length + accionista[0].conyugue_identificacion.length === 64) texto2y1 = accionista[0].conyugue_nombre + "  con   " + accionista[0].conyugue_tipoIdentificacion + " " + accionista[0].conyugue_identificacion + ",  denominado   en   adelante   el   CEDENTE";
-    if (accionista[0].conyugue_nombre.length + accionista[0].conyugue_tipoIdentificacion.length + accionista[0].conyugue_identificacion.length === 65) texto2y1 = accionista[0].conyugue_nombre + "  con   " + accionista[0].conyugue_tipoIdentificacion + " " + accionista[0].conyugue_identificacion + ",  denominado   en   adelante   el  CEDENTE";
-    if (accionista[0].conyugue_nombre.length + accionista[0].conyugue_tipoIdentificacion.length + accionista[0].conyugue_identificacion.length === 66) texto2y1 = accionista[0].conyugue_nombre + "  con   " + accionista[0].conyugue_tipoIdentificacion + " " + accionista[0].conyugue_identificacion + ",  denominado   en   adelante  el  CEDENTE";
-    if (accionista[0].conyugue_nombre.length + accionista[0].conyugue_tipoIdentificacion.length + accionista[0].conyugue_identificacion.length === 67) texto2y1 = accionista[0].conyugue_nombre + "  con   " + accionista[0].conyugue_tipoIdentificacion + " " + accionista[0].conyugue_identificacion + ",  denominado   en  adelante  el  CEDENTE";
-    if (accionista[0].conyugue_nombre.length + accionista[0].conyugue_tipoIdentificacion.length + accionista[0].conyugue_identificacion.length === 68) texto2y1 = accionista[0].conyugue_nombre + "  con   " + accionista[0].conyugue_tipoIdentificacion + " " + accionista[0].conyugue_identificacion + ",  denominado  en  adelante  el  CEDENTE";
-    if (accionista[0].conyugue_nombre.length + accionista[0].conyugue_tipoIdentificacion.length + accionista[0].conyugue_identificacion.length === 69) texto2y1 = accionista[0].conyugue_nombre + "  con   " + accionista[0].conyugue_tipoIdentificacion + " " + accionista[0].conyugue_identificacion + ", denominado  en  adelante  el  CEDENTE";
-    if (accionista[0].conyugue_nombre.length + accionista[0].conyugue_tipoIdentificacion.length + accionista[0].conyugue_identificacion.length === 70) texto2y1 = accionista[0].conyugue_nombre + "  con  " + accionista[0].conyugue_tipoIdentificacion + " " + accionista[0].conyugue_identificacion + ", denominado  en  adelante  el  CEDENTE";
-    if (accionista[0].conyugue_nombre.length + accionista[0].conyugue_tipoIdentificacion.length + accionista[0].conyugue_identificacion.length === 71) texto2y1 = accionista[0].conyugue_nombre + "  con " + accionista[0].conyugue_tipoIdentificacion + " " + accionista[0].conyugue_identificacion + ", denominado  en  adelante  el  CEDENTE";
-    if (accionista[0].conyugue_nombre.length + accionista[0].conyugue_tipoIdentificacion.length + accionista[0].conyugue_identificacion.length === 72) texto2y1 = accionista[0].conyugue_nombre + " con " + accionista[0].conyugue_tipoIdentificacion + " " + accionista[0].conyugue_identificacion + ", denominado  en  adelante  el  CEDENTE";
-    if (accionista[0].conyugue_nombre.length + accionista[0].conyugue_tipoIdentificacion.length + accionista[0].conyugue_identificacion.length === 73) texto2y1 = accionista[0].conyugue_nombre + " con " + accionista[0].conyugue_tipoIdentificacion + " " + accionista[0].conyugue_identificacion + ", denominado  en  adelante  el CEDENTE";
-    if (accionista[0].conyugue_nombre.length + accionista[0].conyugue_tipoIdentificacion.length + accionista[0].conyugue_identificacion.length === 74) texto2y1 = accionista[0].conyugue_nombre + " con " + accionista[0].conyugue_tipoIdentificacion + " " + accionista[0].conyugue_identificacion + ", denominado  en  adelante el CEDENTE";
-    if (accionista[0].conyugue_nombre.length + accionista[0].conyugue_tipoIdentificacion.length + accionista[0].conyugue_identificacion.length === 75) texto2y1 = accionista[0].conyugue_nombre + " con " + accionista[0].conyugue_tipoIdentificacion + " " + accionista[0].conyugue_identificacion + ", denominado  en adelante el CEDENTE";
-    if (accionista[0].conyugue_nombre.length + accionista[0].conyugue_tipoIdentificacion.length + accionista[0].conyugue_identificacion.length === 76) texto2y1 = accionista[0].conyugue_nombre + " con " + accionista[0].conyugue_tipoIdentificacion + " " + accionista[0].conyugue_identificacion + ", denominado en adelante el CEDENTE";
-
-
-    doc.text(texto2, 30, 100);
-    doc.text(texto2y1, 30, 120);
-
-    console.log("Nro2", nombreCesionario.length + identificacionCesionario.length);
-    let texto3 = "y por otra parte " + nombreCesionario + " con identificación " + " " + identificacionCesionario + ", denominado";
-    if (nombreCesionario.length + identificacionCesionario.length === 26) texto3 = "y         por         otra         parte         " + nombreCesionario + "         con         identificación         " + identificacionCesionario + ",         denominado";
-    doc.text(texto3, 30, 140);
-
-    const texto4 = "en adelante el CESIONARIO, quienes libre y voluntariamente convienen en celebrar la presente cesión de acciones.";
-    doc.text(texto4, 30, 160);
-
-    const texto5 = "El CEDENTE  transfiere a título oneroso al CESIONARIO,  las acciones de la compañía  UNACEM ECUADOR S.A.,";
-    doc.text(texto5, 30, 200);
-
-    const texto6 = "con Ruc. No. 1790236862001, de la siguiente manera:";
-    doc.text(texto6, 30, 220);
-
-    //doc.setDrawColor(137, 34, 28);
-    doc.setLineWidth(0.5);
-    doc.line(150, 250, 350, 250);
-
-    const texto7 = "No. de Acciones : " + accionesTransferir;
-    doc.text(texto7, 180, 270);
-
-    doc.setLineWidth(0.5);
-    doc.line(150, 280, 350, 280);
-
-    const texto8 = "Valor de Venta ($) : " + numberWithCommas(valorVenta);
-    doc.text(texto8, 180, 300);
-
-    doc.setLineWidth(0.5);
-    doc.line(150, 310, 350, 310);
-
-    const texto9 = "Total ($): " + numberWithCommas(totalVenta.toFixed(2));
-    doc.text(texto9, 180, 330);
-
-    doc.setLineWidth(0.5);
-    doc.line(150, 340, 350, 340);
-
-    const texto10 = "Particular que ponemos en conocimiento a la empresa UNACEM ECUADOR S.A., en persona de su representante";
-    doc.text(texto10, 30, 370);
-
-    const texto11 = "legal,  a  fin  de  que,  de acuerdo con las disposiciones de la  Ley de Compañías,  se sirva ordenar el registro de la";
-    doc.text(texto11, 30, 390);
-
-    const texto12 = "CESIÓN a favor del nuevo titular en el libro de acciones y accionistas de la compañía.";
-    doc.text(texto12, 30, 410);
-
-    const texto13 = "Para   dar   constancia   de   la   aceptación   de   esta   transferencia   suscribimos,    en    la    ciudad    de    Quito,";
-    doc.text(texto13, 30, 450);
-
-
-    const months = ["Enero", "Febrero", "Marzo", "Abril", "Mayo", "Junio", "Julio", "Agosto", "Septiembre", "Octubre", "Noviembre", "Diciembre"];
-    const d = new Date();
-
-    const texto14 = "el " + d.getDate() + " de " + months[d.getMonth()] + " del " + d.getFullYear() + ".";
-    doc.text(texto14, 30, 470);
-
-    doc.setFont("helvetica", "bold");
-    const texto15 = "CEDENTE";
-    doc.text(texto15, 30, 530);
-    const texto16 = accionista[0].nombre;
-    doc.text(texto16, 30, 590);
-    const texto17 = accionista[0].tipoIdentificacion + " " + accionista[0].identificacion;
-    doc.text(texto17, 30, 610);
-
-    const texto18 = "CESIONARIO";
-    doc.text(texto18, 300, 530);
-    const texto19 = nombreCesionario;
-    doc.text(texto19, 300, 590);
-    const texto20 = "Cédula " + identificacionCesionario;
-    doc.text(texto20, 300, 610);
-
-
-    const texto16y1 = accionista[0].conyugue_nombre;
-    doc.text(texto16y1, 30, 680);
-    const texto17y1 = accionista[0].conyugue_tipoIdentificacion + " " + accionista[0].conyugue_identificacion;
-    doc.text(texto17y1, 30, 700);
-
-
-    doc.save("CartaCesionCasado.pdf")
-
-
-  }
-
-
-
-  const exportPDFCartaGerente = async () => {
-
-    const unit = "pt";
-    const size = "A4"; // Use A1, A2, A3 or A4
-    const orientation = "portrait"; // portrait or landscape
-    //const orientation = "landscape"; // portrait or landscape
-
-    const marginLeft = 40;
-    const doc = new jsPDF(orientation, unit, size);
-
-    const months = ["Enero", "Febrero", "Marzo", "Abril", "Mayo", "Junio", "Julio", "Agosto", "Septiembre", "Octubre", "Noviembre", "Diciembre"];
-    const d = new Date();
-
-
-    //doc.setTextColor(100);
-    doc.setFont("helvetica", "normal");
-    doc.setFontSize(10);
-    const texto1 = "Quito, " + d.getDate() + " de " + months[d.getMonth()] + " del " + d.getFullYear() + ".";
-    doc.text(texto1, 30, 80);
-
-    const texto2 = "Señor";
-    doc.text(texto2, 30, 100);
-
-    const texto3 = "José Antonio Correa Vásconez";
-    doc.text(texto3, 30, 120);
-
-    doc.setFont("helvetica", "bold");
-    const texto4 = "Gerente General";
-    doc.text(texto4, 30, 140);
-
-    const texto5 = "UNACEM ECUADOR S.A.";
-    doc.text(texto5, 30, 160);
-
-    doc.setFont("helvetica", "normal");
-    const texto6 = "Presente. -";
-    doc.text(texto6, 30, 180);
-
-    const texto6y1 = "De nuestra consideración:";
-    doc.text(texto6y1, 30, 230);
-
-    const texto6y2 = "Por medio de la presente, ponemos en su conocimiento la trasferencia de acciones de la compañía";
-    doc.text(texto6y2, 30, 270);
-
-    const texto6y3 = "UNACEM ECUADOR S.A., con Ruc. No. 1790236862001, que se efectuó de la siguiente manera:";
-    doc.text(texto6y3, 30, 290);
-
-
-    //doc.setDrawColor(137, 34, 28);
-    doc.setLineWidth(0.5);
-    doc.line(150, 330, 350, 330);
-
-    const texto7 = "No. de Acciones : " + accionesTransferir;
-    doc.text(texto7, 180, 350);
-
-    doc.setLineWidth(0.5);
-    doc.line(150, 360, 350, 360);
-
-    const texto7y1 = "Tipo : Desmaterializados";
-    doc.text(texto7y1, 180, 380);
-
-    doc.setLineWidth(0.5);
-    doc.line(150, 390, 350, 390);
-
-    const texto8 = "Valor de Venta ($) : " + numberWithCommas(valorVenta);
-    doc.text(texto8, 180, 410);
-
-    doc.setLineWidth(0.5);
-    doc.line(150, 420, 350, 420);
-
-    const texto9 = "Total ($) : " + numberWithCommas(totalVenta.toFixed(2));
-    doc.text(texto9, 180, 440);
-
-    doc.setLineWidth(0.5);
-    doc.line(150, 450, 350, 450);
-
-    const texto9y1 = "Fecha : " + d.getDate() + " de " + months[d.getMonth()] + " del " + d.getFullYear();
-    doc.text(texto9y1, 180, 470);
-
-    doc.setLineWidth(0.5);
-    doc.line(150, 480, 350, 480);
-
-
-
-    const texto10 = "Particular que ponemos en conocimiento a fin de que, de acuerdo con las disposiciones de la Ley de Compañías,";
-    doc.text(texto10, 30, 520);
-
-    const texto11 = "Ustedes se sirvan ordenar el registro de la Cesión a favor del nuevo Titular en el libro de acciones y accionistas";
-    doc.text(texto11, 30, 540);
-
-    const texto12 = " de la Compañía.";
-    doc.text(texto12, 30, 560);
-
-
-    const texto13 = "Por la atención que se digne dar al presente, anticipo mi agradecimiento.";
-    doc.text(texto13, 30, 600);
-
-    const texto14 = "Atentamente,";
-    doc.text(texto14, 30, 620);
-
-    doc.setFont("helvetica", "bold");
-    const texto15 = "CEDENTE";
-    doc.text(texto15, 30, 650);
-    const texto16 = accionista[0].nombre;
-    doc.text(texto16, 30, 710);
-    const texto17 = accionista[0].tipoIdentificacion + "  " + accionista[0].identificacion;
-    doc.text(texto17, 30, 730);
-
-    const texto18 = "CESIONARIO";
-    doc.text(texto18, 300, 650);
-    const texto19 = nombreCesionario;
-    doc.text(texto19, 300, 710);
-    const texto20 = "Cédula " + identificacionCesionario;
-    doc.text(texto20, 300, 730);
-
-
-    doc.save("CartaGerente.pdf")
-
-
-  }
-
-  const exportPDFInstruccionesPago = async () => {
-
-    const unit = "pt";
-    const size = "A4"; // Use A1, A2, A3 or A4
-    const orientation = "portrait"; // portrait or landscape
-    //const orientation = "landscape"; // portrait or landscape
-
-    const marginLeft = 40;
-    const doc = new jsPDF(orientation, unit, size);
-
-    const months = ["Enero", "Febrero", "Marzo", "Abril", "Mayo", "Junio", "Julio", "Agosto", "Septiembre", "Octubre", "Noviembre", "Diciembre"];
-    const d = new Date();
-
-
-    //doc.setTextColor(100);
-    doc.setFont("helvetica", "normal");
-    doc.setFontSize(10);
-    const texto1 = "Quito, " + d.getDate() + " de " + months[d.getMonth()] + " del " + d.getFullYear() + ".";
-    doc.text(texto1, 30, 80);
-
-    const texto2 = "Señor/a/es";
-    doc.text(texto2, 30, 120);
-
-    const texto3 = "UNACEM ECUADOR S.A.";
-    doc.text(texto3, 30, 140);
-
-    const texto3y1 = "Presente. -";
-    doc.text(texto3y1, 30, 160);
-
-    const texto4 = "De mi consideración:";
-    doc.text(texto4, 30, 180);
-
-    const texto5 = "Por medio de la presente, bajo mi responsabilidad, solicito que la acreditación de los valores correspondientes a la venta";
-    doc.text(texto5, 30, 200);
-
-    const texto6 = "de las acciones de mi propiedad de la empresa UNACEM ECUADOR S.A., sea realizada a la siguiente cuenta bancaria:";
-    doc.text(texto6, 30, 220);
-
-    const texto6y1 = "DATOS BANCARIOS";
-    doc.text(texto6y1, 30, 260);
-
-    const texto6y2 = "- Banco : " + (accionista[0].nombreBanco == null ? " " : accionista[0].nombreBanco);
-    doc.text(texto6y2, 60, 280);
-
-    const texto6y3 = "- Tipo de Cuenta : " + (accionista[0].tipoCuenta == null ? " " : accionista[0].tipoCuenta);
-    doc.text(texto6y3, 60, 300);
-
-    const texto7 = "- Número de Cuenta : " + (accionista[0].cuentaBancaria == null ? " " : accionista[0].cuentaBancaria);
-    doc.text(texto7, 60, 320);
-
-
-    const texto7y1 = "INFORMACION GENERAL";
-    doc.text(texto7y1, 30, 360);
-
-    const texto8 = "- Nombre Completo : " + accionista[0].nombre;
-    doc.text(texto8, 60, 380);
-
-    const texto9 = "- Número de Cédula : " + accionista[0].identificacion;
-    doc.text(texto9, 60, 400);
-
-    const texto9y1 = "- Correo electrónico : " + accionista[0].email1;
-    doc.text(texto9y1, 60, 420);
-
-    const texto10 = "- Dirección de Domicilio : " + accionista[0].direccionCalle + " " + accionista[0].direccionNumero;
-    doc.text(texto10, 60, 440);
-
-    const texto10y1 = "- Ciudad : " + accionista[0].direccionCiudad;
-    doc.text(texto10y1, 60, 460);
-
-    const texto10y2 = "- Provincia : " + accionista[0].direccionProvincia;
-    doc.text(texto10y2, 60, 480);
-
-    const texto11 = "- Número de Celular : " + accionista[0].telefono1;
-    doc.text(texto11, 60, 500);
-
-    const texto11y1 = "- Teléfono Convencional : " + accionista[0].telefono2;
-    doc.text(texto11y1, 60, 520);
-
-    const texto12 = "Adjunto copia del certificado bancario.";
-    doc.text(texto12, 30, 560);
-
-    const texto13 = "Por la atención que brinden a la presente, les anticipo mi agradecimiento.";
-    doc.text(texto13, 30, 600);
-
-    const texto14 = "Atentamente,";
-    doc.text(texto14, 30, 640);
-
-    doc.setLineWidth(0.5);
-    doc.line(30, 700, 300, 700);
-
-    doc.setFont("helvetica", "bold");
-    const texto16 = accionista[0].nombre;
-    doc.text(texto16, 30, 710);
-    const texto17 = "ACCIONISTA";
-    doc.text(texto17, 30, 730);
-
-    doc.save("InstruccionesPago.pdf")
-
-
-  }
 
   const addAccionista = async () => {
     try {
@@ -1761,10 +1181,10 @@ export default function Accionistadashboard() {
           <Card variant="outlined" style={{ height: "110px" }}>
             <CardContent>
               <Typography variant="body2" style={{ fontWeight: 600 }}>
-                {accionista.length > 0 && accionista[0].nombre}
+                {accionista.length > 0 && accionista[0].acc_nombre_completo}
               </Typography>
               <Typography variant="body2">
-                <small>{accionista.length > 0 && accionista[0].tipoIdentificacion + " : " + accionista[0].identificacion}</small>
+                <small>{accionista.length > 0 && accionista[0].acc_tipo_identificacion + " : " + accionista[0].acc_identificacion}</small>
               </Typography>
               <Button startIcon={<PrintIcon />} size="small" variant="contained" color="primary" style={{ textTransform: 'none', height: '22px', marginTop: '15px' }} onClick={exportPDFCertificado}><small>Imprimir Certificado de Acciones</small></Button>
 
@@ -1779,7 +1199,7 @@ export default function Accionistadashboard() {
                 Acciones
               </Typography>
               <Typography variant="h5" component="div">
-                {accionista.length > 0 && numberWithCommas(accionista[0].cantidadAcciones)}
+                {accionista.length > 0 && numberWithCommas(accionista[0].acc_cantidad_acciones)}
               </Typography>
 
               <QRcode hidden value={'https://production.dnyw5qmklx2h.amplifyapp.com/?id=' + userName} id='qrcode' size={75} />
@@ -1794,7 +1214,7 @@ export default function Accionistadashboard() {
                 Capital (USD)
               </Typography>
               <Typography variant="h5" component="div">
-                {accionista.length > 0 && numberWithCommas((accionista[0].cantidadAcciones * valorNominal).toFixed(2))}
+                {accionista.length > 0 && numberWithCommas((accionista[0].acc_cantidad_acciones * valorNominal).toFixed(2))}
               </Typography>
             </CardContent>
           </Card>
@@ -1807,7 +1227,7 @@ export default function Accionistadashboard() {
                 Participación (%)
               </Typography>
               <Typography variant="h5" component="div">
-                {accionista.length > 0 && (accionista[0].cantidadAcciones * 100 / cantidadEmitido).toFixed(8)}
+                {accionista.length > 0 && (accionista[0].acc_cantidad_acciones * 100 / cantidadEmitido).toFixed(8)}
               </Typography>
             </CardContent>
           </Card>
@@ -1904,39 +1324,6 @@ export default function Accionistadashboard() {
           </Grid>
         }
 
-
-
-        <Grid item xs={12} sm={12}>
-
-          <Card variant="outlined">
-            <CardContent>
-              <Typography variant="body2" style={{ fontWeight: 600 }}>
-                Listado de Accionistas
-              </Typography>
-              <DataGrid
-                style={{ backgroundColor: 'white' }}
-                //sortModel={ [{field: 'cantidadAcciones', sort: 'desc',}]}
-                density="compact"
-                autoHeight='true'
-                autoPageSize='true'
-                disableColumnMenu
-                components={{ Toolbar: QuickSearchToolbar }}
-                rows={rowsAccionistas}
-                columns={columnsAccionistas}
-                pageSize={20}
-                rowsPerPageOptions={[20]}
-                componentsProps={{
-                  toolbar: {
-                    value: searchText,
-                    onChange: (event) => requestSearch(event.target.value),
-                    clearSearch: () => requestSearch(''),
-                  },
-                }}
-              />
-            </CardContent>
-          </Card>
-        </Grid>
-
         <Dialog open={openRegistroAsamblea} onClose={handleCloseRegistroAsamblea} aria-labelledby="form-dialog-title"    >
           <DialogTitle id="form-dialog-title">Registro en Asamblea</DialogTitle>
           <DialogContent style={{ height: '200px' }}>
@@ -1981,115 +1368,6 @@ export default function Accionistadashboard() {
 
           </DialogActions>
         </Dialog>
-
-
-
-        <Dialog open={openTransferencia} onClose={handleCloseTransferencia} aria-labelledby="form-dialog-title"    >
-          <DialogTitle id="form-dialog-title">Solicitar Transferencia de Acciones
-          </DialogTitle>
-
-          <DialogContent style={{ height: '400px' }}>
-            <div style={{ display: 'flex', flexDirection: 'column' }}>
-              <div style={{ display: 'flex', flexDirection: 'row' }}>
-                <TextField
-                  id="outlined-required"
-                  label={<small>Cantidad de Acciones</small>}
-                  value={accionesTransferir}
-                  onChange={handleChangeAccionesTransferir}
-                  size='small'
-                  variant="outlined"
-                  style={{ width: '180px', marginTop: 0, marginBottom: 10 }}
-                  helperText={accionista.length > 0 ? "Saldo de acciones : " + numberWithCommas(accionista[0].cantidadAcciones - accionesTransferir) : ""}
-                />
-                <TextField
-                  id="outlined-required"
-                  label={<small>Valor de Venta ($)</small>}
-                  value={valorVenta}
-                  onChange={handleChangevalorVenta}
-                  size='small'
-                  variant="outlined"
-                  style={{ width: '150px', marginTop: 0, marginBottom: 10 }}
-                  helperText={accionista.length > 0 ? "Total Venta ($) : " + numberWithCommas((valorVenta * accionesTransferir).toFixed(2)) : ""}
-                />
-              </div>
-              <Typography variant="body2">Cesionario</Typography>
-              <div>
-                <TextField
-                  id="outlined-required"
-                  label={<small>Nombre Completo</small>}
-                  value={nombreCesionario}
-                  onChange={handleChangeNombreCesionario}
-                  size='small'
-                  variant="outlined"
-                  style={{ width: '300px', marginTop: 7 }}
-                />
-                <TextField
-                  id="outlined-required"
-                  label={<small># Identificación</small>}
-                  value={identificacionCesionario}
-                  onChange={handleChangeIdentificacionCesionario}
-                  size='small'
-                  variant="outlined"
-                  style={{ width: '200px', marginTop: 7 }}
-                />
-              </div>
-
-
-            </div>
-
-            <div style={{ display: 'flex', flexDirection: 'column', marginTop: 25 }}>
-              <Typography variant="body2">Generar Modelos de Cartas</Typography>
-              <div style={{ display: 'flex', flexDirection: 'row', alignItems: 'flex-start', justifyContent: 'space-between', width: '100%' }}  >
-
-                {accionista.length > 0 && <Button startIcon={<CloudDownloadIcon />} variant='contained' component="span" color="secondary" size='small' style={{ textTransform: 'none', marginLeft: 0 }} onClick={accionista[0].pn_estadoCivil === "Casado" ? exportPDFCartaCesionCasado : exportPDFCartaCesion}>Carta de Cesión</Button>}
-                <Button startIcon={<CloudDownloadIcon />} variant='contained' component="span" color="secondary" size='small' style={{ textTransform: 'none', marginLeft: 0 }} onClick={exportPDFCartaGerente}>Carta de Gerente</Button>
-                <Button startIcon={<CloudDownloadIcon />} variant='contained' component="span" color="secondary" size='small' style={{ textTransform: 'none', marginLeft: 0 }} onClick={exportPDFInstruccionesPago}>Instrucciones de Pago</Button>
-              </div>
-            </div>
-
-
-            <div style={{ display: 'flex', flexDirection: 'column', marginTop: 25 }}>
-              <Typography variant="body2">Adjuntar Documentos</Typography>
-              <label htmlFor="upload-photo101">
-                <input style={{ display: 'none' }} id="upload-photo101" name="upload-photo101" type="file" accept="application/pdf" onChange={onChangeDocIdentificacion} />
-                <Button startIcon={<CloudUploadOutlinedIcon />} variant='outlined' component="span" color="primary" size='small' style={{ textTransform: 'none', marginTop: 7 }}>Identificación Cesionario y Cedente</Button>
-              </label>
-              <label htmlFor="upload-photo101">
-                <input style={{ display: 'none' }} id="upload-photo101" name="upload-photo101" type="file" accept="application/pdf" onChange={onChangeCartaCesion} />
-                <Button startIcon={<CloudUploadOutlinedIcon />} variant='outlined' component="span" color="primary" size='small' style={{ textTransform: 'none', marginTop: 7 }}>Carta de Cesión y Carta Gerente</Button>
-              </label>
-              <label htmlFor="upload-photo101">
-                <input style={{ display: 'none' }} id="upload-photo101" name="upload-photo101" type="file" accept="application/pdf" onChange={onChangeCartaInstrucciones} />
-                <Button startIcon={<CloudUploadOutlinedIcon />} variant='outlined' component="span" color="primary" size='small' style={{ textTransform: 'none', marginTop: 7 }}>Carta de Instrucciones y Certificado Bancario</Button>
-              </label>
-            </div>
-          </DialogContent>
-          <DialogActions style={{ display: 'flex', flexDirection: 'row', alignItems: 'flex-end', justifyContent: 'flex-end', width: '100%' }}>
-
-            <Button onClick={addSolicitud} variant="contained" color="primary" style={{ textTransform: 'none' }}
-              disabled={accionesTransferir > 0 && nombreCesionario != '' && identificacionCesionario != '' ? false : true}
-            >
-              Solicitar
-            </Button>
-            <Button onClick={handleCloseTransferencia} color="primary" style={{ textTransform: 'none' }}>
-              Salir
-            </Button>
-          </DialogActions>
-        </Dialog>
-        <Snackbar message="Hola" open={openSnack} autoHideDuration={15000} onClose={handleCloseSnack} anchorOrigin={{ vertical: 'top', horizontal: 'center' }}>
-          <Alert onClose={handleCloseSnack} icon={false} severity="info" className={classes.myAlert} >
-            <Box
-              component="img"
-              sx={{
-                height: 550,
-                width: 550,
-                maxHeight: { xs: 330, md: 550 },
-                maxWidth: { xs: 350, md: 550 },
-              }}
-              src={bienvenida}
-            />
-          </Alert>
-        </Snackbar>
 
       </Grid>
     </main>

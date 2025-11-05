@@ -154,7 +154,7 @@ export default function Header(props) {
 
           <div className={classes.rightToolbar}>
 
-            {perfil != "Accionista" &&
+            {perfil != "Accionista" && perfil != "Aprobador" &&
               <Button
                 variant="contained"
                 color="primary"
@@ -168,7 +168,7 @@ export default function Header(props) {
               </Button>
             }
 
-            {perfil != "Accionista" &&
+            {perfil != "Accionista" && perfil != "Aprobador" &&
               <Button aria-controls="menu-operaciones" aria-haspopup="true" onClick={handleClickOperaciones} color='secondary' size='small' style={{ textTransform: 'none' }}>
                 +  Operaciones
               </Button>
@@ -225,12 +225,7 @@ export default function Header(props) {
                 </ListItemIcon>
                 <ListItemText primary="Donación" />
               </MenuItem>
-              <MenuItem onClick={() => { history.push('/posesionefectiva'); setAnchorEl(null); }}>
-                <ListItemIcon>
-                  <GroupOutlinedIcon color='primary' />
-                </ListItemIcon>
-                <ListItemText primary="Posesión Efectiva" />
-              </MenuItem>
+              
               <MenuItem onClick={() => { history.push('/testamento'); setAnchorEl(null); }}>
                 <ListItemIcon>
                   <DescriptionOutlinedIcon color='primary' />
@@ -239,7 +234,7 @@ export default function Header(props) {
               </MenuItem>
             </Menu>
 
-            {perfil != "Accionista" &&
+            {perfil != "Accionista" && perfil != "Aprobador" &&
               <Button aria-controls="menu-accionista" aria-haspopup="true" onClick={handleClickAccionistas} color='secondary' size='small' style={{ textTransform: 'none' }}>
                 +  Accionista
               </Button>

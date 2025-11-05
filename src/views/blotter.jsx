@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 
 import {
-  Snackbar,Grid, Button, Typography, makeStyles, ButtonGroup, Badge, Dialog, DialogActions, DialogContent, DialogContentText, DialogTitle, IconButton, TextField,
+  Snackbar, Grid, Button, Typography, makeStyles, ButtonGroup, Badge, Dialog, DialogActions, DialogContent, DialogContentText, DialogTitle, IconButton, TextField,
   ListItem, ListItemText, ListSubheader, List, CircularProgress, ListItemIcon, Switch, FormControlLabel, InputLabel, MenuItem, Select, OutlinedInput, Icon
 } from '@material-ui/core';
 
@@ -19,7 +19,7 @@ import MuiAlert from '@material-ui/lab/Alert';
 import { DataGrid, GridToolbarContainer, GridToolbarExport } from '@mui/x-data-grid';
 import { API, Storage, Auth, graphqlOperation } from 'aws-amplify';
 import { listOperacions, listTituloPorOperacions, listTitulos, getParametro, listAccionistaOperacions, listAccionistas, getAccionista, getPersonaNatural, getPersonaJuridica, getTitulo } from './../graphql/queries';
-import { updateTitulo, createTitulo, updateAccionista, updateOperacion, createHeredero, createTituloPorOperacion, updateParametro } from './../graphql/mutations';
+import { updateTitulo, createTitulo, updateAccionista, updateOperacion, createHeredero, createTituloPorOperacion, updateParametro, deleteTitulo } from './../graphql/mutations';
 import PropTypes from 'prop-types';
 
 import { styled } from '@material-ui//styles';
@@ -340,11 +340,11 @@ export default function Operaciones() {
   };
 
   const handleClickAnular = (e, values) => {
-
     setTransferencia(values.row);
     setOpenRevisar(true);
     setAnular(true);
     fetchTitulos(values.row.id);
+    fetchAccionistaOperacions(values.row.id);
     console.log('values anular', values.row);
     //console.log('operacion',values.row.id);
   };
@@ -366,42 +366,33 @@ export default function Operaciones() {
     setRechazo(false);
   };
 
-
   const handleReenviarOperacion = async () => {
-
     setCircular(true);
-    const operacion = { ...formData }
-
-    //Actualizar estado de operacion Rechazada a Pendiente
-    //console.log('Aprobar operacion y actualizar Fecha', transferencia.id)
-    //actualizar estado y fechaAprobacion de operacion aprobada
-    //const today = new Date();
-    //const fecha = today.getDate() + '-' + (today.getMonth() + 1) + '-' +  today.getFullYear();
-
-    const apiDataUpdateOper = await API.graphql({ query: updateOperacion, variables: { input: { id: transferencia.id, estado: 'Pendiente', cs: operacion.cs, cg: operacion.cg, ci: operacion.ci, es: operacion.es, cp: operacion.cp, } } });
-    //console.log('xxxxxxxxxxxxxxxxxxxx', transferencia.id, operacion.cs, operacion.cg, operacion.ci, operacion.es, operacion.cp)
-
-    setFormData({ cs: '', cg: '', ci: '', es: '', cp: '' })
+    var operacionAux = {
+      id: transferencia.id,
+      ope_estado: 0,
+      ope_fecha_aprobacion: fecha,
+    }
+    const apiDataUpdateOper = await API.graphql({
+      query: updateOperacion,
+      variables: { input: operacionAux }
+    });
+    console.log("apiDataUpdateOper", apiDataUpdateOper);
     setCircular(false);
     setOpenRevisar(false);
     setAnular(false);
     setCount(0);
     setTransferencia([]);
     setTitulos([]);
-    fetchOperaciones("Rechazada");
+    fetchOperaciones("Pendiente");
     setRechazo(false);
     setMotivosRechazo([]);
-
   }
 
-
   const handleActualizarDocumentos = async () => {
-
     setCircular(true);
     const operacion = { ...formData }
-
     const apiDataUpdateOper = await API.graphql({ query: updateOperacion, variables: { input: { id: transferencia.id, cs: operacion.cs, cg: operacion.cg, ci: operacion.ci, es: operacion.es, cp: operacion.cp, } } });
-
     setFormData({ cs: '', cg: '', ci: '', es: '', cp: '' })
     setCircular(false);
     setOpenRevisar(false);
@@ -412,56 +403,73 @@ export default function Operaciones() {
     fetchOperaciones("Aprobada");
     setRechazo(false);
     setMotivosRechazo([]);
-
   }
 
-
-
   const handleAnularOperacion = async () => {
-
+    var control = true;
     setCircular(true);
-
-    console.log('Anular Operacion')
-
-    //Preguntar si tienen titulos ?
-
-    //Desbloquear Titulos
-    for (const titulo of titulos) {
-      console.log('Titulo a Desbloquear', titulo)
-      const apiData = await API.graphql({ query: updateTitulo, variables: { input: { id: titulo.tituloId, estado: 'Activo' } } });
-      console.log('Titulo Desbloqueado', apiData)
+    switch (transferencia.ope_tipo_letras) {
+      case "Aumento de Capital":
+        control = (await operacionAnularAumentoCapital()).valueOf();
+        break;
+      case "Bloqueo":
+        control = (await operacionBloqueoDesbloqueo(1, 1, 3)).valueOf();
+        break;
+      case "Cesión":
+        control = (await operacionAnularCesion()).valueOf();
+        break;
+      case "Donación":
+        control = (await operacionAnularCesion()).valueOf();
+        break;
+      case "Testamento":
+        control = (await operacionAnularCesion()).valueOf();
+        break;
+      case "Desbloqueo":
+        control = (await operacionBloqueoDesbloqueo(3, 0, 3)).valueOf();
+        break;
+      case "Canje":
+        control = (await operacionAnularCanje()).valueOf();
+        break;
+      default:
+        control = false;
+        console.log('Error anulando la operación');
+        break;
     }
-
-    //Actualizar estado de operacion a Anulada
-    console.log('Aprobar operacion y actualizar Fecha', transferencia.id)
-    //actualizar estado y fechaAprobacion de operacion aprobada
-    const apiDataUpdateOper = await API.graphql({ query: updateOperacion, variables: { input: { id: transferencia.id, estado: 'Anulada', fechaAprobacion: fecha } } });
-    console.log(' Pasó Aprobar operacion y actualizar Fecha', apiDataUpdateOper)
-
-
+    if (control) {
+      console.log("Operación anulada correctamente");
+      setOpenSnack(true);
+    }
+    else {
+      console.log("Error al anular la operación. Proceso: handleAnularOperacion");
+    }
+    handleRevisarOperacion();
     setCircular(false);
     setOpenRevisar(false);
     setAnular(false);
     setCount(0);
     setTransferencia([]);
     setTitulos([]);
-    fetchOperaciones("Pendiente");
-    setRechazo(false);
+    fetchOperaciones("Anulada");
   }
 
   const handleRechazarOperacion = async () => {
     setCircular(true);
     let obs = '';
-    const res = motivosRechazo.map(motivo => {
+    motivosRechazo.map(motivo => {
       obs = obs + motivoRechazo.find(item => item.value == motivo).label + ' | '
     });
+    var operacionAux = {
+      id: transferencia.id,
+      ope_estado: 2,
+      ope_fecha_aprobacion: fecha,
+      ope_motivo_rechazo: motivosRechazo[0],
+      ope_observacion: obs
+    }
     const apiDataUpdateOper = await API.graphql({
       query: updateOperacion,
-      variables: { input: { id: transferencia.id, estado: 'Rechazada', fechaAprobacion: fecha, motivoRechazo: motivosRechazo, observacion: obs } }
+      variables: { input: operacionAux }
     });
-    for (const titulo of titulos) {
-      const apiData = await API.graphql({ query: updateTitulo, variables: { input: { id: titulo.tituloId, estado: 'Activo' } } });
-    }
+    console.log("apiDataUpdateOper", apiDataUpdateOper);
     setCircular(false);
     setOpenRevisar(false);
     setAnular(false);
@@ -473,26 +481,24 @@ export default function Operaciones() {
     setMotivosRechazo([]);
   }
 
-  async function aprobarOperacion(idOperacion) {
+  async function actualizarOperacion(idOperacion, opeEstado) {
     try {
       const operacion = {
         id: idOperacion,
-        ope_estado: 1,
+        ope_estado: opeEstado,
         ope_aprobador: userName,
         ope_fecha_aprobacion: fecha,
       }
       await API.graphql(graphqlOperation(updateOperacion, { input: operacion }));
       return true;
     } catch (err) {
-      console.log('Error aprobando la operación:', err);
+      console.log('Error actualizando la operación:', err);
       return false;
     }
   }
-
-  
-  async function operacionBloqueoDesbloqueo(acc_estadoAux, tit_estadoAux) {
+  async function operacionBloqueoDesbloqueo(acc_estadoAux, tit_estadoAux, opeEstado) {
     try {
-      if (!(await aprobarOperacion(transferencia.id)).valueOf()) return false;
+      if (!(await actualizarOperacion(transferencia.id, opeEstado)).valueOf()) return false;
       await API.graphql(graphqlOperation(updateAccionista, { input: { id: accionistaGlobal.id, acc_estado: acc_estadoAux } }));
       Promise.all(
         titulos.map(input => API.graphql({ query: updateTitulo, variables: { input: { id: input.tit_ope_titulo_id, tit_estado: tit_estadoAux } } }))
@@ -503,17 +509,21 @@ export default function Operaciones() {
       return false;
     }
   }
-
   async function actualizarParticipacionAccionistas(cantidadEmitida) {
     try {
-      const api =await API.graphql({query: listAccionistas});
+      const api = await API.graphql({ query: listAccionistas });
       const listaAccionistas = api.data.listAccionistas.items;
       Promise.all(
-        listaAccionistas.map(input => 
-          API.graphql({ query: updateAccionista, 
-            variables: { input: { id: input.id, 
-              acc_participacion: input.acc_cantidad_acciones/cantidadEmitida
-        }}}))
+        listaAccionistas.map(input =>
+          API.graphql({
+            query: updateAccionista,
+            variables: {
+              input: {
+                id: input.id,
+                acc_participacion: input.acc_cantidad_acciones / cantidadEmitida
+              }
+            }
+          }))
       );
     } catch (err) {
       console.log('error creating transaction:', err);
@@ -521,7 +531,7 @@ export default function Operaciones() {
   }
   const operacionAumentoCapital = async () => {
     try {
-      if (!(await aprobarOperacion(transferencia.id)).valueOf()) return false;
+      if (!(await actualizarOperacion(transferencia.id, 1)).valueOf()) return false;
       var apiData = await API.graphql({ query: getTitulo, variables: { id: 'IDTituloPadreDeTodos' } });
       const tituloPadre = apiData.data.getTitulo;
       const tituloAux = {
@@ -550,7 +560,7 @@ export default function Operaciones() {
       await API.graphql(graphqlOperation(updateAccionista, {
         input: {
           id: accionistaGlobal.id,
-          acc_estado:1,
+          acc_estado: 1,
           acc_cantidad_acciones: accionistaGlobal.acc_cantidad_acciones,
           acc_participacion: accionistaGlobal.acc_cantidad_acciones / tituloPadreAux.tit_hasta
         }
@@ -562,10 +572,73 @@ export default function Operaciones() {
       return false;
     }
   }
-
+  const operacionAnularAumentoCapital = async () => {
+    try {
+      console.log("transferencia",transferencia);
+      console.log("accionistaGlobal",accionistaGlobal);
+      if (!(await actualizarOperacion(transferencia.id, 3)).valueOf()) return false;
+      var apiData = await API.graphql({ query: getTitulo, variables: { id: 'IDTituloPadreDeTodos' } });
+      const tituloPadre = apiData.data.getTitulo;
+      apiData = await API.graphql({ query: listTituloPorOperacions, variables: { tit_ope_operacion_id: transferencia.id } });
+      console.log("apiData",apiData.data.listTituloPorOperacions.items);
+      const tituloPadreAux = {
+        id: "IDTituloPadreDeTodos",
+        tit_hasta: tituloPadre.tit_hasta - transferencia.ope_acciones
+      }
+      console.log("tituloPadreAux",tituloPadreAux);
+      await API.graphql(graphqlOperation(updateTitulo, { input: tituloPadreAux }));
+      accionistaGlobal.acc_cantidad_acciones -= transferencia.ope_acciones;
+      actualizarParticipacionAccionistas(tituloPadreAux.tit_hasta);
+      await API.graphql(graphqlOperation(updateAccionista, {
+        input: {
+          id: accionistaGlobal.id,
+          acc_estado: 1,
+          acc_cantidad_acciones: accionistaGlobal.acc_cantidad_acciones,
+          acc_participacion: accionistaGlobal.acc_cantidad_acciones / tituloPadreAux.tit_hasta
+        }
+      }));
+      await API.graphql(graphqlOperation(updateParametro, { input: { id: '1', cantidadEmitida: tituloPadreAux.tit_hasta } }));
+      var response = await API.graphql({ query: deleteTitulo, variables: { input: { id: apiData.data.listTituloPorOperacions.items[0].tit_ope_titulo_id } }});
+      console.log("response",response);
+      return true;
+    } catch (err) {
+      console.log('error creating transaction:', err);
+      return false;
+    }
+  }
+  const operacionCanje = async () => {
+    try {
+      if (!(await actualizarOperacion(transferencia.id, 1)).valueOf()) return false;
+      await API.graphql(graphqlOperation(updateAccionista, {
+        input: {
+          id: accionistaGlobal.id,
+          acc_tipo_acciones: 1,
+        }
+      }));
+      return true;
+    } catch (error) {
+      console.log('Error aprobando la operación:', error);
+      return false;
+    }
+  }
+  const operacionAnularCanje = async () => {
+    try {
+      if (!(await actualizarOperacion(transferencia.id, 3)).valueOf()) return false;
+      await API.graphql(graphqlOperation(updateAccionista, {
+        input: {
+          id: accionistaGlobal.id,
+          acc_tipo_acciones: 0,
+        }
+      }));
+      return true;
+    } catch (error) {
+      console.log('Error aprobando la operación:', error);
+      return false;
+    }
+  }
   const operacionCesion = async () => {
     try {
-      if (!(await aprobarOperacion(transferencia.id)).valueOf()) return false;
+      if (!(await actualizarOperacion(transferencia.id, 1)).valueOf()) return false;
       await API.graphql(graphqlOperation(updateAccionista, {
         input: {
           id: accionistaGlobal.id,
@@ -573,9 +646,9 @@ export default function Operaciones() {
           acc_participacion: (accionistaGlobal.acc_cantidad_acciones - transferencia.ope_acciones) / cantidadEmitida
         }
       }));
-      console.log("accionistaGlobal",accionistaGlobal);
-      console.log("transferencia",transferencia);
-      console.log("cantidadEmitida",cantidadEmitida);
+      console.log("accionistaGlobal", accionistaGlobal);
+      console.log("transferencia", transferencia);
+      console.log("cantidadEmitida", cantidadEmitida);
       await API.graphql(graphqlOperation(updateAccionista, {
         input: {
           id: cesionario.id,
@@ -583,21 +656,23 @@ export default function Operaciones() {
           acc_participacion: (cesionario.acc_cantidad_acciones + transferencia.ope_acciones) / cantidadEmitida
         }
       }));
-      console.log("cantidades",titulos[0], transferencia.ope_acciones);
+      console.log("cantidades", titulos[0], transferencia.ope_acciones);
       if (titulos[0].tit_ope_acciones == transferencia.ope_acciones) {
         Promise.all(
-          titulos.map(input => API.graphql({
-            query: updateTitulo, variables: {
-              input: {
-                id: input.tit_ope_titulo_id,
-                tit_accionista_id: cesionario.id
+          titulos.map(input => {
+            API.graphql({
+              query: updateTitulo, variables: {
+                input: {
+                  id: input.tit_ope_titulo_id,
+                  tit_accionista_id: cesionario.id
+                }
               }
-            }
-          }))
+            });
+          })
         );
       } else {
         var auxLenght = 0;
-        titulos.map(input => {auxLenght++})
+        titulos.map(input => { auxLenght++ })
         if (auxLenght == 1) {
           var tituloPadre = await API.graphql(graphqlOperation(getTitulo, {
             id: titulos[0].tit_ope_titulo_id
@@ -608,7 +683,7 @@ export default function Operaciones() {
               tit_acciones: tituloPadre.data.getTitulo.tit_acciones - transferencia.ope_acciones,
             }
           }));
-          await API.graphql(graphqlOperation(createTitulo, {
+          var idNuevoTitulo = await API.graphql(graphqlOperation(createTitulo, {
             input: {
               tit_accionista_id: cesionario.id,
               tit_estado: 1,
@@ -617,6 +692,62 @@ export default function Operaciones() {
               tit_hasta: parseInt(tituloPadre.data.getTitulo.tit_acciones),
               tit_padre: tituloPadre.data.getTitulo.id,
               tit_nivel: tituloPadre.data.getTitulo.tit_nivel + 1,
+            }
+          }));
+          API.graphql({
+            query: createTituloPorOperacion, variables: {
+              input: {
+                tit_ope_operacion_id: transferencia.id,
+                tit_ope_titulo_id: idNuevoTitulo.data.createTitulo.id,
+                tit_ope_acciones: transferencia.ope_acciones
+              }
+            }
+          });
+        }
+      }
+      return true;
+    } catch (error) {
+      console.log('Error aprobando la operación:', error);
+      return false;
+    }
+  }
+
+  const operacionAnularCesion = async () => {
+    try {
+      if (!(await actualizarOperacion(transferencia.id, 3)).valueOf()) return false;
+      await API.graphql(graphqlOperation(updateAccionista, {
+        input: {
+          id: accionistaGlobal.id,
+          acc_cantidad_acciones: accionistaGlobal.acc_cantidad_acciones + transferencia.ope_acciones,
+          acc_participacion: (accionistaGlobal.acc_cantidad_acciones + transferencia.ope_acciones) / cantidadEmitida
+        }
+      }));
+      await API.graphql(graphqlOperation(updateAccionista, {
+        input: {
+          id: cesionario.id,
+          acc_cantidad_acciones: cesionario.acc_cantidad_acciones - transferencia.ope_acciones,
+          acc_participacion: (cesionario.acc_cantidad_acciones - transferencia.ope_acciones) / cantidadEmitida
+        }
+      }));
+      if (titulos[0].tit_ope_acciones == transferencia.ope_acciones) {
+        Promise.all(
+          titulos.map(input => API.graphql({
+            query: updateTitulo, variables: {
+              input: {
+                id: input.tit_ope_titulo_id,
+                tit_accionista_id: accionistaGlobal.id
+              }
+            }
+          }))
+        );
+      } else {
+        var auxLenght = 0;
+        titulos.map(input => { auxLenght++ })
+        if (auxLenght == 1) {
+          await API.graphql(graphqlOperation(updateTitulo, {
+            input: {
+              id: titulos[0].tit_ope_titulo_id,
+              tit_accionista_id: accionistaGlobal.id,
             }
           }));
         }
@@ -636,13 +767,22 @@ export default function Operaciones() {
         control = (await operacionAumentoCapital()).valueOf();
         break;
       case "Bloqueo":
-        control = (await operacionBloqueoDesbloqueo(3, 0)).valueOf();
+        control = (await operacionBloqueoDesbloqueo(3, 0, 1)).valueOf();
         break;
       case "Cesión":
         control = (await operacionCesion()).valueOf();
         break;
+      case "Donación":
+        control = (await operacionCesion()).valueOf();
+        break;
+      case "Testamento":
+        control = (await operacionCesion()).valueOf();
+        break;
       case "Desbloqueo":
-        control = (await operacionBloqueoDesbloqueo(1, 1)).valueOf();
+        control = (await operacionBloqueoDesbloqueo(1, 1, 1)).valueOf();
+        break;
+      case "Canje":
+        control = (await operacionCanje()).valueOf();
         break;
       default:
         control = false;
@@ -675,7 +815,8 @@ export default function Operaciones() {
     apiData.data.listAccionistaOperacions.items.forEach(element => {
       fetchAccionista(element.acc_ope_accionista_id).then(
         data => {
-          if (element.acc_ope_detalle == "Bloqueo" ||
+          if (element.acc_ope_detalle == "Canje" ||
+            element.acc_ope_detalle == "Bloqueo" ||
             element.acc_ope_detalle == "Desbloqueo" ||
             element.acc_ope_detalle == "Aumento Capital" ||
             element.acc_ope_detalle == "Cedente") setAccionistaGlobal(data);
@@ -1202,15 +1343,9 @@ export default function Operaciones() {
               </Button>
             }
 
-            {!anular && estado == 1 &&
+            {!anular && estado == 2 && 
               <Button onClick={handleReenviarOperacion} color="primary" variant='contained'>
                 Volver a Solicitar Aprobación
-              </Button>
-            }
-
-            {!anular && estado == 2 &&
-              <Button onClick={handleActualizarDocumentos} color="secondary" variant='contained'>
-                Actualizar documentos
               </Button>
             }
 

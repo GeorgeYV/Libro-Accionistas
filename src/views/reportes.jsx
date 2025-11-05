@@ -151,8 +151,6 @@ export default function Reportes() {
   }
 
   useEffect(() => {
-    fetchAccionistas();
-    fetchPeriodosDividendos();
   }, [])
   
   const exportLibroAccionistas = async () => {
@@ -167,11 +165,12 @@ export default function Reportes() {
     // Creacion del Xls
     const title = "Reporte de Libro de Accionistas";
     const headers = [
-      "Tipo Identificacion","Identificación", "Nombre", "Nacionalidad", "País","Provincia","Ciudad",
-      "Calle","Número","Banco","Tipo de Cuenta","Cuenta Bancaria","Acciones", "Participación", 
+      "Decevale", 
+      "Tipo Identificacion","Identificación", "Nombre", "Residencia", "Nacionalidad", "País","Provincia","Ciudad",
+      "Dirección","Número","Banco","Tipo de Cuenta","Cuenta Bancaria","Acciones", "Participación", 
       "Tipo Acciones", "Estado", "Tipo Persona", "Pn Primer Nombre", "Pn Segundo nombre", "Pn Apellido Paterno",
       "Pn Apellido Materno", "Pn Estado Civil", "Conyuge Tipo Identificación","Conyuge Identificación","Conyuge Nombre",
-      "Conyuge Nacionalidad", "RepLegal Tipo Identificacion", "RepLegal Identificacion", "RepLegal nombre", "RepLegal Nacionalidad",
+      "Conyuge Nacionalidad", "Razón Social", "RepLegal Tipo Identificacion", "RepLegal Identificacion", "RepLegal nombre", "RepLegal Nacionalidad",
       "RepLegal Telefono", "RepLegal Email", "Telefono1", "Observación1", "Telefono2", "Observación2", "Telefono3", "Observación3",
       "Email1", "Email2", "Email3","Fecha de Registro", "Fecha de Modificación"
     ];
@@ -246,23 +245,25 @@ export default function Reportes() {
     const promise = Promise.all(
       result.map(async (elt) => {
         sheet.addRow([
-          elt.tipoIdentificacion,
-          elt.identificacion, 
-          elt.nombre, 
-          elt.paisNacionalidad, 
-          elt.direccionPais,
-          elt.direccionProvincia,
-          elt.direccionCiudad,
-          elt.direccionCalle,
-          elt.direccionNumero,
-          elt.nombreBanco,
-          elt.tipoCuenta,
-          elt.cuentaBancaria,
-          elt.cantidadAcciones,
-          elt.participacion,
-          elt.tipoAcciones,
-          elt.estado,
-          elt.tipoPersona,
+          elt.acc_decevale,
+          elt.acc_tipo_identificacion,
+          elt.acc_identificacion, 
+          elt.acc_nombre_completo, 
+          elt.acc_residencia,
+          elt.acc_nacionalidad, 
+          elt.acc_pais,
+          elt.acc_provincia,
+          elt.acc_ciudad,
+          elt.acc_direccion,
+          elt.acc_dir_numero,
+          elt.acc_banco,
+          elt.acc_tipo_cuenta,
+          elt.acc_cuenta_bancaria,
+          elt.acc_cantidad_acciones,
+          elt.acc_participacion,
+          elt.acc_tipo_acciones,
+          elt.acc_estado == 1 ? "Activo" : elt.acc_estado == 2 ? "Inactivo" : "Bloqueado",
+          elt.acc_tipo_persona==0 ? "PN" : "PJ",
           elt.pn_primerNombre,
           elt.pn_segundoNombre,
           elt.pn_apellidoPaterno,
@@ -308,22 +309,18 @@ export default function Reportes() {
   }
 
   const exportListadoAccionistas = async () => {
-    let filter = {estado:{},tipoPersona:{}};
-    if (estadoListado != "0") {
-      filter.estado.eq = estadoListado == "1" ? "Activo" 
-      : estadoListado == "2" ? "Bloqueado" 
-      : estadoListado == "3" ? "Inactivo" 
-      : null;
+    let filter = {acc_estado:{},acc_tipo_persona:{}};
+    if (estadoListado != 0) {
+      filter.acc_estado.eq = estadoListado
     } else {
-      filter.estado.ne = "TODOS";
+      filter.acc_estado.ne = "TODOS";
     }
-    if (tipoPersonaSelect != "0") {
-      filter.tipoPersona.eq = tipoPersonaSelect == "1" ? "PN" 
-      : tipoPersonaSelect == "2" ? "PJ" 
-      : null;
+    if (tipoPersonaSelect != 2) {
+      filter.acc_tipo_persona.eq = tipoPersonaSelect
     } else {
-      filter.tipoPersona.ne = "TODOS";
+      filter.acc_tipo_persona.ne = "TODOS";
     }
+    console.log("Filter: ",filter);
     const apiData = await API.graphql({ query: listAccionistas, variables: { filter: filter} });
     const libroAccionista = apiData.data.listAccionistas.items;
     // Creacion del Xlsx
@@ -389,15 +386,15 @@ export default function Reportes() {
     const promise = Promise.all(
       libroAccionista.map(async (elt) => {
         sheet.addRow([
-          elt.tipoPersona, 
-          elt.identificacion, 
-          elt.nombre, 
-          elt.paisNacionalidad, 
-          elt.telefono1,
-          elt.email1,
-          elt.tipoAcciones,
-          elt.cantidadAcciones, 
-          elt.estado
+          elt.acc_tipo_persona == 0 ? "PN" : "PJ", 
+          elt.acc_identificacion, 
+          elt.acc_nombre_completo, 
+          elt.acc_nacionalidad, 
+          elt.acc_telefonos,
+          elt.acc_correos,
+          elt.acc_tipo_acciones == 0 ? "Ordinarias" : "Desmaterializadas",
+          elt.acc_cantidad_acciones, 
+          elt.acc_estado == 1 ? "Activo" : elt.acc_estado == 2 ? "Inactivo" : "Bloqueado"
         ]);
       })
     );
@@ -652,11 +649,11 @@ export default function Reportes() {
 
   const exportOperaciones = async () => {
     // Carga de datos
-    let filter = {operacion:{}};
-    if (tipoOperacion != "0") {
-      filter.operacion.eq = tipoOperacion;
+    let filter = {ope_tipo:{}};
+    if (tipoOperacion != 10) {
+      filter.ope_tipo.eq = tipoOperacion;
     } else {
-      filter.operacion.ne = "NoEmpty";
+      filter.ope_tipo.ne = 10;
     }
     console.log("Filter: ",filter)
     const apiData = await API.graphql({ query: listOperacions, variables: { filter: filter }});
@@ -665,7 +662,7 @@ export default function Reportes() {
     var dateHasta = new Date(operacionesHasta);
     dateHasta.setDate(dateHasta.getDate() + 1);
     const result = operacionesFromAPI.filter(d => {
-      var time = new Date(+d.fecha.split("-")[2], d.fecha.split("-")[1] - 1, +d.fecha.split("-")[0]).getTime();
+      var time = new Date(d.createdAt).getTime();
       return (new Date(operacionesDesde).getTime() < time && time < new Date(dateHasta).getTime());
     });
     console.log("const result: ",result)
@@ -674,7 +671,7 @@ export default function Reportes() {
     const headers = ["Fecha", "Operación", "Cedente",
       "Titulo", "Acciones","Cesionario","Estado",
       "Usuario Ingreso", "Usuario Aprobador","Fecha Aprobación","Motivo Rechazo",
-      "Observación","Valor Nominal","Capital","Fecha Valor"
+      "Observación","Fecha Registro"
     ];
     const letrasColumnas = ['A','B','C','D','E', 'F','G','H','I','J', 'K','L','M','N','O'];
     const workbook = new ExcelJS.Workbook();
@@ -728,21 +725,21 @@ export default function Reportes() {
     const promise = Promise.all(
       result.map(async (elt) => {
         sheet.addRow([
-          elt.fecha,
-          elt.operacion,
+          elt.ope_fecha,
+          elt.ope_tipo,
           elt.cedente,
           elt.titulo,
-          elt.acciones,
+          elt.ope_acciones,
           elt.cesionario,
-          elt.estado,
-          elt.usuarioIngreso,
-          elt.usuarioAprobador,
-          elt.fechaAprobacion,
-          elt.motivoRechazo,
-          elt.observacion,
-          elt.valorNominal,
-          elt.capital,
-          elt.fechaValor,
+          elt.ope_estado,
+          elt.ope_ingresador,
+          elt.ope_aprobador,
+          elt.ope_fecha_aprobacion,
+          elt.ope_motivo_rechazo,
+          elt.ope_observacion,
+          elt.ope_acciones,
+          elt.ope_acciones,
+          elt.createdAt,
         ]);
       })
     );
@@ -836,9 +833,9 @@ export default function Reportes() {
                 label="Estado"
                 onChange={handleChangeTipoPersonaSelect}
               >
-                <MenuItem value={0} >Todos</MenuItem>
-                <MenuItem value={1} >Persona Natural</MenuItem>
-                <MenuItem value={2} >Persona Juridica</MenuItem>
+                <MenuItem value={2} >Todos</MenuItem>
+                <MenuItem value={0} >Persona Natural</MenuItem>
+                <MenuItem value={1} >Persona Juridica</MenuItem>
               </Select>
             </FormControl>
             <FormControl fullWidth style={{ paddingBottom: 5, height: '48%' }}>
@@ -852,8 +849,8 @@ export default function Reportes() {
               >
                 <MenuItem value={0} >Todos</MenuItem>
                 <MenuItem value={1} >Activo</MenuItem>
-                <MenuItem value={2} >Bloqueado</MenuItem>
-                <MenuItem value={3} >Inactivo</MenuItem>
+                <MenuItem value={2} >Inactivo</MenuItem>
+                <MenuItem value={3} >Bloqueado</MenuItem>
               </Select>
             </FormControl>
             <Button
@@ -868,87 +865,8 @@ export default function Reportes() {
               Descargar
             </Button>
           </Grid>
-          <Grid item sm={6} md={4} lg={3} xl={2} style={{ minHeight:250 }}>
-            <Typography variant='body2' color='secondary' style={{ height: '15%' }}>
-              Transferencias
-            </Typography>
-            <FormControl fullWidth style={{ paddingBottom: 5, }}>
-              <TextField
-                size='small'
-                id="datetime-local"
-                label="Desde"
-                type="date"
-                defaultValue={transferenciasDesde}
-                value={transferenciasDesde}
-                onChange={handleChangeDateTrasnferenciasDesde}
-                variant="standard"
-                InputLabelProps={{
-                  shrink: true
-                }}
-              />
-            </FormControl>
-            <FormControl fullWidth style={{ paddingBottom: 5, height: '49%' }}>
-              <TextField
-                size='small'
-                id="datetime-local"
-                label="Hasta"
-                type="date"
-                defaultValue={transferenciasHasta}
-                value={transferenciasHasta}
-                onChange={handleChangeDateTrasnferenciasHasta}
-                variant="standard"
-                InputLabelProps={{
-                  shrink: true,
-                }}
-              />
-            </FormControl>
-            <Button
-              size="small"
-              variant="contained"
-              color="primary"
-              style={{ height: '15%' }}
-              className={classes.button}
-              startIcon={<SaveIcon />}
-              onClick={exportTransferencias}
-            >
-              Descargar
-            </Button>
-          </Grid>
-          <Grid item sm={6} md={4} lg={3} xl={2} style={{ minHeight:250 }}>
-            <Typography variant='body2' color='secondary' style={{ height: '15%' }}>
-              Dividendos
-            </Typography>
-            <Autocomplete
-              value={periodoDividendo}
-              size='small'
-              id="comboBoxPeriodoDividendo"
-              options={periodosDividendos}
-              getOptionLabel={(option) => option.periodo ? option.periodo : ""}
-              renderInput={(params) => <TextField {...params} label="Periodo" margin="normal" variant="outlined" />}
-              onChange={(option, value) => handleClickPeriodoDividendo(option, value)}
-            />
-            <Autocomplete
-              value={valAccionista}
-              size='small'
-              id="comboBoxAccionistaDividendo"
-              options={accionistas}
-              getOptionLabel={(option) => option.nombre ? option.nombre : ""}
-              style={{ height: '43%' }}
-              renderInput={(params) => <TextField {...params} label="Accionista" margin="normal" variant="outlined" />}
-              onChange={(option, value) => handleClickAccionista(option, value)}
-            />
-            <Button
-              size="small"
-              variant="contained"
-              color="primary"
-              style={{ height: '15%' }}
-              className={classes.button}
-              startIcon={<SaveIcon />}
-              onClick={exportDividendos}
-            >
-              Descargar
-            </Button>
-          </Grid>
+          
+          
           <Grid item sm={6} md={4} lg={3} xl={2} style={{ minHeight:250 }}>
             <Typography variant='body2' color='secondary' style={{ height: '15%' }}>
               Operaciones
@@ -993,13 +911,14 @@ export default function Reportes() {
                 label="Tipo"
                 onChange={handleChangeTipoOperacion}
               >
-                <MenuItem value={0} >Todos</MenuItem>
-                <MenuItem value={"Aumento Capital"} >Aumento de Capital</MenuItem>
-                <MenuItem value={"Bloqueo"} >Bloqueo</MenuItem>
-                <MenuItem value={"Canje"} >Canje</MenuItem>
-                <MenuItem value={"Desbloqueo"} >Desbloqueo</MenuItem>
-                <MenuItem value={"Donación"} >Donación</MenuItem>
-                <MenuItem value={"Testamento"} >Testamento</MenuItem>
+                <MenuItem value={10} >Todos</MenuItem>
+                <MenuItem value={0} >Aumento de Capital</MenuItem>
+                <MenuItem value={1} >Bloqueo</MenuItem>
+                <MenuItem value={2} >Canje</MenuItem>
+                <MenuItem value={4} >Desbloqueo</MenuItem>
+                <MenuItem value={5} >Donación</MenuItem>
+                <MenuItem value={7} >Testamento</MenuItem>
+                <MenuItem value={3} >Cesión</MenuItem>
               </Select>
             </FormControl>
             <Button

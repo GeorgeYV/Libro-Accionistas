@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import { useState, useEffect } from 'react';
 import {
   makeStyles, Paper, Divider, Grid, Typography, TextField, Button, withStyles, ListItem, ListItemText, ListSubheader, ListItemIcon,
   List, IconButton, Dialog, DialogActions, DialogContent, DialogContentText, DialogTitle, Checkbox, Snackbar, CircularProgress, Chip
@@ -6,15 +6,13 @@ import {
 import Autocomplete from '@material-ui/lab/Autocomplete';
 import { API, Storage, graphqlOperation, Auth } from 'aws-amplify';
 import { listAccionistas, listTitulos } from './../graphql/queries';
-import { createAccionistaOperacion, createOperacion, createTituloPorOperacion, updateTitulo } from './../graphql/mutations';
+import { createAccionistaOperacion, createOperacion, createTituloPorOperacion } from './../graphql/mutations';
 import SaveIcon from '@material-ui/icons/Save';
-import CheckIcon from '@material-ui/icons/Check';
 import MuiAlert from '@material-ui/lab/Alert';
 import CloudUploadOutlinedIcon from '@material-ui/icons/CloudUploadOutlined';
 import DeleteOutlineIcon from '@material-ui/icons/DeleteOutline';
 import VisibilityIcon from '@material-ui/icons/Visibility';
 import { uuid } from 'uuidv4';
-import { Label } from '@material-ui/icons';
 function Alert(props) {
   return <MuiAlert elevation={6} variant="filled" {...props} />;
 }
@@ -151,9 +149,11 @@ export default function Cesion() {
         eq: estadoAcc
       }
     };
+    console.log("filtrooo:",filtro);
     const apiData = await API.graphql({ query: listAccionistas, variables: { filter: filtro, limit: 1000 } });
     const accionistasFromAPI = apiData.data.listAccionistas.items;
     setAccionistas(accionistasFromAPI);
+    console.log("filtrooo:",accionistasFromAPI);
     setListCedentes(accionistasFromAPI.map(function (e) {
       return { 
         id: e.id,

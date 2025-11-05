@@ -13,8 +13,6 @@ import "jspdf-autotable";
 import PropTypes from 'prop-types';
 import IconButton from '@material-ui/core/IconButton';
 import TextField from '@material-ui/core/TextField';
-import Avatar from '@material-ui/core/Avatar';
-
 import ClearIcon from '@material-ui/icons/Clear';
 import SearchIcon from '@material-ui/icons/Search';
 import EditIcon from '@material-ui/icons/Edit';
@@ -30,9 +28,9 @@ import ViewColumnIcon from '@material-ui/icons/ViewColumn';
 import Grid from '@material-ui/core/Grid';
 import QRcode from 'qrcode.react';
 import marco from '../images/Recurso 1.png';
-import fondoUnacem from '../images/Recurso 2.png';
+import fondoUnacem from '../images/Unacem2.png';
 import logoSolo from '../images/Recurso 3.png';
-import logoCompleto from '../images/Recurso 4.png';
+import logoCompleto from '../images/logoUNACEMmedMarco2.png';
 
 import {
   Typography, Button, ListItem, ListItemText, ListSubheader, List, Tooltip, Chip,
@@ -41,7 +39,7 @@ import {
 } from '@material-ui/core';
 
 import { styled } from '@material-ui//styles';
-import { createTitulo, updateAccionista } from '../graphql/mutations';
+import { createTitulo, deleteTitulo, updateAccionista } from '../graphql/mutations';
 
 const defaultTheme = createTheme();
 const useStyles = makeStyles(
@@ -280,12 +278,10 @@ export default function Accionistas() {
         field: "Edit",
         width: 80,
         renderCell: (cellValues) => {
-
-
           return <Link to={{
             pathname: cellValues.row.acc_tipo_identificacion == 0 ? "/personanatural" : "/personajuridica",
             state: {
-              preloadedValue: cellValues.row.id,
+              preloadedValue: cellValues.row,
             },
           }} color='primary'><EditIcon /></Link>;
         }
@@ -334,7 +330,7 @@ export default function Accionistas() {
     }
     var apiData = await API.graphql({ query: listAccionistas, variables: {filter: filtro, limit: 1000 } });
     const accionistasFromAPI = apiData.data.listAccionistas.items;
-    /*var apiData = await API.graphql({ query: getTitulo, variables: { id: 'IDTituloPadreDeTodos' } });
+    var apiData = await API.graphql({ query: getTitulo, variables: { id: 'IDTituloPadreDeTodos' } });
     const tituloPadre = apiData.data.getTitulo;
     var tituloAux = {
       tit_accionista_id: "",
@@ -346,7 +342,7 @@ export default function Accionistas() {
       tit_nivel: 1,
     }
     var desde=1;
-    accionistasFromAPI.map(async accionistaAux => {
+    /*accionistasFromAPI.map(async accionistaAux => {
       tituloAux = {
         tit_accionista_id: accionistaAux.id,
         tit_estado: 1,
@@ -358,7 +354,6 @@ export default function Accionistas() {
       }
       desde = desde + accionistaAux.acc_cantidad_acciones;
       await API.graphql(graphqlOperation(createTitulo, { input: tituloAux }));
-      await API.graphql(graphqlOperation(updateAccionista, { input: {id:accionistaAux.id,acc_estado:1} }));
     })*/
     apiData = await API.graphql({ query: listPersonaNaturals, variables: { limit: 1000 } });
     const personasNaturales = apiData.data.listPersonaNaturals.items;
@@ -384,15 +379,17 @@ export default function Accionistas() {
       pn_doc_identificacion: ""
     };
     const accFinal = accionistasFromAPI.map(accionistaMap => {
-      /*if (accionistaMap.acc_tipo_persona == 0) {
+      if (accionistaMap.acc_tipo_persona == 0) {
         pnAux = personasNaturales.find(({ id }) => id === accionistaMap.id);
-        nombre_completo = pnAux.pn_primer_nombre + ' ' + pnAux.pn_apellido_paterno;
-        pnVar.pn_primer_nombre = pnAux.pn_primer_nombre;
-        pnVar.pn_segundo_nombre = pnAux.pn_segundo_nombre;
-        pnVar.pn_apellido_paterno = pnAux.pn_apellido_paterno;
-        pnVar.pn_apellido_materno = pnAux.pn_apellido_materno;
-        pnVar.pn_estado_civil = pnAux.pn_estado_civil;
-        pnVar.pn_doc_identificacion = pnAux.pn_doc_identificacion;
+        if(pnAux){
+          nombre_completo = pnAux.pn_primer_nombre + ' ' + pnAux.pn_apellido_paterno;
+          pnVar.pn_primer_nombre = pnAux.pn_primer_nombre;
+          pnVar.pn_segundo_nombre = pnAux.pn_segundo_nombre;
+          pnVar.pn_apellido_paterno = pnAux.pn_apellido_paterno;
+          pnVar.pn_apellido_materno = pnAux.pn_apellido_materno;
+          pnVar.pn_estado_civil = pnAux.pn_estado_civil;
+          pnVar.pn_doc_identificacion = pnAux.pn_doc_identificacion;
+        }
         pjVar={
           pj_rl_tipo_identificacion: "",
           pj_razon_social: "",
@@ -406,15 +403,17 @@ export default function Accionistas() {
       }
       if (accionistaMap.acc_tipo_persona == 1) {
         pjAux = personasJuridicas.find(({ id }) => id === accionistaMap.id);
-        nombre_completo = pjAux.pj_razon_social;
-        pjVar.pj_rl_tipo_identificacion = pjAux.pj_rl_tipo_identificacion;
-        pjVar.pj_razon_social= pjAux.pj_razon_social;
-        pjVar.pj_rl_identificacion= pjAux.pj_rl_identificacion;
-        pjVar.pj_rl_nombre= pjAux.pj_rl_nombre;
-        pjVar.pj_rl_nacionalidad= pjAux.pj_rl_nacionalidad;
-        pjVar.pj_rl_telefono= pjAux.pj_rl_telefono;
-        pjVar.pj_rl_email= pjAux.pj_rl_email;
-        pjVar.pj_doc_nombramiento= pjAux.pj_doc_nombramiento;
+        if(pjAux){
+          nombre_completo = pjAux.pj_razon_social;
+          pjVar.pj_rl_tipo_identificacion = pjAux.pj_rl_tipo_identificacion;
+          pjVar.pj_razon_social= pjAux.pj_razon_social;
+          pjVar.pj_rl_identificacion= pjAux.pj_rl_identificacion;
+          pjVar.pj_rl_nombre= pjAux.pj_rl_nombre;
+          pjVar.pj_rl_nacionalidad= pjAux.pj_rl_nacionalidad;
+          pjVar.pj_rl_telefono= pjAux.pj_rl_telefono;
+          pjVar.pj_rl_email= pjAux.pj_rl_email;
+          pjVar.pj_doc_nombramiento= pjAux.pj_doc_nombramiento;
+        }
         pnVar={
           pn_primer_nombre: "",
           pn_segundo_nombre: "",
@@ -423,7 +422,7 @@ export default function Accionistas() {
           pn_estado_civil: "",
           pn_doc_identificacion: ""
         };
-      }*/
+      }
       return {
         id: accionistaMap.id,
         acc_decevale: accionistaMap.acc_decevale,
@@ -451,7 +450,7 @@ export default function Accionistas() {
         acc_participacion: accionistaMap.acc_participacion,
         acc_tipo_acciones: accionistaMap.acc_tipo_acciones,
         acc_tipo_persona: accionistaMap.acc_tipo_persona,
-        /*pn_primer_nombre: pnVar.pn_primer_nombre,
+        pn_primer_nombre: pnVar.pn_primer_nombre,
         pn_segundo_nombre: pnVar.pn_segundo_nombre,
         pn_apellido_paterno: pnVar.pn_apellido_paterno,
         pn_apellido_materno: pnVar.pn_apellido_materno,
@@ -464,7 +463,7 @@ export default function Accionistas() {
         pj_rl_nacionalidad: pjVar.pj_rl_nacionalidad,
         pj_rl_telefono: pjVar.pj_rl_telefono,
         pj_rl_email: pjVar.pj_rl_email,
-        pj_doc_nombramiento: pjVar.pj_doc_nombramiento,*/
+        pj_doc_nombramiento: pjVar.pj_doc_nombramiento,
         acc_nombre_completo: accionistaMap.acc_nombre_completo
       }
     });
@@ -602,7 +601,7 @@ export default function Accionistas() {
 
     doc.setFont("helvetica", "bold");
     doc.setFontSize(22);
-    const texto2 = accionistaSeleccionado.nombre_completo;
+    const texto2 = accionistaSeleccionado.acc_nombre_completo;
     doc.text(texto2, 220, 290);
 
     doc.setDrawColor(100);
@@ -711,7 +710,7 @@ export default function Accionistas() {
                 <Tab label="Info" {...a11yProps(0)} />
                 <Tab label="Documentos" {...a11yProps(1)} />
                 <Tab label="Títulos" {...a11yProps(2)} />
-                <Tab label="Operaciones" {...a11yProps(3)} />
+                
                 <Tab label="Certificado" {...a11yProps(4)} />
               </Tabs>
             </Box>
