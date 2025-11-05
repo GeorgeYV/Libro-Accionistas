@@ -119,19 +119,6 @@ export default function PersonaJuridica() {
       value: "Estados Unidos",
     },
   ];
-  var personasNaturales = [
-    {id: "1790920003001",pj_rl_tipo_identificacion: 0,pj_razon_social: "CONGREGACION EDUCACIONAL DEL VERBO DIVINO",pj_rl_identificacion: "",pj_rl_nombre: "",pj_rl_nacionalidad: "Ecuador",pj_rl_telefono: "",pj_rl_email: "",pj_doc_nombramiento: ""},
-{id: "1791263162001",pj_rl_tipo_identificacion: 0,pj_razon_social: "Cyprus Investments Casa De Valores S.A.",pj_rl_identificacion: "",pj_rl_nombre: "",pj_rl_nacionalidad: "",pj_rl_telefono: "",pj_rl_email: "",pj_doc_nombramiento: ""},
-{id: "1060000260001",pj_rl_tipo_identificacion: 0,pj_razon_social: "Gob.Auton.Descent.Munic.San Miguel De Ibarra",pj_rl_identificacion: "",pj_rl_nombre: "",pj_rl_nacionalidad: "",pj_rl_telefono: "",pj_rl_email: "",pj_doc_nombramiento: ""},
-{id: "20563343193",pj_rl_tipo_identificacion: 0,pj_razon_social: "Inversiones Imbabura S.A.",pj_rl_identificacion: "40836688",pj_rl_nombre: "",pj_rl_nacionalidad: "Perú",pj_rl_telefono: "22459140",pj_rl_email: "",pj_doc_nombramiento: ""},
-{id: "1060000180001",pj_rl_tipo_identificacion: 0,pj_razon_social: "Gobierno Provincial De Imbabura",pj_rl_identificacion: "",pj_rl_nombre: "",pj_rl_nacionalidad: "",pj_rl_telefono: "",pj_rl_email: "",pj_doc_nombramiento: ""},
-{id: "1791827929001",pj_rl_tipo_identificacion: 0,pj_razon_social: "Concentracion Deportiva De Pichincha",pj_rl_identificacion: "",pj_rl_nombre: "",pj_rl_nacionalidad: "Ecuador",pj_rl_telefono: "",pj_rl_email: "",pj_doc_nombramiento: ""},
-{id: "1060000500001",pj_rl_tipo_identificacion: 0,pj_razon_social: "Gob.Auton.Descent.Munic. Del Canton Otavalo",pj_rl_identificacion: "",pj_rl_nombre: "",pj_rl_nacionalidad: "",pj_rl_telefono: "",pj_rl_email: "",pj_doc_nombramiento: ""},
-{id: "1060000420001",pj_rl_tipo_identificacion: 0,pj_razon_social: "Gob.Aut.Desc.Mun.De Santa Ana De Cotacachi",pj_rl_identificacion: "",pj_rl_nombre: "",pj_rl_nacionalidad: "Ecuador",pj_rl_telefono: "",pj_rl_email: "",pj_doc_nombramiento: ""},
-{id: "1091705415001",pj_rl_tipo_identificacion: 0,pj_razon_social: "Asociacion Ayuda Mutua La Esperanza",pj_rl_identificacion: "",pj_rl_nombre: "",pj_rl_nacionalidad: "Ecuador",pj_rl_telefono: "",pj_rl_email: "",pj_doc_nombramiento: ""},
-{id: "1060000340001",pj_rl_tipo_identificacion: 0,pj_razon_social: "Gobierno Autonomo Descentralizado Municipal De Antonio Ante",pj_rl_identificacion: ".",pj_rl_nombre: "",pj_rl_nacionalidad: "Ecuador",pj_rl_telefono: ".",pj_rl_email: "",pj_doc_nombramiento: ""},
-{id: "0200216075",pj_rl_tipo_identificacion: 0,pj_razon_social: "BONILLA SILVA PATRICIO ALBERTO",pj_rl_identificacion: "22431338",pj_rl_nombre: "",pj_rl_nacionalidad: "Ecuador",pj_rl_telefono: "22431338",pj_rl_email: "ramiro@analyticasecurities.com ",pj_doc_nombramiento: ""}
-  ];
   var [accionistaDefault, setAccionistaDefault] = useState({
     id: "",
     acc_decevale: "",
