@@ -6,7 +6,7 @@ import {
 import Autocomplete from '@material-ui/lab/Autocomplete';
 import { API, Storage, graphqlOperation, Auth } from 'aws-amplify';
 import { listAccionistas, listTitulos } from './../graphql/queries';
-import { createAccionistaOperacion, createOperacion, createTituloPorOperacion, updateTitulo } from './../graphql/mutations';
+import { createAccionistaOperacion, createOperacion, createTituloPorOperacion } from './../graphql/mutations';
 import CloudUploadOutlinedIcon from '@material-ui/icons/CloudUploadOutlined';
 import SyncOutlinedIcon from '@material-ui/icons/SyncOutlined';
 import SaveIcon from '@material-ui/icons/Save';
@@ -87,7 +87,7 @@ export default function Canje() {
         ope_fecha_aprobacion: "",
         ope_motivo_rechazo: -1,
         ope_observacion: "",
-        ope_documento: ""
+        ope_documento: formData.cs
       }
       var operacionIdNew = await API.graphql(graphqlOperation(createOperacion, { input: operacion }));
       const accionistaOperacion = {
@@ -176,10 +176,10 @@ export default function Canje() {
       console.log('entro al cancelar')
       return
     }
-    /*const file = e.target.files[0];
+    const file = e.target.files[0];
     const filename = uuid() + file.name
     setFormData({ ...formData, cs: filename });
-    await Storage.put(filename, file);*/
+    await Storage.put(filename, file);
     setProgreso(progreso + 50)
   }
   return (

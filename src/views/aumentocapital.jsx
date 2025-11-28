@@ -125,7 +125,7 @@ export default function AumentoCapital() {
         return;
       }
       operacionGlobal.ope_acciones = tituloGlobal.tit_acciones;
-      operacionGlobal.ope_documento = 'filename';
+      operacionGlobal.ope_documento = formData.es;
       operacionGlobal.ope_ingresador = userName;
       var operacionIdNew = await API.graphql(graphqlOperation(createOperacion, { input: operacionGlobal }));
       aumentoCapitalGlobal.id = operacionIdNew.data.createOperacion.id;
@@ -140,6 +140,7 @@ export default function AumentoCapital() {
       tituloGlobal.tit_acciones = 0;
       aumentoCapitalGlobal.aum_cap_capital = 0;
       setAccionistaGlobal({ acc_identificacion: '' });
+      setFormData({es: ''});
       console.log("accionista:", accionistaGlobal);
       setOpenSnack(true);
     } catch (err) {

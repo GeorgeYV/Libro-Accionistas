@@ -88,6 +88,7 @@ export default function Cesion() {
         return;
       }
       setCircular(true);
+      var auxDocs = formData.cs +"&"+ formData.cg +"&"+ formData.ci +"&"+ formData.es +"&"+ formData.cp;
       const operacion = {
         ope_fecha: fecha,
         ope_tipo: 7,
@@ -98,7 +99,7 @@ export default function Cesion() {
         ope_fecha_aprobacion: "",
         ope_motivo_rechazo: -1,
         ope_observacion: "",
-        ope_documento: ""
+        ope_documento: auxDocs
       }
       var operacionIdNew = await API.graphql(graphqlOperation(createOperacion, { input: operacion }));
       var accionistaOperacion = {
@@ -132,6 +133,7 @@ export default function Cesion() {
       setTotal(0)
       setValCedente({})
       setValCesionario({})
+      setFormData({cs: '', cg: '', ci: '', es: '', cp: ''});
       setCircular(false);
       setOpenSnack(true);
     } catch (err) {

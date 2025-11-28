@@ -1,21 +1,17 @@
 import React, { useState, useEffect } from 'react';
 import {
-  makeStyles, Paper, Avatar, Grid, Typography, TextField, Button, withStyles, ListItem, ListItemText, ListSubheader, ListItemIcon,
+  makeStyles, Paper, Avatar, Grid, Typography, TextField, Button, ListItem, ListItemText, ListSubheader,
   List, IconButton, Snackbar, CircularProgress, LinearProgress
 } from '@material-ui/core';
 
 import Autocomplete from '@material-ui/lab/Autocomplete';
 import { API, Storage, graphqlOperation, Auth } from 'aws-amplify';
 import { listAccionistas, listTitulos } from './../graphql/queries';
-import { createAccionistaOperacion, createOperacion, createTituloPorOperacion, updateTitulo } from './../graphql/mutations';
+import { createAccionistaOperacion, createOperacion, createTituloPorOperacion } from './../graphql/mutations';
 
 import CloudUploadOutlinedIcon from '@material-ui/icons/CloudUploadOutlined';
-import VerifiedUserOutlinedIcon from '@material-ui/icons/VerifiedUserOutlined';
-import PersonOutlineOutlinedIcon from '@material-ui/icons/PersonOutlineOutlined';
-import SyncOutlinedIcon from '@material-ui/icons/SyncOutlined';
 import SaveIcon from '@material-ui/icons/Save';
 import CheckIcon from '@material-ui/icons/Check';
-import LockOutlinedIcon from '@material-ui/icons/LockOutlined';
 import LockOpenOutlinedIcon from '@material-ui/icons/LockOpenOutlined';
 
 import MuiAlert from '@material-ui/lab/Alert';
@@ -114,7 +110,7 @@ export default function Desbloqueo() {
         ope_fecha_aprobacion: "",
         ope_motivo_rechazo: -1,
         ope_observacion: "",
-        ope_documento: ""
+        ope_documento: formData.cs
       }
       var operacionIdNew = await API.graphql(graphqlOperation(createOperacion, { input: operacion }));
       const accionistaOperacion = {
@@ -135,6 +131,7 @@ export default function Desbloqueo() {
       setTitulos([])
       setTotal(0)
       setValCedente({})
+      setFormData({es:''});
       setCircular(false);
       setOpenSnack(true);
     } catch (err) {
@@ -205,14 +202,14 @@ export default function Desbloqueo() {
   };
 
   async function onChangeCS(e) {
-    /*if (!e.target.files[0]) {
+    if (!e.target.files[0]) {
       console.log('entro al cancelar')
       return
     }
     const file = e.target.files[0];
     const filename = uuid() + file.name
     setFormData({ ...formData, cs: filename });
-    await Storage.put(filename, file);*/
+    await Storage.put(filename, file);
     setProgreso(progreso + 50)
   }
 

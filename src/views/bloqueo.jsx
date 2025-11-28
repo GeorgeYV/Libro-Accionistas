@@ -109,7 +109,7 @@ export default function Bloqueo() {
         ope_fecha_aprobacion: "",
         ope_motivo_rechazo: -1,
         ope_observacion:"",
-        ope_documento:""
+        ope_documento:formData.cs
       }
       var operacionIdNew = await API.graphql(graphqlOperation(createOperacion, { input: operacion }));
       const accionistaOperacion = {
@@ -130,6 +130,7 @@ export default function Bloqueo() {
       setTitulos([])
       setTotal(0)
       setValCedente({})
+      setFormData({cs: '', cg: '', ci: '', es: '', cp: ''});
       setCircular(false);
       setOpenSnack(true);
     } catch (err) {
@@ -200,14 +201,14 @@ export default function Bloqueo() {
     setOpenSnackDanger(false);
   };
   async function onChangeCS(e) {
-    /*if (!e.target.files[0]){
+    if (!e.target.files[0]){
       console.log('entro al cancelar')
       return
     }
     const file = e.target.files[0];
     const filename = uuid() + file.name
     setFormData({ ...formData, cs: filename });
-    await Storage.put(filename, file);*/
+    await Storage.put(filename, file);
     setProgreso(progreso + 50)
   }
 

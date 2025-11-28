@@ -392,7 +392,8 @@ export default function Operaciones() {
   const handleActualizarDocumentos = async () => {
     setCircular(true);
     const operacion = { ...formData }
-    const apiDataUpdateOper = await API.graphql({ query: updateOperacion, variables: { input: { id: transferencia.id, cs: operacion.cs, cg: operacion.cg, ci: operacion.ci, es: operacion.es, cp: operacion.cp, } } });
+    var auxDocs = formData.cs +"&"+ formData.cg +"&"+ formData.ci +"&"+ formData.es +"&"+ formData.cp;
+    const apiDataUpdateOper = await API.graphql({ query: updateOperacion, variables: { input: { id: transferencia.id, auxDocs } } });
     setFormData({ cs: '', cg: '', ci: '', es: '', cp: '' })
     setCircular(false);
     setOpenRevisar(false);
@@ -830,14 +831,6 @@ export default function Operaciones() {
     var accionista;
     var apiData = await API.graphql({ query: getAccionista, variables: { id: idAccionista } });
     accionista = apiData.data.getAccionista;
-    /*if (accionista.acc_tipo_persona == 0) {
-      apiData = await API.graphql({ query: getPersonaNatural, variables: { id: apiData.data.getAccionista.id } });
-      accionista.nombre_completo = apiData.data.getPersonaNatural.pn_primer_nombre + ' ' + apiData.data.getPersonaNatural.pn_apellido_paterno;
-    }
-    if (accionista.acc_tipo_persona == 1) {
-      apiData = await API.graphql({ query: getPersonaJuridica, variables: { id: apiData.data.getAccionista.id } });
-      accionista.nombre_completo = apiData.data.getPersonaJuridica.pj_razon_social;
-    }*/
     return accionista;
   }
 
