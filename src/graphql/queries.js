@@ -595,6 +595,7 @@ export const getAccionista = /* GraphQL */ `
       acc_tipo_acciones
       acc_tipo_persona
       acc_nombre_completo
+      acc_tiene_herederos
       createdAt
       updatedAt
       __typename
@@ -636,6 +637,7 @@ export const listAccionistas = /* GraphQL */ `
         acc_tipo_acciones
         acc_tipo_persona
         acc_nombre_completo
+        acc_tiene_herederos
         createdAt
         updatedAt
         __typename
@@ -649,12 +651,10 @@ export const getHeredero = /* GraphQL */ `
   query GetHeredero($id: ID!) {
     getHeredero(id: $id) {
       id
-      accionistaHerederoId
-      nombre
-      cantidad
-      idCedente
-      nombreCedente
-      estado
+      her_identificacion
+      her_nombre
+      her_id_accionisa
+      her_cant_acciones
       createdAt
       updatedAt
       __typename
@@ -670,12 +670,10 @@ export const listHerederos = /* GraphQL */ `
     listHerederos(filter: $filter, limit: $limit, nextToken: $nextToken) {
       items {
         id
-        accionistaHerederoId
-        nombre
-        cantidad
-        idCedente
-        nombreCedente
-        estado
+        her_identificacion
+        her_nombre
+        her_id_accionisa
+        her_cant_acciones
         createdAt
         updatedAt
         __typename
@@ -735,6 +733,7 @@ export const getParametro = /* GraphQL */ `
       modeloCartaCesion
       modeloCartaGerente
       modeloCartaInstrucciones
+      titulos_totales
       createdAt
       updatedAt
       __typename
@@ -796,6 +795,7 @@ export const listParametros = /* GraphQL */ `
         modeloCartaCesion
         modeloCartaGerente
         modeloCartaInstrucciones
+        titulos_totales
         createdAt
         updatedAt
         __typename

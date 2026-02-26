@@ -40,6 +40,7 @@ import {
 
 import { styled } from '@material-ui//styles';
 import { createTitulo, deleteTitulo, updateAccionista } from '../graphql/mutations';
+import { render } from '@testing-library/react';
 
 const defaultTheme = createTheme();
 const useStyles = makeStyles(
@@ -262,7 +263,13 @@ export default function Accionistas() {
           return <Chip variant="outlined" size="small" label={cellValues.row.acc_estado == 0 ? 'Inactivo' : cellValues.row.acc_estado == 1 ? 'Activo' : 'Bloqueado'} color={cellValues.row.acc_estado == 1 ? 'primary' : 'secondary'} />
         }
       },
-
+      {
+        field: 'acc_tiene_herederos',
+        headerName: 'Herederos',
+        renderCell: (cellValues) => {
+          return cellValues.row.acc_tiene_herederos ? 'Si' : 'No'
+        },
+      },
       {
         field: "Info",
         width: 70,
@@ -464,7 +471,8 @@ export default function Accionistas() {
         pj_rl_telefono: pjVar.pj_rl_telefono,
         pj_rl_email: pjVar.pj_rl_email,
         pj_doc_nombramiento: pjVar.pj_doc_nombramiento,
-        acc_nombre_completo: accionistaMap.acc_nombre_completo
+        acc_nombre_completo: accionistaMap.acc_nombre_completo,
+        acc_tiene_herederos: accionistaMap.acc_tiene_herederos
       }
     });
     setAccionistas(accFinal);
@@ -681,18 +689,16 @@ export default function Accionistas() {
 
 
           <DataGrid
-            //getRowId= {(row) => row.code}
             style={{ backgroundColor: 'white' }}
-            //sortModel={ [{field: 'cantidadAcciones', sort: 'desc',}]}
             density="compact"
             autoHeight='true'
             autoPageSize='true'
             disableColumnMenu
-            components={{ Toolbar: QuickSearchToolbar }}
             rows={rows}
             columns={columns}
             pageSize={20}
             rowsPerPageOptions={[20]}
+            components={{ Toolbar: QuickSearchToolbar }}
             componentsProps={{
               toolbar: {
                 value: searchText,
@@ -1054,7 +1060,7 @@ export default function Accionistas() {
                     </ListItem>))}
               </List>
             </TabPanel>
-            <TabPanel value={value} index={3}>
+            <TabPanel value={value} index={4}>
               <List dense='true'
                 subheader={
                   <ListSubheader component="div" id="nested-list-subheader">
@@ -1105,7 +1111,7 @@ export default function Accionistas() {
                   </ListItem>))}
               </List>
             </TabPanel>
-            <TabPanel value={value} index={4}>
+            <TabPanel value={value} index={3}>
               <Grid container justifyContent="center" alignItems="center" direction="column">
                 <Grid item>
                   <QRcode value={'https://production.dnyw5qmklx2h.amplifyapp.com/?id='} id='qrcode' size={100} />

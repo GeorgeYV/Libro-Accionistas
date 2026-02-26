@@ -808,6 +808,7 @@ export const createAccionista = /* GraphQL */ `
       acc_tipo_acciones
       acc_tipo_persona
       acc_nombre_completo
+      acc_tiene_herederos
       createdAt
       updatedAt
       __typename
@@ -847,6 +848,7 @@ export const updateAccionista = /* GraphQL */ `
       acc_tipo_acciones
       acc_tipo_persona
       acc_nombre_completo
+      acc_tiene_herederos
       createdAt
       updatedAt
       __typename
@@ -886,6 +888,7 @@ export const deleteAccionista = /* GraphQL */ `
       acc_tipo_acciones
       acc_tipo_persona
       acc_nombre_completo
+      acc_tiene_herederos
       createdAt
       updatedAt
       __typename
@@ -899,12 +902,10 @@ export const createHeredero = /* GraphQL */ `
   ) {
     createHeredero(input: $input, condition: $condition) {
       id
-      accionistaHerederoId
-      nombre
-      cantidad
-      idCedente
-      nombreCedente
-      estado
+      her_identificacion
+      her_nombre
+      her_id_accionisa
+      her_cant_acciones
       createdAt
       updatedAt
       __typename
@@ -918,12 +919,10 @@ export const updateHeredero = /* GraphQL */ `
   ) {
     updateHeredero(input: $input, condition: $condition) {
       id
-      accionistaHerederoId
-      nombre
-      cantidad
-      idCedente
-      nombreCedente
-      estado
+      her_identificacion
+      her_nombre
+      her_id_accionisa
+      her_cant_acciones
       createdAt
       updatedAt
       __typename
@@ -937,12 +936,10 @@ export const deleteHeredero = /* GraphQL */ `
   ) {
     deleteHeredero(input: $input, condition: $condition) {
       id
-      accionistaHerederoId
-      nombre
-      cantidad
-      idCedente
-      nombreCedente
-      estado
+      her_identificacion
+      her_nombre
+      her_id_accionisa
+      her_cant_acciones
       createdAt
       updatedAt
       __typename
@@ -1002,6 +999,7 @@ export const createParametro = /* GraphQL */ `
       modeloCartaCesion
       modeloCartaGerente
       modeloCartaInstrucciones
+      titulos_totales
       createdAt
       updatedAt
       __typename
@@ -1061,6 +1059,7 @@ export const updateParametro = /* GraphQL */ `
       modeloCartaCesion
       modeloCartaGerente
       modeloCartaInstrucciones
+      titulos_totales
       createdAt
       updatedAt
       __typename
@@ -1120,6 +1119,7 @@ export const deleteParametro = /* GraphQL */ `
       modeloCartaCesion
       modeloCartaGerente
       modeloCartaInstrucciones
+      titulos_totales
       createdAt
       updatedAt
       __typename

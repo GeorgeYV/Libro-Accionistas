@@ -108,10 +108,6 @@ export default function Header(props) {
     return user;
   }
 
-  const logOut = () => {
-    Auth.signOut();
-  }
-
   const [userName, setUserName] = useState("");
   const [perfil, setPerfil] = useState();
 
@@ -225,7 +221,12 @@ export default function Header(props) {
                 </ListItemIcon>
                 <ListItemText primary="Donación" />
               </MenuItem>
-              
+              <MenuItem onClick={() => { history.push('/posesionefectiva'); setAnchorEl(null); }}>
+                <ListItemIcon>
+                  <GroupOutlinedIcon color='primary' />
+                </ListItemIcon>
+                <ListItemText primary="Posesión Efectiva" />
+              </MenuItem>
               <MenuItem onClick={() => { history.push('/testamento'); setAnchorEl(null); }}>
                 <ListItemIcon>
                   <DescriptionOutlinedIcon color='primary' />
@@ -301,5 +302,3 @@ export default function Header(props) {
     </div>
   )
 }
-
-

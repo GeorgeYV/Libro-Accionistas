@@ -16,7 +16,6 @@ import marco from '../images/Recurso 1.png'
 import fondoUnacem from '../images/Recurso 2.png'
 import logoSolo from '../images/Recurso 3.png'
 import logoCompleto from '../images/Recurso 4.png'
-import bienvenida from '../images/Comunicado.jpeg'
 
 import PropTypes from 'prop-types';
 import IconButton from '@material-ui/core/IconButton';
@@ -29,12 +28,11 @@ import PrintIcon from '@material-ui/icons/Print';
 
 import ClearIcon from '@material-ui/icons/Clear';
 import SearchIcon from '@material-ui/icons/Search';
-import CloudDownloadIcon from '@material-ui/icons/CloudDownload';
 
 import Grid from '@material-ui/core/Grid';
 
 import {
-  Card, CardContent, Typography, Button, Box, Snackbar,
+  Card, CardContent, Typography, Button,
   Dialog, DialogActions, DialogContent, DialogTitle
 } from '@material-ui/core';
 
@@ -85,12 +83,6 @@ const useStyles = makeStyles(
   }),
   { defaultTheme },
 );
-
-
-const Input = styled('input')({
-  display: 'none',
-});
-
 
 function escapeRegExp(value) {
   return value.replace(/[-[\]{}()*+?.,\\^$|#\s]/g, '\\$&');

@@ -158,16 +158,15 @@ type Accionista @model @auth(rules: [{allow: public}]) {
   acc_tipo_acciones: Int
   acc_tipo_persona: Int
   acc_nombre_completo: String
+  acc_tiene_herederos: Boolean
 }
 
 type Heredero @model @auth(rules: [{allow: public}]) {
   id: ID!
-  accionistaHerederoId: String!
-  nombre: String!
-  cantidad: Int
-  idCedente: String!
-  nombreCedente: String!
-  estado: String
+  her_identificacion: String
+  her_nombre: String
+  her_id_accionisa: String
+  her_cant_acciones: Int
 }
 
 type Parametro @model @auth(rules: [{allow: public}]) {

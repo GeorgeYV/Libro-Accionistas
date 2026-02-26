@@ -349,7 +349,6 @@ export default function Operaciones() {
     //console.log('operacion',values.row.id);
   };
 
-
   const handleClickRevisar = (e, values) => {
     setTransferencia(values.row);
     setOpenRevisar(true);
@@ -358,7 +357,6 @@ export default function Operaciones() {
     setFormData({ cs: values.row.cs, cg: values.row.cg, ci: values.row.ci, es: values.row.es, cp: values.row.cp })
     console.log('values', values.row);
   };
-
 
   const handleRevisarOperacion = () => {
     setOpenRevisar(false);

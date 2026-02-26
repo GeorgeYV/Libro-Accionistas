@@ -4,18 +4,19 @@ import {
   IconButton, InputLabel, Snackbar, Switch,
   FormControl, FormHelperText
 } from '@material-ui/core';
-import { useLocation, useParams } from 'react-router-dom'
+import { useLocation, useHistory } from 'react-router-dom'
 import ControlPointIcon from '@material-ui/icons/ControlPoint';
 import CheckIcon from '@material-ui/icons/Check';
 import RemoveCircleOutlineIcon from '@material-ui/icons/RemoveCircleOutline';
-import { API, Storage, graphqlOperation } from 'aws-amplify';
-import { createAccionista, updateAccionista, createPersonaNatural, createConyuge, updateConyuge, updatePersonaNatural } from './../graphql/mutations';
+import { API, Storage, graphqlOperation, input } from 'aws-amplify';
+import { createAccionista, updateAccionista, createPersonaNatural, createConyuge, updateConyuge, updatePersonaNatural, createHeredero, deleteHeredero } from './../graphql/mutations';
 import { uuid } from 'uuidv4';
 import MuiAlert from '@material-ui/lab/Alert';
 import {
   validarCampos, verificarCamposVacios,
   devolverSoloAccionista, devolverSoloConyuge, devolverSoloPersonaNatural
 } from './../components/manejoAccionistas';
+import { listHerederos } from '../graphql/queries';
 function Alert(props) {
   return <MuiAlert elevation={6} variant="filled" {...props} />;
 }
@@ -148,8 +149,11 @@ export default function PersonaNatural() {
       value: "2",
     },
   ];
+  const navigate = useHistory();
+  var [prevenirSaturacion, setPrevenirSaturacion] = useState(false);
   var [countTelef, setCountTelef] = useState(1);
   var [countEmail, setCountEmail] = useState(1);
+  var [herederos, setHerederos] = useState({});
   const [conyugue, setConyugue] = useState(false);
   const location = useLocation();
   var [accionistaGlobal, setAccionistaGlobal] = useState(location.state ? location.state.preloadedValue : {});
@@ -158,14 +162,38 @@ export default function PersonaNatural() {
     if (aux[0]) accionistaGlobal[name + "1"] = aux[0];
     if (aux[1]) accionistaGlobal[name + "1"] = aux[1];
     if (aux[2]) accionistaGlobal[name + "1"] = aux[2];
-    if(name=="acc_telefonos") countTelef = aux.length > countTelef ? aux.length : countTelef;
-    if(name=="acc_correos") countEmail = aux.length > countEmail ? aux.length : countEmail;
+    if (name == "acc_telefonos") countTelef = aux.length > countTelef ? aux.length : countTelef;
+    if (name == "acc_correos") countEmail = aux.length > countEmail ? aux.length : countEmail;
   }
-  if (location.state) {
-    console.log("location", location);
+  const obtenerHerederos = async (idAccionistaPadre) => {
+    if (prevenirSaturacion) return;
+    setPrevenirSaturacion(true);
+    let filter = {
+      her_id_accionisa: {
+        eq: idAccionistaPadre
+      }
+    };
+    const apiData = await API.graphql({ query: listHerederos, variables: { filter: filter, limit: 100 } });
+    const herederosFromApi = apiData.data.listHerederos.items;
+    herederosFromApi.forEach(heredero => {
+      herederos["her_identificacion" + (herederosFromApi.indexOf(heredero) + 1)] = heredero.her_identificacion;
+      herederos["her_nombre" + (herederosFromApi.indexOf(heredero) + 1)] = heredero.her_nombre;
+    });
+    setCountHerederos(herederosFromApi.length);
+    setChecked(true);
+    if (herederosFromApi.length == 0) {
+      setCountHerederos(1);
+      setChecked(false);
+    }
+  }
+  if (location.state && !prevenirSaturacion) {
+    console.log("location", location.state.preloadedValue);
+    console.log("herederos",herederos);
     separarCadenas("acc_telefonos");
     separarCadenas("acc_obs_telefonos");
     separarCadenas("acc_correos");
+    if (location.state.preloadedValue.acc_tiene_herederos == true && Object.keys(herederos).length === 0) 
+      obtenerHerederos(location.state.preloadedValue.id);
   }
   var [accionistaDefault, setAccionistaDefault] = useState({
     id: "",
@@ -221,6 +249,9 @@ export default function PersonaNatural() {
   const asignarValoresEnteros = (event) => {
     setAccionistaGlobal({ ...accionistaGlobal, [event.target.name]: parseInt(event.target.value) });
   };
+  const asignarValoresHerederos = (event) => {
+    setHerederos({ ...herederos, [event.target.name]: event.target.value });
+  };
   const crearCadenas = (name) => {
     var aux = "";
     if (accionistaGlobal[name + "1"]) aux = accionistaGlobal[name + "1"];
@@ -229,7 +260,7 @@ export default function PersonaNatural() {
     accionistaGlobal[name] = aux;
   }
   const classes = useStyles();
-  const [countHerederos, setCountHerederos] = useState(location.state ? location.state.preloadedValue.nombreBeneficiario9 != null ? 9 : location.state.preloadedValue.nombreBeneficiario8 != null ? 8 : location.state.preloadedValue.nombreBeneficiario7 != null ? 7 : location.state.preloadedValue.nombreBeneficiario6 != null ? 6 : location.state.preloadedValue.nombreBeneficiario5 != null ? 5 : location.state.preloadedValue.nombreBeneficiario4 != null ? 4 : location.state.preloadedValue.nombreBeneficiario3 != null ? 3 : location.state.preloadedValue.nombreBeneficiario2 != null ? 2 : 1 : 1);
+  const [countHerederos, setCountHerederos] = useState(1);
   const [formData, setFormData] = useState({
     docPosesionEfectiva: location.state ? location.state.preloadedValue.docPosesionEfectiva != null ? location.state.preloadedValue.docPosesionEfectiva : '' : '',
     docIdentidadPrincipal: location.state ? location.state.preloadedValue.docIdentidadPrincipal != null ? location.state.preloadedValue.docIdentidadPrincipal : '' : '',
@@ -285,14 +316,35 @@ export default function PersonaNatural() {
       );
     });
   };
+  const borrarUltimoHeredero = (nuevoCount) => {
+    console.log("borrarUltimoHeredero", nuevoCount);
+    setCountHerederos(nuevoCount-1);
+    herederos["her_identificacion" + (nuevoCount)]='';
+    herederos["her_nombre" + (nuevoCount)]='';
+  }
   const addAccionista = async (accionista) => {
     try {
       var accionistaAux = devolverSoloAccionista(accionista);
       var personaNaturalAux = devolverSoloPersonaNatural(accionista);
       var conyugeAux = devolverSoloConyuge(accionista);
+      var herederosAux = {}, tieneHerederosAux = false;
       console.log("AccionistaAux: ", accionistaAux);
       console.log("personaNaturalAux: ", personaNaturalAux);
       console.log("conyugeAux: ", conyugeAux);
+      if (checked) {
+        
+        for (let i = 1; i <= countHerederos; i++) {
+          herederosAux = {};
+          herederosAux.her_id_accionisa = accionistaAux.id;
+          herederosAux.her_identificacion = herederos["her_identificacion" + i] ? herederos["her_identificacion" + i] : '';
+          herederosAux.her_nombre = herederos["her_nombre" + i] ? herederos["her_nombre" + i] : '';
+          if (herederosAux.her_identificacion != '') {
+            tieneHerederosAux = true;
+            await API.graphql(graphqlOperation(createHeredero, { input: herederosAux }));
+          }
+        }
+      }
+      accionistaAux.acc_tiene_herederos = tieneHerederosAux;
       const accionistaIdNew = await API.graphql(graphqlOperation(createAccionista, { input: accionistaAux }));
       console.log("accionistaIdNew: ", accionistaIdNew);
       personaNaturalAux.id = accionistaIdNew.data.createAccionista.id;
@@ -314,6 +366,30 @@ export default function PersonaNatural() {
     try {
       var accionistaAux = devolverSoloAccionista(accionista);
       var personaNaturalAux = devolverSoloPersonaNatural(accionista);
+      let filter = {
+        her_id_accionisa: {
+          eq: accionistaAux.id
+        }
+      };
+      var herederosAux = {}, tieneHerederosAux = false;
+      const apiData = await API.graphql({ query: listHerederos, variables: { filter: filter, limit: 100 } });
+      const herederosFromApi = apiData.data.listHerederos.items;
+      herederosFromApi.forEach(async (heredero) =>
+        await API.graphql({ query: deleteHeredero, variables: { input: { id: heredero.id } } })
+      );
+      if (checked) {
+        for (let i = 1; i <= countHerederos; i++) {
+          herederosAux = {};
+          herederosAux.her_id_accionisa = accionistaAux.id;
+          herederosAux.her_identificacion = herederos["her_identificacion" + i] ? herederos["her_identificacion" + i] : '';
+          herederosAux.her_nombre = herederos["her_nombre" + i] ? herederos["her_nombre" + i] : '';
+          if (herederosAux.her_identificacion != '') {
+            tieneHerederosAux = true;
+            await API.graphql(graphqlOperation(createHeredero, { input: herederosAux }));
+          }
+        }
+      }
+      accionistaAux.acc_tiene_herederos = tieneHerederosAux;
       await API.graphql({ query: updateAccionista, variables: { input: accionistaAux } });
       await API.graphql({ query: updatePersonaNatural, variables: { input: personaNaturalAux } });
       if (personaNaturalAux.pn_estado_civil == 1 || personaNaturalAux.pn_estado_civil == 2) {
@@ -322,7 +398,7 @@ export default function PersonaNatural() {
       }
       setFormData({ docIdentidadPrincipal: '', docCertificadoBancario: '', docIdentidadConyugue: '', docPosesionEfectiva: '' })
       setMensajeExito('Se actualizó el accionista correctamente.');
-      setOpenSnack(true)
+      setOpenSnack(true);
     } catch (err) {
       console.log('error updating accionista:', err)
       setMensajeError(err);
@@ -335,6 +411,7 @@ export default function PersonaNatural() {
     setCountEmail(1);
     setCountHerederos(1);
     setCountTelef(1);
+    setHerederos({});
   }
   const onChangeEstadoCivil = (e) => {
     asignarValores(e);
@@ -376,6 +453,7 @@ export default function PersonaNatural() {
       return;
     }
     setOpenSnack(false);
+    navigate.push('/accionistas');
   };
   const handleCloseSnackDanger = (event, reason) => {
     if (reason === 'clickaway') {
@@ -386,6 +464,12 @@ export default function PersonaNatural() {
   const [checked, setChecked] = useState(location.state ? location.state.preloadedValue.herederos != null ? location.state.preloadedValue.herederos : '' : '');
   const handleChange = (event) => {
     setChecked(event.target.checked);
+    var herederosAux = {};
+    for (let i = 1; i <= countHerederos; i++) {
+      herederosAux.her_identificacion = herederos["her_identificacion" + i] ? herederos["her_identificacion" + i] : '';
+      herederosAux.her_nombre = herederos["her_nombre" + i] ? herederos["her_nombre" + i] : '';
+      if (herederosAux.her_identificacion != '') console.log("herederosAux", herederosAux);
+    }
   };
   return (
     <main className={classes.content}>
@@ -406,11 +490,10 @@ export default function PersonaNatural() {
                 className={classes.textFieldEstandar}
                 onChange={asignarValores} />
               <FormControl required variant="outlined" className={classes.selectEstandar}>
-                <InputLabel id='acc_nacionalidad-label'>Nacionalidad</InputLabel>
+                <InputLabel>Nacionalidad</InputLabel>
                 <Select
                   id='acc_nacionalidad'
                   name='acc_nacionalidad'
-                  labelId="acc_nacionalidad-label"
                   label="Nacionalidad"
                   value={accionistaGlobal.acc_nacionalidad}
                   defaultValue='Ecuador'
@@ -821,20 +904,206 @@ export default function PersonaNatural() {
               <div>
                 {checked && countHerederos > 0 &&
                   <div style={{ display: 'flex', flexDirection: 'row', justifyContent: 'space-evenly', alignItems: 'center', }}>
+                    <TextField
+                      id="her_identificacion1"
+                      name='her_identificacion1'
+                      label="Identificación"
+                      variant="outlined"
+                      className={classes.textFieldEstandar}
+                      value={herederos.her_identificacion1}
+                      required
+                      onChange={asignarValoresHerederos} />
+                    <TextField
+                      id="her_nombre1"
+                      name='her_nombre1'
+                      label="Nombre"
+                      variant="outlined"
+                      className={classes.textFieldEstandar}
+                      value={herederos.her_nombre1}
+                      required
+                      onChange={asignarValoresHerederos} />
                   </div>
                 }
-                {countHerederos > 1 &&
+                {checked && countHerederos > 1 &&
                   <div style={{ display: 'flex', flexDirection: 'row', justifyContent: 'space-evenly', alignItems: 'center', }}>
+                    <TextField
+                      id="her_identificacion2"
+                      name='her_identificacion2'
+                      label="Identificación"
+                      variant="outlined"
+                      className={classes.textFieldEstandar}
+                      value={herederos.her_identificacion2}
+                      required
+                      onChange={asignarValoresHerederos} />
+                    <TextField
+                      id="her_nombre2"
+                      name='her_nombre2'
+                      label="Nombre"
+                      variant="outlined"
+                      className={classes.textFieldEstandar}
+                      value={herederos.her_nombre2}
+                      required
+                      onChange={asignarValoresHerederos} />
                   </div>
                 }
-                {countHerederos > 2 &&
+                {checked && countHerederos > 2 &&
                   <div style={{ display: 'flex', flexDirection: 'row', justifyContent: 'space-evenly', alignItems: 'center', }}>
+                    <TextField
+                      id="her_identificacion3"
+                      name='her_identificacion3'
+                      label="Identificación"
+                      variant="outlined"
+                      className={classes.textFieldEstandar}
+                      value={herederos.her_identificacion3}
+                      required
+                      onChange={asignarValoresHerederos} />
+                    <TextField
+                      id="her_nombre3"
+                      name='her_nombre3'
+                      label="Nombre"
+                      variant="outlined"
+                      className={classes.textFieldEstandar}
+                      value={herederos.her_nombre3}
+                      required
+                      onChange={asignarValoresHerederos} />
+                  </div>
+                }
+                {checked && countHerederos > 3 &&
+                  <div style={{ display: 'flex', flexDirection: 'row', justifyContent: 'space-evenly', alignItems: 'center', }}>
+                    <TextField
+                      id="her_identificacion4"
+                      name='her_identificacion4'
+                      label="Identificación"
+                      variant="outlined"
+                      className={classes.textFieldEstandar}
+                      value={herederos.her_identificacion4}
+                      required
+                      onChange={asignarValoresHerederos} />
+                    <TextField
+                      id="her_nombre4"
+                      name='her_nombre4'
+                      label="Nombre"
+                      variant="outlined"
+                      className={classes.textFieldEstandar}
+                      value={herederos.her_nombre4}
+                      required
+                      onChange={asignarValoresHerederos} />
+                  </div>
+                }
+                {checked && countHerederos > 4 &&
+                  <div style={{ display: 'flex', flexDirection: 'row', justifyContent: 'space-evenly', alignItems: 'center', }}>
+                    <TextField
+                      id="her_identificacion5"
+                      name='her_identificacion5'
+                      label="Identificación"
+                      variant="outlined"
+                      className={classes.textFieldEstandar}
+                      value={herederos.her_identificacion5}
+                      required
+                      onChange={asignarValoresHerederos} />
+                    <TextField
+                      id="her_nombre5"
+                      name='her_nombre5'
+                      label="Nombre"
+                      variant="outlined"
+                      className={classes.textFieldEstandar}
+                      value={herederos.her_nombre5}
+                      required
+                      onChange={asignarValoresHerederos} />
+                  </div>
+                }
+                {checked && countHerederos > 5 &&
+                  <div style={{ display: 'flex', flexDirection: 'row', justifyContent: 'space-evenly', alignItems: 'center', }}>
+                    <TextField
+                      id="her_identificacion6"
+                      name='her_identificacion6'
+                      label="Identificación"
+                      variant="outlined"
+                      className={classes.textFieldEstandar}
+                      value={herederos.her_identificacion6}
+                      required
+                      onChange={asignarValoresHerederos} />
+                    <TextField
+                      id="her_nombre6"
+                      name='her_nombre6'
+                      label="Nombre"
+                      variant="outlined"
+                      className={classes.textFieldEstandar}
+                      value={herederos.her_nombre6}
+                      required
+                      onChange={asignarValoresHerederos} />
+                  </div>
+                }
+                {checked && countHerederos > 6 &&
+                  <div style={{ display: 'flex', flexDirection: 'row', justifyContent: 'space-evenly', alignItems: 'center', }}>
+                    <TextField
+                      id="her_identificacion7"
+                      name='her_identificacion7'
+                      label="Identificación"
+                      variant="outlined"
+                      className={classes.textFieldEstandar}
+                      value={herederos.her_identificacion7}
+                      required
+                      onChange={asignarValoresHerederos} />
+                    <TextField
+                      id="her_nombre7"
+                      name='her_nombre7'
+                      label="Nombre"
+                      variant="outlined"
+                      className={classes.textFieldEstandar}
+                      value={herederos.her_nombre7}
+                      required
+                      onChange={asignarValoresHerederos} />
+                  </div>
+                }
+                {checked && countHerederos > 7 &&
+                  <div style={{ display: 'flex', flexDirection: 'row', justifyContent: 'space-evenly', alignItems: 'center', }}>
+                    <TextField
+                      id="her_identificacion8"
+                      name='her_identificacion8'
+                      label="Identificación"
+                      variant="outlined"
+                      className={classes.textFieldEstandar}
+                      value={herederos.her_identificacion8}
+                      required
+                      onChange={asignarValoresHerederos} />
+                    <TextField
+                      id="her_nombre8"
+                      name='her_nombre8'
+                      label="Nombre"
+                      variant="outlined"
+                      className={classes.textFieldEstandar}
+                      value={herederos.her_nombre8}
+                      required
+                      onChange={asignarValoresHerederos} />
+                  </div>
+                }
+                {checked && countHerederos > 8 &&
+                  <div style={{ display: 'flex', flexDirection: 'row', justifyContent: 'space-evenly', alignItems: 'center', }}>
+                    <TextField
+                      id="her_identificacion9"
+                      name='her_identificacion9'
+                      label="Identificación"
+                      variant="outlined"
+                      className={classes.textFieldEstandar}
+                      value={herederos.her_identificacion9}
+                      required
+                      onChange={asignarValoresHerederos} />
+                    <TextField
+                      id="her_nombre9"
+                      name='her_nombre9'
+                      label="Nombre"
+                      variant="outlined"
+                      className={classes.textFieldEstandar}
+                      value={herederos.her_nombre9}
+                      required
+                      onChange={asignarValoresHerederos} />
                   </div>
                 }
                 {checked &&
                   <div>
                     <IconButton color='primary' onClick={() => setCountHerederos(countHerederos + 1)} disabled={countHerederos === 9 ? true : false}><ControlPointIcon /></IconButton>
-                    <IconButton color='primary' onClick={() => setCountHerederos(countHerederos - 1)} disabled={countHerederos === 1 ? true : false} ><RemoveCircleOutlineIcon /></IconButton>
+                    <IconButton color='primary' onClick={() => borrarUltimoHeredero(countHerederos)} disabled={countHerederos === 1 ? true : false} ><RemoveCircleOutlineIcon /></IconButton>
                   </div>
                 }
               </div>
