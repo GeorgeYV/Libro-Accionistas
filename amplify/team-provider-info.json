@@ -9,22 +9,14 @@
       "UnauthRoleName": "amplify-amplifyf7cdc7b192f54-staging-195641-unauthRole",
       "StackName": "amplify-amplifyf7cdc7b192f54-staging-195641",
       "StackId": "arn:aws:cloudformation:us-east-2:413681662563:stack/amplify-amplifyf7cdc7b192f54-staging-195641/e4e2a800-0c27-11ec-a36c-0a1cd4820818",
-      "AmplifyAppId": "d1uap272r7bnzf",
-      "APIGatewayAuthURL": "https://s3.amazonaws.com/amplify-amplifyf7cdc7b192f54-staging-195641-deployment/amplify-cfn-templates/api/APIGatewayAuthStack.json"
+      "AmplifyAppId": "d1uap272r7bnzf"
     },
     "categories": {
       "auth": {
         "libroaccionistasdbe6011c": {}
       },
-      "function": {
-        "crearRegistro": {
-          "deploymentBucketName": "amplify-amplifyf7cdc7b192f54-staging-195641-deployment",
-          "s3Key": "amplify-builds/crearRegistro-5636516952464e596955-build.zip"
-        }
-      },
       "api": {
-        "libroaccionistas": {},
-        "apiQLDBprod": {}
+        "libroaccionistas": {}
       },
       "storage": {
         "imagestorage": {}

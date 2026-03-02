@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react'
 import { API,Storage,graphqlOperation } from 'aws-amplify';
-import { listTitulos, listOperaciones,getParametro, listAsambleas, listAccionistasxJuntas, listAccionistas, } from '../graphql/queries';
+import { listTitulos, listOperacions,getParametro, listAsambleas, listAccionistasxJuntas, listAccionistas, } from '../graphql/queries';
 import { Link } from "react-router-dom";
 
 import { makeStyles } from '@material-ui/core/styles';
@@ -429,7 +429,7 @@ export default function Asambleas() {
 
       async function fetchTodosAccionistas() {
         const filter = {
-          estado: {
+          acc_estado: {
             eq: 'Activo',
           },
         };
