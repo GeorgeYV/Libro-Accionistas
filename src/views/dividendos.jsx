@@ -603,7 +603,7 @@ export default function Dividendos() {
     var accionistasCalculo, retencionAux = 0, dividendoGenerado = row.div_dividendo * (row.ddiv_porcentaje / 100);
     var apiData3, accionistasFromAPI3;
     if (row.ddiv_titulos == 0) {
-      apiData3 = await API.graphql({ query: listAccionistas, variables: { filter: { acc_estado: { eq: '1' } }, limit: 15 } });
+      apiData3 = await API.graphql({ query: listAccionistas, variables: { filter: { acc_estado: { eq: '1' } }, limit: 1000 } });
       accionistasFromAPI3 = apiData3.data.listAccionistas.items;
       accionistasCalculo = accionistasFromAPI3.map(function (e) {
         retencionAux = getRetencion1(((baseImponible / 100.00) * (dividendoGenerado * e.acc_cantidad_acciones / cantidadEmitido)), e.acc_tipo_identificacion, e.acc_residencia, e.acc_nacionalidad)
