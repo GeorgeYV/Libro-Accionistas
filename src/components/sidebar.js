@@ -75,6 +75,11 @@ export default function Sidebar(props) {
       path: "/reportes",
       icon: <DescriptionIcon />
     },
+    {
+      label: "Asambleas",
+      path: "/asambleas",
+      icon: <GroupWorkIcon />
+    },
   ];
   const menuItemsAprobador = [
     {

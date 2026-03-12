@@ -430,7 +430,7 @@ export default function Asambleas() {
       async function fetchTodosAccionistas() {
         const filter = {
           acc_estado: {
-            eq: 'Activo',
+            eq: 1,
           },
         };
         const apiData = await API.graphql({ query: listAccionistas , variables:{filter: filter, limit:1000}});
@@ -438,6 +438,7 @@ export default function Asambleas() {
         await Promise.all(accionistasFromAPI.map(async accionista => {
         return accionista;
         }))
+        console.log("Accionistas", accionistasFromAPI);
         setAccionistas(apiData.data.listAccionistas.items);
         
       }
@@ -821,7 +822,16 @@ export default function Asambleas() {
             
             if (!valCedente ) return
     
-            const accionista =  { asambleaID:asambleaSeleccionada.id, accionistaID: valCedente.id, nombre: valCedente.nombre, identificacion: valCedente.identificacion, acciones: valCedente.cantidadAcciones, estado: valCedente.estado, presente: 'false', representanteNombre: nombreRepresentante, representanteDocumento: identificacionRepresentante, representanteDI: IDRepresentante.filename, 
+            const accionista =  { asambleaID:asambleaSeleccionada.id, 
+              accionistaID: valCedente.id, 
+              nombre: valCedente.acc_nombre_completo, 
+              identificacion: valCedente.acc_identificacion, 
+              acciones: valCedente.acc_cantidad_acciones, 
+              estado: valCedente.acc_estado, 
+              presente: 'false', 
+              representanteNombre: nombreRepresentante, 
+              representanteDocumento: identificacionRepresentante, 
+              representanteDI: IDRepresentante.filename, 
             votacion1: asambleaSeleccionada.votacionTema1 ? true : '',
             votacion2: asambleaSeleccionada.votacionTema2 ? true : '',
             votacion3: asambleaSeleccionada.votacionTema3 ? true : '',
@@ -1374,7 +1384,7 @@ export default function Asambleas() {
                     key={value}
                     id="combo-box-cedente"
                     options={accionistas}
-                    getOptionLabel={(option) => option.nombre ? option.nombre : ""}
+                    getOptionLabel={(option) => option.acc_nombre_completo ? option.acc_nombre_completo : ""}
                     style={{ width: 'calc(100%)', marginRight: 10,}}
                     renderInput={(params) => <TextField {...params} label={<small>Buscar accionista para registro ...</small>} margin="normal"  variant="outlined"  />}
                     onChange={(option, value) => handleClickCedente(option, value)}
