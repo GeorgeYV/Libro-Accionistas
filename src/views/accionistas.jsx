@@ -27,8 +27,8 @@ import ViewColumnIcon from '@material-ui/icons/ViewColumn';
 import Grid from '@material-ui/core/Grid';
 import QRcode from 'qrcode.react';
 import marco from '../images/Recurso 1.png';
-import fondoUnacem from '../images/Unacem2.png';
-import logoSolo from '../images/Recurso 3.png';
+import fondoUnacem from '../images/logoUnacemDegradado.png';
+import logoSolo from '../images/Unacem2.png';
 import logoCompleto from '../images/logoUNACEMmedMarco2.png';
 
 import {
@@ -583,17 +583,17 @@ export default function Accionistas() {
 
     const title = "UNACEM ECUADOR S.A.";
 
-    doc.addImage(marco, "JPEG", 0, 3, 840, 590)
-    doc.addImage(fondoUnacem, "JPEG", 90, 90, 663, 413)
-    doc.addImage(logoSolo, "JPEG", 420, 120, 30, 30)
+    doc.addImage(marco, "JPEG", 0, 0, 845, 600)
+    doc.addImage(fondoUnacem, "JPEG", 200, 90, 445, 450)
+    //doc.addImage(logoSolo, "JPEG", 420, 120, 30, 30)
 
-    doc.addImage(base64Image, "png", 95, 430, 80, 80)
-    doc.addImage(logoCompleto, "PNG", 590, 450, 150, 50)
+    doc.addImage(base64Image, "png", 80, 490, 80, 80)
+    //doc.addImage(logoCompleto, "PNG", 400, 100, 150, 50)
 
     doc.setFont("helvetica", "bold");
     doc.setTextColor(100);
-    doc.setFontSize(34);
-    doc.text(title, 230, 200);
+    doc.setFontSize(36);
+    doc.text(title, 230, 125);
 
     doc.setFont("helvetica", "normal");
     doc.setTextColor(137, 34, 28);
@@ -648,11 +648,11 @@ export default function Accionistas() {
     doc.setTextColor(150);
 
     const texto7 = "Fuente de Información Plataforma de Accionistas Unacem"
-    doc.text(texto7, 195, 460);
-    const texto8 = "https://develop.d1uap272r7bnzf.amplifyapp.com/"
-    doc.text(texto8, 195, 470);
+    doc.text(texto7, 175, 510);
+    const texto8 = "main.d1uap272r7bnzf.amplifyapp.com/"
+    doc.text(texto8, 175, 530);
     const texto9 = "El código QR lo direccionará a la página de verificación";
-    doc.text(texto9, 195, 490);
+    doc.text(texto9, 175, 550);
     doc.save("CertificadoAccionistas.pdf")
   }
 
@@ -1108,7 +1108,7 @@ export default function Accionistas() {
             <TabPanel value={value} index={3}>
               <Grid container justifyContent="center" alignItems="center" direction="column">
                 <Grid item>
-                  <QRcode value={'https://production.dnyw5qmklx2h.amplifyapp.com/?id='} id='qrcode' size={100} />
+                  <QRcode value={'main.d1uap272r7bnzf.amplifyapp.com'} id='qrcode' size={100} />
                 </Grid>
                 <Grid item>
                   <Button startIcon={<PrintIcon />} size="small" variant="contained" color="primary" style={{ textTransform: 'none', height: '22px', marginTop: '15px' }} onClick={exportPDFCertificado}><small>Imprimir Certificado de Acciones</small></Button>
