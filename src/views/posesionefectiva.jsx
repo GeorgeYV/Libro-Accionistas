@@ -17,7 +17,7 @@ import MuiAlert from '@material-ui/lab/Alert';
 import CloudUploadOutlinedIcon from '@material-ui/icons/CloudUploadOutlined';
 import DeleteOutlineIcon from '@material-ui/icons/DeleteOutline';
 import { uuid } from 'uuidv4';
-import { createAccionistaOperacion, createOperacion, createTituloPorOperacion } from '../graphql/mutations';
+import { createAccionistaOperacion, createOperacion, createTituloPorOperacion, updateHeredero } from '../graphql/mutations';
 function Alert(props) {
   return <MuiAlert elevation={6} variant="filled" {...props} />;
 }
@@ -122,6 +122,16 @@ export default function PosesionEfectiva() {
       Promise.all(
         herederosAux.map(input => API.graphql(graphqlOperation(createAccionistaOperacion, { input: input })))
       );
+      var herederosAux = Object.keys(herederos).filter(key => key.includes("ID")).map(function (e) {
+        return {
+          id: herederos[e],
+          her_cant_acciones: parseInt(herederos["her_acciones" + e.slice(-1)])
+        };
+      });
+      console.log("herederosAux", herederosAux);
+      Promise.all(
+        herederosAux.map(input => API.graphql(graphqlOperation(updateHeredero, { input: input })))
+      );
       const transferir = titulos.map(function (e) {
         return {
           tit_ope_titulo_id: e.id,
@@ -132,7 +142,6 @@ export default function PosesionEfectiva() {
       Promise.all(
         transferir.map(input => API.graphql(graphqlOperation(createTituloPorOperacion, { input: input })))
       );
-      console.log("transferir", transferir);
       setOpenSnack(true);
       setCircular(false);
       limpiarForm();
@@ -166,6 +175,7 @@ export default function PosesionEfectiva() {
     const apiData = await API.graphql({ query: listHerederos, variables: { filter: filter, limit: 1000 } });
     var herederosAux = {};
     apiData.data.listHerederos.items.forEach((e) => {
+      herederosAux["ID" + (apiData.data.listHerederos.items.indexOf(e) + 1)] = e.id;
       herederosAux["her_identificacion" + (apiData.data.listHerederos.items.indexOf(e) + 1)] = e.her_identificacion;
       herederosAux["her_nombre" + (apiData.data.listHerederos.items.indexOf(e) + 1)] = e.her_nombre;
       if (e.her_cant_acciones == null || e.her_cant_acciones == 0) {

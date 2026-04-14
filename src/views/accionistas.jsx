@@ -27,9 +27,8 @@ import ViewColumnIcon from '@material-ui/icons/ViewColumn';
 import Grid from '@material-ui/core/Grid';
 import QRcode from 'qrcode.react';
 import marco from '../images/Recurso 1.png';
-import fondoUnacem from '../images/logoUnacemDegradado.png';
-import logoSolo from '../images/Unacem2.png';
-import logoCompleto from '../images/logoUNACEMmedMarco2.png';
+import fondoUnacem from '../images/FondoCertificado.png';
+import logoSolo from '../images/logoNegro.jpg';
 
 import {
   Typography, Button, ListItem, ListItemText, ListSubheader, List, Tooltip, Chip,
@@ -164,6 +163,7 @@ export default function Accionistas() {
   const [consultaDetallada, setConsultaDetallada] = useState(false);
 
   const [cantidadEmitido, setCantidadEmitido] = useState(1);
+  const [valorAcciones, setValorAcciones] = useState(1);
   const [openTitulos, setOpenTitulos] = useState(false);
   const handleClose = () => setOpenTitulos(false);
 
@@ -324,7 +324,8 @@ export default function Accionistas() {
 
     const parametrosFromAPI = apiData.data.getParametro;
 
-    setCantidadEmitido(parametrosFromAPI.cantidadEmitida);
+    setCantidadEmitido(parametrosFromAPI.cantidadEmitida*parametrosFromAPI.valorNominal);
+    setValorAcciones(parametrosFromAPI.valorNominal);
   }
 
   async function fetchAccionistas() {
@@ -580,79 +581,49 @@ export default function Accionistas() {
     const doc = new jsPDF(orientation, unit, size);
 
     doc.setFontSize(12);
+    doc.addImage(fondoUnacem, "JPEG", 0, 0, 845, 600)
 
-    const title = "UNACEM ECUADOR S.A.";
-
-    doc.addImage(marco, "JPEG", 0, 0, 845, 600)
-    doc.addImage(fondoUnacem, "JPEG", 200, 90, 445, 450)
-    //doc.addImage(logoSolo, "JPEG", 420, 120, 30, 30)
-
-    doc.addImage(base64Image, "png", 80, 490, 80, 80)
-    //doc.addImage(logoCompleto, "PNG", 400, 100, 150, 50)
-
-    doc.setFont("helvetica", "bold");
-    doc.setTextColor(100);
-    doc.setFontSize(36);
-    doc.text(title, 230, 125);
+    doc.addImage(base64Image, "png", 90, 460, 80, 80)
 
     doc.setFont("helvetica", "normal");
-    doc.setTextColor(137, 34, 28);
-    doc.setFontSize(12);
-    doc.text("CAPITAL SUSCRITO Y AUTORIZADO USD 1,717,204.32", 280, 215);
+    doc.setTextColor(100);
+    doc.setFontSize(16);
+    doc.text("CAPITAL SUSCRITO Y AUTORIZADO USD "+cantidadEmitido, 220, 190);
 
     doc.setTextColor(100);
-    doc.setFontSize(11);
+    doc.setFontSize(14);
     const texto1 = "ESTE CERTIFICADO TOKENIZADO ACREDITA QUE";
-    doc.text(texto1, 300, 250);
+    doc.text(texto1, 250, 240);
 
     doc.setFont("helvetica", "bold");
-    doc.setFontSize(22);
+    const largoNombre = accionistaSeleccionado.acc_nombre_completo.length;
+    const tamanioFuenteNombre = largoNombre > 25 ? 30 : 40;
+    const posicionX = largoNombre < 26 ? 357 - (largoNombre * 10) : 357 - (largoNombre * 7.5);
+    doc.setFontSize(tamanioFuenteNombre);
+    
     const texto2 = accionistaSeleccionado.acc_nombre_completo;
-    doc.text(texto2, 220, 290);
-
-    doc.setDrawColor(100);
-    doc.setLineWidth(0.5);
-    doc.line(150, 300, 690, 300);
-
+    doc.text(texto2, posicionX, 295);
     doc.setFont("helvetica", "normal");
-    doc.setFontSize(11);
-    const texto3 = "ES PROPIETARIO DE " + accionistaSeleccionado.acc_cantidad_acciones + " ACCIONES DE US$ 0.04 CENTAVOS DE DOLAR";
-    doc.text(texto3, 230, 320);
-
-    const texto4 = "DE LOS ESTADOS UNIDOS DE AMERICA, CON TODOS LOS DERECHOS Y OBLIGACIONES ";
-    doc.text(texto4, 190, 340);
-
-    const texto5 = "QUE LE CORRESPONDEN A LA LEY Y LOS ESTATUTOS SOCIALES DE LA COMPAÑIA.";
-    doc.text(texto5, 200, 360);
-
-
-    doc.setDrawColor(137, 34, 28);
-    doc.setLineWidth(0.5);
-    doc.line(250, 382, 590, 382);
-
-    const months = ["ENERO", "FEBRERO", "MARZO", "ABRIL", "MAYO", "JUNIO", "JULIO", "AGOSTO", "SEPTIEMBRE", "OCTUBRE", "NOVIEMBRE", "DICIEMBRE"];
-
-    const d = new Date();
-
-    doc.setFont("helvetica", "bold");
-    doc.setTextColor(137, 34, 28);
-    const texto6 = "EXPEDIDO EL " + d.getDate() + " DE " + months[d.getMonth()] + " DEL " + d.getFullYear() + " A LAS " + d.getHours() + ":" + ('0' + d.getMinutes()).slice(-2) + ".";
-    doc.text(texto6, 280, 400);
-
-    doc.setDrawColor(137, 34, 28);
-    doc.setLineWidth(0.5);
-    doc.line(250, 410, 590, 410);
+    doc.setFontSize(14);
+    const texto3 = "ES PROPIETARIO DE " + accionistaSeleccionado.acc_cantidad_acciones + " ACCIONES DE US$ "+valorAcciones+" CENTAVOS DE DÓLAR DE LOS ";
+    doc.text(texto3, 155, 335);
+    const texto4 = "ESTADOS UNIDOS DE AMÉRICA, CON TODOS LOS DERECHOS Y ";
+    doc.text(texto4, 195, 355);
+    const texto5 = "OBLIGACIONES QUE LE CORRESPONDEN A LA LEY Y LOS ESTATUTOS";
+    doc.text(texto5, 175, 375);
+    const texto6 = "SOCIALES DE LA COMPAÑÍA.";
+    doc.text(texto6, 320, 395);
 
     doc.setFont("helvetica", "normal");
     doc.setFontSize(8);
     doc.setTextColor(150);
 
     const texto7 = "Fuente de Información Plataforma de Accionistas Unacem"
-    doc.text(texto7, 175, 510);
+    doc.text(texto7, 200, 487);
     const texto8 = "main.d1uap272r7bnzf.amplifyapp.com/"
-    doc.text(texto8, 175, 530);
+    doc.text(texto8, 200, 502);
     const texto9 = "El código QR lo direccionará a la página de verificación";
-    doc.text(texto9, 175, 550);
+    doc.text(texto9, 200, 517);
     doc.save("CertificadoAccionistas.pdf")
   }
 

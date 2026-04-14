@@ -18,8 +18,8 @@ import MuiAlert from '@material-ui/lab/Alert';
 
 import { DataGrid, GridToolbarContainer, GridToolbarExport } from '@mui/x-data-grid';
 import { API, Storage, Auth, graphqlOperation } from 'aws-amplify';
-import { listOperacions, listTituloPorOperacions, listTitulos, getParametro, listAccionistaOperacions, listAccionistas, getAccionista, getPersonaNatural, getPersonaJuridica, getTitulo } from './../graphql/queries';
-import { updateTitulo, createTitulo, updateAccionista, updateOperacion, createHeredero, createTituloPorOperacion, updateParametro, deleteTitulo } from './../graphql/mutations';
+import { listOperacions, listTituloPorOperacions, listTitulos, getParametro, listAccionistaOperacions, listAccionistas, getAccionista, getPersonaNatural, getPersonaJuridica, getTitulo, listHerederos } from './../graphql/queries';
+import { updateTitulo, createTitulo, updateAccionista, updateOperacion, createHeredero, createTituloPorOperacion, updateParametro, deleteTitulo, createPersonaNatural, createPersonaJuridica, createAccionista } from './../graphql/mutations';
 import PropTypes from 'prop-types';
 
 import { styled } from '@material-ui//styles';
@@ -354,6 +354,7 @@ export default function Operaciones() {
     setOpenRevisar(true);
     if (values.row.ope_tipo != 0) fetchTitulos(values.row.id);
     fetchAccionistaOperacions(values.row.id);
+    if (values.row.ope_tipo == 6) fetchHerederos(values.row.id);
     setFormData({ cs: values.row.cs, cg: values.row.cg, ci: values.row.ci, es: values.row.es, cp: values.row.cp })
     console.log('values', values.row);
   };
@@ -390,7 +391,7 @@ export default function Operaciones() {
   const handleActualizarDocumentos = async () => {
     setCircular(true);
     const operacion = { ...formData }
-    var auxDocs = formData.cs +"&"+ formData.cg +"&"+ formData.ci +"&"+ formData.es +"&"+ formData.cp;
+    var auxDocs = formData.cs + "&" + formData.cg + "&" + formData.ci + "&" + formData.es + "&" + formData.cp;
     const apiDataUpdateOper = await API.graphql({ query: updateOperacion, variables: { input: { id: transferencia.id, auxDocs } } });
     setFormData({ cs: '', cg: '', ci: '', es: '', cp: '' })
     setCircular(false);
@@ -573,18 +574,18 @@ export default function Operaciones() {
   }
   const operacionAnularAumentoCapital = async () => {
     try {
-      console.log("transferencia",transferencia);
-      console.log("accionistaGlobal",accionistaGlobal);
+      console.log("transferencia", transferencia);
+      console.log("accionistaGlobal", accionistaGlobal);
       if (!(await actualizarOperacion(transferencia.id, 3)).valueOf()) return false;
       var apiData = await API.graphql({ query: getTitulo, variables: { id: 'IDTituloPadreDeTodos' } });
       const tituloPadre = apiData.data.getTitulo;
       apiData = await API.graphql({ query: listTituloPorOperacions, variables: { tit_ope_operacion_id: transferencia.id } });
-      console.log("apiData",apiData.data.listTituloPorOperacions.items);
+      console.log("apiData", apiData.data.listTituloPorOperacions.items);
       const tituloPadreAux = {
         id: "IDTituloPadreDeTodos",
         tit_hasta: tituloPadre.tit_hasta - transferencia.ope_acciones
       }
-      console.log("tituloPadreAux",tituloPadreAux);
+      console.log("tituloPadreAux", tituloPadreAux);
       await API.graphql(graphqlOperation(updateTitulo, { input: tituloPadreAux }));
       accionistaGlobal.acc_cantidad_acciones -= transferencia.ope_acciones;
       actualizarParticipacionAccionistas(tituloPadreAux.tit_hasta);
@@ -597,8 +598,8 @@ export default function Operaciones() {
         }
       }));
       await API.graphql(graphqlOperation(updateParametro, { input: { id: '1', cantidadEmitida: tituloPadreAux.tit_hasta } }));
-      var response = await API.graphql({ query: deleteTitulo, variables: { input: { id: apiData.data.listTituloPorOperacions.items[0].tit_ope_titulo_id } }});
-      console.log("response",response);
+      var response = await API.graphql({ query: deleteTitulo, variables: { input: { id: apiData.data.listTituloPorOperacions.items[0].tit_ope_titulo_id } } });
+      console.log("response", response);
       return true;
     } catch (err) {
       console.log('error creating transaction:', err);
@@ -758,6 +759,77 @@ export default function Operaciones() {
     }
   }
 
+  const operacionPosesionEfectiva = async () => {
+    try {
+      if (!(await actualizarOperacion(transferencia.id, 1)).valueOf()) return false;
+      await API.graphql(graphqlOperation(updateAccionista, {
+        input: {
+          id: accionistaGlobal.id,
+          acc_cantidad_acciones: accionistaGlobal.acc_cantidad_acciones - transferencia.ope_acciones,
+          acc_participacion: (accionistaGlobal.acc_cantidad_acciones - transferencia.ope_acciones) / cantidadEmitida
+        }
+      }));
+      var tituloPadre = await API.graphql(graphqlOperation(getTitulo, {
+        id: titulos[0].tit_ope_titulo_id
+      }));
+      var accionesRestantes = transferencia.ope_acciones;
+      var accionesAgregadas = 0;
+      herederos.map(async (heredero) => {
+        if (heredero.her_cant_acciones > 0) {
+          var accionistaNuevoAux = {
+            id: heredero.her_identificacion,
+            acc_nombre_completo: heredero.her_nombre,
+            acc_cantidad_acciones: heredero.her_cant_acciones,
+            acc_participacion: heredero.her_cant_acciones / cantidadEmitida,
+            acc_tipo_identificacion: heredero.her_identificacion.length > 10 ? 1 : 0,
+            acc_estado: 3,
+          }
+          await API.graphql(graphqlOperation(createAccionista, { input: accionistaNuevoAux }));
+          if (heredero.her_identificacion.length > 10) {
+            var pJAux = {
+              id: heredero.her_identificacion,
+              pj_razon_social: heredero.her_nombre,
+              pj_rl_tipo_identificacion: 0
+            }
+            await API.graphql(graphqlOperation(createPersonaJuridica, { input: pJAux }));
+          } else {
+            var pNAux = {
+              id: heredero.her_identificacion,
+              pn_estado_civil: 0
+            }
+            await API.graphql(graphqlOperation(createPersonaNatural, { input: pNAux }));
+          }
+          if (accionesRestantes != heredero.her_cant_acciones) {
+            accionesRestantes = accionesRestantes - heredero.her_cant_acciones;
+            const tituloAux = {
+              tit_accionista_id: heredero.her_identificacion,
+              tit_estado: 1,
+              tit_acciones: heredero.her_cant_acciones,
+              tit_desde: parseInt(tituloPadre.data.getTitulo.tit_desde + accionesAgregadas),
+              tit_hasta: parseInt(tituloPadre.data.getTitulo.tit_hasta - accionesRestantes),
+              tit_padre: tituloPadre.data.getTitulo.id,
+              tit_nivel: tituloPadre.data.getTitulo.tit_nivel + 1,
+            }
+            accionesAgregadas = accionesAgregadas + heredero.her_cant_acciones;
+            await API.graphql(graphqlOperation(createTitulo, { input: tituloAux }));
+          } else {
+            await API.graphql(graphqlOperation(updateTitulo, { 
+             input: {
+              id: tituloPadre.data.getTitulo.id,
+              tit_acciones: heredero.her_cant_acciones,
+              tit_accionista_id: heredero.her_identificacion
+              } 
+            }));
+          }
+        }
+      });
+      return true;
+    } catch (error) {
+      console.log('Error aprobando la operación:', error);
+      return false;
+    }
+  }
+
   const handleAprobarOperacion = async () => {
     var control = true;
     setCircular(true);
@@ -782,6 +854,9 @@ export default function Operaciones() {
         break;
       case "Canje":
         control = (await operacionCanje()).valueOf();
+        break;
+      case "Posesión Efectiva":
+        control = (await operacionPosesionEfectiva()).valueOf();
         break;
       default:
         control = false;
@@ -812,16 +887,18 @@ export default function Operaciones() {
     };
     const apiData = await API.graphql({ query: listAccionistaOperacions, variables: { filter: filter } });
     apiData.data.listAccionistaOperacions.items.forEach(element => {
-      fetchAccionista(element.acc_ope_accionista_id).then(
-        data => {
-          if (element.acc_ope_detalle == "Canje" ||
-            element.acc_ope_detalle == "Bloqueo" ||
-            element.acc_ope_detalle == "Desbloqueo" ||
-            element.acc_ope_detalle == "Aumento Capital" ||
-            element.acc_ope_detalle == "Cedente") setAccionistaGlobal(data);
-          if (element.acc_ope_detalle == "Cesionario") setCesionario(data);
-        }
-      );
+      if (element.acc_ope_detalle != "Heredero") {
+        fetchAccionista(element.acc_ope_accionista_id).then(
+          data => {
+            if (element.acc_ope_detalle == "Canje" ||
+              element.acc_ope_detalle == "Bloqueo" ||
+              element.acc_ope_detalle == "Desbloqueo" ||
+              element.acc_ope_detalle == "Aumento Capital" ||
+              element.acc_ope_detalle == "Cedente") setAccionistaGlobal(data);
+            if (element.acc_ope_detalle == "Cesionario") setCesionario(data);
+          }
+        );
+      }
     });
   }
 
@@ -840,6 +917,11 @@ export default function Operaciones() {
     };
     const apiData = await API.graphql({ query: listTituloPorOperacions, variables: { filter: filter, limit: 10000 } });
     setTitulos(apiData.data.listTituloPorOperacions.items);
+  }
+
+  async function fetchHerederos(idAccionista) {
+    var apiData = await API.graphql({ query: listHerederos, variables: { her_id_accionisa: idAccionista } });
+    setHerederos(apiData.data.listHerederos.items);
   }
 
   const getPictureCS = e => {
@@ -1100,10 +1182,10 @@ export default function Operaciones() {
                       <ListItem key={item.id}>
                         <div style={{ display: 'flex', flexDirection: 'row', justifyContent: 'space-around', width: '100%', paddingRight: 50 }}>
                           <div style={{ flex: 1 }}>
-                            <ListItemText>{item.titulo}</ListItemText>
+                            <ListItemText>{item.id}</ListItemText>
                           </div>
                           <div style={{ flex: 1 }}>
-                            <ListItemText>{item.acciones}</ListItemText>
+                            <ListItemText>{item.tit_ope_acciones}</ListItemText>
                           </div>
                         </div>
                       </ListItem>
@@ -1121,10 +1203,7 @@ export default function Operaciones() {
                     <List dense='true' >
                       {herederos.map(item => (
                         <ListItem key={item.id}  >
-                          <ListItemIcon>
-                            <PersonOutlineIcon />
-                          </ListItemIcon>
-                          <ListItemText secondary={item.cantidad > 0 && <div style={{ fontSize: 10, fontWeight: 'bold' }}>Acciones: {item.cantidad}</div>}> {item.nombre} </ListItemText>
+                          <ListItemText>Acciones: {item.her_cant_acciones} - {item.her_identificacion} - {item.her_nombre} </ListItemText>
                         </ListItem>
                       ))}
                     </List>
@@ -1334,7 +1413,7 @@ export default function Operaciones() {
               </Button>
             }
 
-            {!anular && estado == 2 && 
+            {!anular && estado == 2 &&
               <Button onClick={handleReenviarOperacion} color="primary" variant='contained'>
                 Volver a Solicitar Aprobación
               </Button>
