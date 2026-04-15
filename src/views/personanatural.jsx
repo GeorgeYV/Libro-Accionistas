@@ -127,17 +127,31 @@ export default function PersonaNatural() {
   ];
   const pais = [
     {
-      label: "Ecuador",
-      value: "Ecuador",
+      label: "ECUADOR",
+      value: "ECUADOR",
     },
     {
-      label: "Perú",
-      value: "Perú",
+      label: "PERU",
+      value: "PERU",
     },
     {
-      label: "Estados Unidos",
-      value: "Estados Unidos",
+      label: "ESTADOS UNIDOS",
+      value: "ESTADOS UNIDOS",
     },
+  ];
+  const nacionalidad = [
+    {
+      label: "ECUATORIANA",
+      value: "ECUATORIANA",
+    },
+    {
+      label: "PERUANA",
+      value: "PERUANA",
+    },
+    {
+      label: "ESTADOUNIDENSE",
+      value: "ESTADOUNIDENSE",
+    }
   ];
   const tipoCuenta = [
     {
@@ -188,11 +202,11 @@ export default function PersonaNatural() {
   }
   if (location.state && !prevenirSaturacion) {
     console.log("location", location.state.preloadedValue);
-    console.log("herederos",herederos);
+    console.log("herederos", herederos);
     separarCadenas("acc_telefonos");
     separarCadenas("acc_obs_telefonos");
     separarCadenas("acc_correos");
-    if (location.state.preloadedValue.acc_tiene_herederos == true && Object.keys(herederos).length === 0) 
+    if (location.state.preloadedValue.acc_tiene_herederos == true && Object.keys(herederos).length === 0)
       obtenerHerederos(location.state.preloadedValue.id);
   }
   var [accionistaDefault, setAccionistaDefault] = useState({
@@ -316,11 +330,20 @@ export default function PersonaNatural() {
       );
     });
   };
+  const generateSelectNacionalidad = () => {
+    return nacionalidad.map((option) => {
+      return (
+        <MenuItem key={option.value} value={option.value}>
+          {option.label}
+        </MenuItem>
+      );
+    });
+  };
   const borrarUltimoHeredero = (nuevoCount) => {
     console.log("borrarUltimoHeredero", nuevoCount);
-    setCountHerederos(nuevoCount-1);
-    herederos["her_identificacion" + (nuevoCount)]='';
-    herederos["her_nombre" + (nuevoCount)]='';
+    setCountHerederos(nuevoCount - 1);
+    herederos["her_identificacion" + (nuevoCount)] = '';
+    herederos["her_nombre" + (nuevoCount)] = '';
   }
   const addAccionista = async (accionista) => {
     try {
@@ -332,7 +355,7 @@ export default function PersonaNatural() {
       console.log("personaNaturalAux: ", personaNaturalAux);
       console.log("conyugeAux: ", conyugeAux);
       if (checked) {
-        
+
         for (let i = 1; i <= countHerederos; i++) {
           herederosAux = {};
           herederosAux.her_id_accionisa = accionistaAux.id;
@@ -496,10 +519,10 @@ export default function PersonaNatural() {
                   name='acc_nacionalidad'
                   label="Nacionalidad"
                   value={accionistaGlobal.acc_nacionalidad}
-                  defaultValue='Ecuador'
+                  defaultValue='ECUADOR'
                   onChange={asignarValores}
                 >
-                  {generateSelectPais()}
+                  {generateSelectNacionalidad()}
                 </Select>
               </FormControl>
               <FormControl required variant="outlined" className={classes.selectEstandar}>
@@ -636,7 +659,7 @@ export default function PersonaNatural() {
                     variant="outlined"
                     onChange={asignarValores}
                   >
-                    {generateSelectPais()}
+                    {generateSelectNacionalidad()}
                   </Select>
                 </FormControl>
               </Paper>
@@ -655,7 +678,7 @@ export default function PersonaNatural() {
                   label="País"
                   value={accionistaGlobal.acc_pais}
                   variant="outlined"
-                  defaultValue='Ecuador'
+                  defaultValue='ECUADOR'
                   onChange={asignarValores}
                 >
                   {generateSelectPais()}

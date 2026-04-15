@@ -776,6 +776,8 @@ export default function Operaciones() {
       var accionesAgregadas = 0;
       herederos.map(async (heredero) => {
         if (heredero.her_cant_acciones > 0) {
+          //si existe el heredero no debe crear sino actualizar 
+          
           var accionistaNuevoAux = {
             id: heredero.her_identificacion,
             acc_nombre_completo: heredero.her_nombre,

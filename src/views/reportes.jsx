@@ -72,7 +72,7 @@ export default function Reportes() {
 
   const classes = useStyles();
 
-  const [tipoPersonaSelect, setTipoPersonaSelect] = useState('0');
+  const [tipoPersonaSelect, setTipoPersonaSelect] = useState(0);
   const handleChangeTipoPersonaSelect = (event) => {
     setTipoPersonaSelect(event.target.value);
   };
@@ -80,7 +80,7 @@ export default function Reportes() {
   const handleChangeTipoOperacion = (event) => {
     setTipoOperacion(event.target.value);
   };
-  const [estadoListado, setEstadoListado] = useState('0');
+  const [estadoListado, setEstadoListado] = useState(0);
   const handleChangeEstadoListado = (event) => {
     setEstadoListado(event.target.value);
   };
@@ -158,6 +158,7 @@ export default function Reportes() {
     const accionistasFromAPI = apiData.data.listAccionistas.items;
     var dateHasta = new Date(libroAcciHasta);
     dateHasta.setDate(dateHasta.getDate() + 1);
+
     const result = accionistasFromAPI.filter(d => {
       var time = new Date(d.createdAt).getTime();
       return (new Date(libroAcciDesde).getTime() <= time && time <= new Date(dateHasta).getTime());
@@ -313,15 +314,15 @@ export default function Reportes() {
     if (estadoListado != 0) {
       filter.acc_estado.eq = estadoListado
     } else {
-      filter.acc_estado.ne = "TODOS";
+      filter.acc_estado.ne = 9;
     }
     if (tipoPersonaSelect != 2) {
       filter.acc_tipo_persona.eq = tipoPersonaSelect
     } else {
-      filter.acc_tipo_persona.ne = "TODOS";
+      filter.acc_tipo_persona.ne = 9;
     }
     console.log("Filter: ",filter);
-    const apiData = await API.graphql({ query: listAccionistas, variables: { filter: filter} });
+    const apiData = await API.graphql({ query: listAccionistas, variables: { filter: filter, limit: 10000 } });
     const libroAccionista = apiData.data.listAccionistas.items;
     // Creacion del Xlsx
     const title = "Listado de Accionistas";
@@ -390,8 +391,8 @@ export default function Reportes() {
           elt.acc_identificacion, 
           elt.acc_nombre_completo, 
           elt.acc_nacionalidad, 
-          elt.acc_telefonos,
-          elt.acc_correos,
+          elt.acc_telefonos.replaceAll("&", " "),
+          elt.acc_correos.replaceAll("&", " "),
           elt.acc_tipo_acciones == 0 ? "Ordinarias" : "Desmaterializadas",
           elt.acc_cantidad_acciones, 
           elt.acc_estado == 1 ? "Activo" : elt.acc_estado == 2 ? "Inactivo" : "Bloqueado"
@@ -668,14 +669,13 @@ export default function Reportes() {
     console.log("const result: ",result)
     // Creacion del Xlsx
     const title = "Reporte de Operaciones";
-    const headers = ["Fecha", "Operación", "Cedente",
-      "Titulo", "Acciones","Cesionario","Estado",
-      "Usuario Ingreso", "Usuario Aprobador","Fecha Aprobación","Motivo Rechazo",
+    const headers = ["Fecha", "Operación", "# Acciones",
+      "Estado","Usuario Ingreso", "Usuario Aprobador","Fecha Aprobación","Motivo Rechazo",
       "Observación","Fecha Registro"
     ];
-    const letrasColumnas = ['A','B','C','D','E', 'F','G','H','I','J', 'K','L','M','N','O'];
+    const letrasColumnas = ['A','B','C','D','E', 'F','G','H','I','J'];
     const workbook = new ExcelJS.Workbook();
-    const sheet = workbook.addWorksheet("Dividendos");
+    const sheet = workbook.addWorksheet("Operaciones");
     const imageId = workbook.addImage({
       base64: logoBase64,
       extension: 'jpeg',
@@ -720,25 +720,24 @@ export default function Reportes() {
     sheet.columns = [
       { width: 20 },{ width: 20 },{ width: 20 },{ width: 20 },{ width: 20 },
       { width: 20 },{ width: 20 },{ width: 20 },{ width: 20 },{ width: 20 },
-      { width: 20 },{ width: 20 },{ width: 20 },{ width: 20 },{ width: 20 },
     ];
     const promise = Promise.all(
       result.map(async (elt) => {
         sheet.addRow([
           elt.ope_fecha,
-          elt.ope_tipo,
-          elt.cedente,
-          elt.titulo,
+          elt.ope_tipo == 0 ? "Aumento capital" : elt.ope_tipo == 1 ? "Bloqueo" : elt.ope_tipo == 2 ? "Canje" :
+           elt.ope_tipo == 3 ? "Cesión" : elt.ope_tipo == 4 ? "Desbloqueo" : elt.ope_tipo == 5 ? "Donación" : 
+           elt.ope_tipo == 6 ? "Posesión efectiva" : elt.ope_tipo == 7 ? "Testamento" : "Otro",
           elt.ope_acciones,
-          elt.cesionario,
-          elt.ope_estado,
+          elt.ope_estado == 0 ? "Pendiente" : elt.ope_estado == 1 ? "Aprobada" : elt.ope_estado == 2 ? "Rechazada" :
+           elt.ope_estado == 3 ? "Anulada" : "Error",
           elt.ope_ingresador,
           elt.ope_aprobador,
           elt.ope_fecha_aprobacion,
-          elt.ope_motivo_rechazo,
+          elt.ope_motivo_rechazo == -1 ? "Ninguno" : elt.ope_motivo_rechazo == 0 ? "Falta documentación" : 
+            elt.ope_motivo_rechazo == 1 ? "Documentación errada" : elt.ope_motivo_rechazo == 2 ? "Documentación duplicada" : 
+            elt.ope_motivo_rechazo == 3 ? "Error en acciones" :elt.ope_motivo_rechazo == 4 ? "Error en valor" : "Otro",
           elt.ope_observacion,
-          elt.ope_acciones,
-          elt.ope_acciones,
           elt.createdAt,
         ]);
       })

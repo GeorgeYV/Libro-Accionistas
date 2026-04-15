@@ -284,7 +284,7 @@ export default function Accionistas() {
         width: 80,
         renderCell: (cellValues) => {
           return <Link to={{
-            pathname: cellValues.row.acc_tipo_identificacion == 0 ? "/personanatural" : "/personajuridica",
+            pathname: cellValues.row.acc_tipo_persona == 0 ? "/personanatural" : "/personajuridica",
             state: {
               preloadedValue: cellValues.row,
             },

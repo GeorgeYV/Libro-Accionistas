@@ -5,7 +5,7 @@ import {
   Grid, IconButton, InputLabel, Snackbar,
   FormControl,
 } from '@material-ui/core';
-import { useLocation } from 'react-router-dom'
+import { useLocation, useHistory } from 'react-router-dom'
 import ControlPointIcon from '@material-ui/icons/ControlPoint';
 import CheckIcon from '@material-ui/icons/Check';
 import RemoveCircleOutlineIcon from '@material-ui/icons/RemoveCircleOutline';
@@ -107,17 +107,31 @@ export default function PersonaJuridica() {
   ];
   const pais = [
     {
-      label: "Ecuador",
-      value: "Ecuador",
+      label: "ECUADOR",
+      value: "ECUADOR",
     },
     {
-      label: "Perú",
-      value: "Perú",
+      label: "PERU",
+      value: "PERU",
     },
     {
-      label: "Estados Unidos",
-      value: "Estados Unidos",
+      label: "ESTADOS UNIDOS",
+      value: "ESTADOS UNIDOS",
     },
+  ];
+  const nacionalidad = [
+    {
+      label: "ECUATORIANA",
+      value: "ECUATORIANA",
+    },
+    {
+      label: "PERUANA",
+      value: "PERUANA",
+    },
+    {
+      label: "ESTADOUNIDENSE",
+      value: "ESTADOUNIDENSE",
+    }
   ];
   var [accionistaDefault, setAccionistaDefault] = useState({
     id: "",
@@ -163,6 +177,7 @@ export default function PersonaJuridica() {
     acc_correos2: "",
     acc_correos3: "",
   });
+  const navigate = useHistory();
   var [countTelef, setCountTelef] = useState(1);
   var [countEmail, setCountEmail] = useState(1);
   const location = useLocation();
@@ -220,6 +235,15 @@ export default function PersonaJuridica() {
   };
   const generateSelectPais = () => {
     return pais.map((option) => {
+      return (
+        <MenuItem key={option.value} value={option.value}>
+          {option.label}
+        </MenuItem>
+      );
+    });
+  };
+  const generateSelectNacionalidad = () => {
+    return nacionalidad.map((option) => {
       return (
         <MenuItem key={option.value} value={option.value}>
           {option.label}
@@ -298,6 +322,7 @@ export default function PersonaJuridica() {
       return;
     }
     setOpenSnack(false);
+    navigate.push('/accionistas');
   };
   const handleCloseSnackDanger = (event, reason) => {
     if (reason === 'clickaway') {
@@ -331,10 +356,10 @@ export default function PersonaJuridica() {
                   labelId="acc_nacionalidad-label"
                   label="Nacionalidad"
                   value={accionistaGlobal.acc_nacionalidad}
-                  defaultValue='Ecuador'
+                  defaultValue='ECUADOR'
                   onChange={asignarValores}
                 >
-                  {generateSelectPais()}
+                  {generateSelectNacionalidad()}
                 </Select>
               </FormControl>
               <FormControl required variant="outlined" className={classes.selectEstandar}>
@@ -400,7 +425,7 @@ export default function PersonaJuridica() {
                   label="País"
                   value={accionistaGlobal.acc_pais}
                   variant="outlined"
-                  defaultValue='Ecuador'
+                  defaultValue='ECUADOR'
                   onChange={asignarValores}
                 >
                   {generateSelectPais()}
@@ -514,10 +539,10 @@ export default function PersonaJuridica() {
                   label="País"
                   value={accionistaGlobal.pj_rl_nacionalidad}
                   variant="outlined"
-                  defaultValue='Ecuador'
+                  defaultValue='ECUADOR'
                   onChange={asignarValores}
                 >
-                  {generateSelectPais()}
+                  {generateSelectNacionalidad()}
                 </Select>
               </FormControl>
               <TextField
