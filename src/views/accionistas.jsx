@@ -301,6 +301,7 @@ export default function Accionistas() {
   const [titulos, setTitulos] = useState([])
   const [titulosHerencia, setTitulosHerencia] = useState([])
   const [accionistaSeleccionado, setAccionistaSeleccionado] = useState({});
+  const [accionistaSeleccionadoCadenas, setAccionistaSeleccionadoCadenas] = useState({});
   const [operaciones, setOperaciones] = useState([]);
   const [value, setValue] = useState(0);
 
@@ -513,11 +514,21 @@ export default function Accionistas() {
     const titulosFromAPI = apiData.data.listTitulos.items;
 
     setTitulos(titulosFromAPI);
-    setAccionistaSeleccionado(row)
-    setOpenTitulos(true)
+    setAccionistaSeleccionado(row);
+    separarCadenas("acc_telefonos",row.acc_telefonos);
+    separarCadenas("acc_obs_telefonos",row.acc_obs_telefonos);
+    separarCadenas("acc_correos",row.acc_correos);
+    setOpenTitulos(true);
     console.log('titulos', titulosFromAPI)
   }
   
+  const separarCadenas = (name, value) => {
+    var aux = value.split("&");
+    if (aux[0]) accionistaSeleccionadoCadenas[name + "1"] = aux[0];
+    if (aux[1]) accionistaSeleccionadoCadenas[name + "2"] = aux[1];
+    if (aux[2]) accionistaSeleccionadoCadenas[name + "3"] = aux[2];
+  }
+
   const handleChangeTab = (event, newValue) => {
     setValue(newValue);
   };
@@ -526,7 +537,41 @@ export default function Accionistas() {
   const getPictureDI = e => {
     e.stopPropagation();
 
-    Storage.get(accionistaSeleccionado.docIdentidadPrincipal)
+    Storage.get(accionistaSeleccionado.pn_doc_identificacion)
+      .then(url => {
+        var myRequest = new Request(url);
+        fetch(myRequest).then(function (response) {
+          if (response.status === 200) {
+            //setImageCS(url);
+            window.open(url)
+          }
+        });
+      })
+      .catch(err => console.log(err));
+
+  };
+
+  const getPictureDIC = e => {
+    e.stopPropagation();
+
+    Storage.get(accionistaSeleccionado.con_doc_identifcacion)
+      .then(url => {
+        var myRequest = new Request(url);
+        fetch(myRequest).then(function (response) {
+          if (response.status === 200) {
+            //setImageCS(url);
+            window.open(url)
+          }
+        });
+      })
+      .catch(err => console.log(err));
+
+  };
+  
+  const getPictureCB = e => {
+    e.stopPropagation();
+
+    Storage.get(accionistaSeleccionado.acc_doc_certificado_bancario)
       .then(url => {
         var myRequest = new Request(url);
         fetch(myRequest).then(function (response) {
@@ -543,7 +588,7 @@ export default function Accionistas() {
   const getPicturePE = e => {
     e.stopPropagation();
 
-    Storage.get(accionistaSeleccionado.docPosesionEfectiva)
+    Storage.get(accionistaSeleccionado.acc_doc_posesion_efectiva)
       .then(url => {
         var myRequest = new Request(url);
         fetch(myRequest).then(function (response) {
@@ -788,7 +833,7 @@ export default function Accionistas() {
                     <strong>Teléfono #1</strong>
                   </Typography>
                   <Typography variant='body2'>
-                    {accionistaSeleccionado.telefono1 == null ? '-' : accionistaSeleccionado.telefono1}
+                    {accionistaSeleccionadoCadenas.acc_telefonos1 == null ? '-' : accionistaSeleccionadoCadenas.acc_telefonos1}
                   </Typography>
                 </Grid>
                 <Grid item xs={12} sm={6} md={4} lg={3}>
@@ -796,7 +841,7 @@ export default function Accionistas() {
                     <strong>Observación</strong>
                   </Typography>
                   <Typography variant='body2'>
-                    {accionistaSeleccionado.obs1 == null ? '-' : accionistaSeleccionado.obs1}
+                    {accionistaSeleccionadoCadenas.acc_obs_telefonos1 == null ? '-' : accionistaSeleccionadoCadenas.acc_obs_telefonos1}
                   </Typography>
                 </Grid>
                 <Grid item xs={12} sm={6} md={4} lg={3}>
@@ -804,7 +849,7 @@ export default function Accionistas() {
                     <strong>Teléfono #2</strong>
                   </Typography>
                   <Typography variant='body2'>
-                    {accionistaSeleccionado.telefono2 == null ? '-' : accionistaSeleccionado.telefono2}
+                    {accionistaSeleccionadoCadenas.acc_telefonos2 == null ? '-' : accionistaSeleccionadoCadenas.acc_telefonos2}
                   </Typography>
                 </Grid>
                 <Grid item xs={12} sm={6} md={4} lg={3}>
@@ -812,7 +857,7 @@ export default function Accionistas() {
                     <strong>Observación</strong>
                   </Typography>
                   <Typography variant='body2'>
-                    {accionistaSeleccionado.obs2 == null ? '-' : accionistaSeleccionado.obs2}
+                    {accionistaSeleccionadoCadenas.acc_obs_telefonos2 == null ? '-' : accionistaSeleccionadoCadenas.acc_obs_telefonos2}
                   </Typography>
                 </Grid>
                 <Grid item xs={12} sm={6} md={4} lg={3}>
@@ -820,7 +865,7 @@ export default function Accionistas() {
                     <strong>Teléfono #3</strong>
                   </Typography>
                   <Typography variant='body2'>
-                    {accionistaSeleccionado.telefono3 == null ? '-' : accionistaSeleccionado.telefono3}
+                    {accionistaSeleccionadoCadenas.acc_telefonos3 == null ? '-' : accionistaSeleccionadoCadenas.acc_telefonos3}
                   </Typography>
                 </Grid>
                 <Grid item xs={12} sm={6} md={4} lg={3}>
@@ -828,7 +873,7 @@ export default function Accionistas() {
                     <strong>Observación</strong>
                   </Typography>
                   <Typography variant='body2'>
-                    {accionistaSeleccionado.obs3 == null ? '-' : accionistaSeleccionado.obs3}
+                    {accionistaSeleccionadoCadenas.acc_obs_telefonos3 == null ? '-' : accionistaSeleccionadoCadenas.acc_obs_telefonos3}
                   </Typography>
                 </Grid>
 
@@ -837,7 +882,7 @@ export default function Accionistas() {
                     <strong>Email #1</strong>
                   </Typography>
                   <Typography variant='body2'>
-                    {accionistaSeleccionado.email1 == null ? '-' : accionistaSeleccionado.email1}
+                    {accionistaSeleccionadoCadenas.acc_correos1 == null ? '-' : accionistaSeleccionadoCadenas.acc_correos1}
                   </Typography>
                 </Grid>
                 <Grid item xs={12} sm={6} md={4} lg={3}>
@@ -845,7 +890,7 @@ export default function Accionistas() {
                     <strong>Email #2</strong>
                   </Typography>
                   <Typography variant='body2'>
-                    {accionistaSeleccionado.email2 == null ? '-' : accionistaSeleccionado.email2}
+                    {accionistaSeleccionadoCadenas.acc_correos2 == null ? '-' : accionistaSeleccionadoCadenas.acc_correos2}
                   </Typography>
                 </Grid>
                 <Grid item xs={12} sm={6} md={4} lg={3}>
@@ -853,7 +898,7 @@ export default function Accionistas() {
                     <strong>Email #3</strong>
                   </Typography>
                   <Typography variant='body2'>
-                    {accionistaSeleccionado.email3 == null ? '-' : accionistaSeleccionado.email3}
+                    {accionistaSeleccionadoCadenas.acc_correos3 == null ? '-' : accionistaSeleccionadoCadenas.acc_correos3}
                   </Typography>
                 </Grid>
                 {accionistaSeleccionado.tipoPersona == 'PJ' &&
@@ -921,13 +966,13 @@ export default function Accionistas() {
                   <Typography variant='caption'>
                     <strong>Documento de Identidad</strong>
                   </Typography>
-                  {accionistaSeleccionado.docIdentidadPrincipal &&
+                  {accionistaSeleccionado.pn_doc_identificacion &&
                     <div>
                       <CheckIcon />
                       <Button component="span" color="primary" size='small' onClick={getPictureDI}>Ver</Button>
                     </div>
                   }
-                  {!accionistaSeleccionado.docIdentidadPrincipal &&
+                  {!accionistaSeleccionado.pn_doc_identificacion &&
                     <div>
                       -
                     </div>
@@ -937,13 +982,13 @@ export default function Accionistas() {
                   <Typography variant='caption'>
                     <strong>Certificado Bancario</strong>
                   </Typography>
-                  {accionistaSeleccionado.docCertificadoBancario &&
+                  {accionistaSeleccionado.acc_doc_certificado_bancario && 
                     <div>
                       <CheckIcon />
-                      <Button component="span" color="primary" size='small' onClick={getPictureDI}>Ver</Button>
+                      <Button component="span" color="primary" size='small' onClick={getPictureCB}>Ver</Button>
                     </div>
                   }
-                  {!accionistaSeleccionado.docCertificadoBancario &&
+                  {!accionistaSeleccionado.acc_doc_certificado_bancario &&
                     <div>
                       -
                     </div>
@@ -953,13 +998,13 @@ export default function Accionistas() {
                   <Typography variant='caption'>
                     <strong>Posesión Efectiva</strong>
                   </Typography>
-                  {accionistaSeleccionado.docPosesionEfectiva &&
+                  {accionistaSeleccionado.acc_doc_posesion_efectiva &&
                     <div>
                       <CheckIcon />
                       <Button component="span" color="primary" size='small' onClick={getPicturePE}>Ver</Button>
                     </div>
                   }
-                  {!accionistaSeleccionado.docPosesionEfectiva &&
+                  {!accionistaSeleccionado.acc_doc_posesion_efectiva &&
                     <div>
                       -
                     </div>
@@ -970,13 +1015,13 @@ export default function Accionistas() {
                     <Typography variant='caption'>
                       <strong>Documento de Identidad Cónyugue</strong>
                     </Typography>
-                    {accionistaSeleccionado.docIdentidadConyugue &&
+                    {accionistaSeleccionado.con_doc_identifcacion && 
                       <div>
                         <CheckIcon />
-                        <Button component="span" color="primary" size='small' onClick={getPictureDI}>Ver</Button>
+                        <Button component="span" color="primary" size='small' onClick={getPictureDIC}>Ver</Button>
                       </div>
                     }
-                    {!accionistaSeleccionado.docIdentidadConyugue &&
+                    {!accionistaSeleccionado.con_doc_identifcacion &&
                       <div>
                         -
                       </div>
