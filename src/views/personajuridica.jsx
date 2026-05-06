@@ -170,10 +170,10 @@ export default function PersonaJuridica() {
   const separarCadenas = (name) => {
     var aux = accionistaGlobal[name] != "" ? accionistaGlobal[name].split("&") : [];
     if (aux[0]) accionistaGlobal[name + "1"] = aux[0];
-    if (aux[1]) accionistaGlobal[name + "1"] = aux[1];
-    if (aux[2]) accionistaGlobal[name + "1"] = aux[2];
-    if(name=="acc_telefonos") countTelef = aux.length > countTelef ? aux.length : countTelef;
-    if(name=="acc_correos") countEmail = aux.length > countEmail ? aux.length : countEmail;
+    if (aux[1]) accionistaGlobal[name + "2"] = aux[1];
+    if (aux[2]) accionistaGlobal[name + "3"] = aux[2];
+    if (name == "acc_telefonos") setCountTelef(aux.length);
+    if (name == "acc_correos") setCountEmail(aux.length);
   }
   if (location.state) {
     console.log("location", location);
@@ -272,27 +272,42 @@ export default function PersonaJuridica() {
     if (accionistaGlobal[name + "3"]) aux = aux + "&" + accionistaGlobal[name + "3"];
     accionistaGlobal[name] = aux;
   }
-  async function onChangeDI(e) {
-    if (!e.target.files[0]) return
-    const file = e.target.files[0];
-    const filename = uuid() + file.name
-    setFormData({ ...formData, docIdentidadPrincipal: filename });
-    await Storage.put(filename, file);
-  }
-  async function onChangeCB(e) {
-    if (!e.target.files[0]) return
-    const file = e.target.files[0];
-    const filename = uuid() + file.name
-    setFormData({ ...formData, docCertificadoBancario: filename });
-    await Storage.put(filename, file);
-  }
-  async function onChangeDIC(e) {
-    if (!e.target.files[0]) return
-    const file = e.target.files[0];
-    const filename = uuid() + file.name
-    setFormData({ ...formData, docIdentidadConyugue: filename });
-    await Storage.put(filename, file);
-  }
+  
+    async function onChangeDI(e) {
+      if (!e.target.files[0]) return
+      const file = e.target.files[0];
+      const filename = uuid() + file.name
+      setAccionistaGlobal({ ...accionistaGlobal, pn_doc_identificacion: filename });
+      await Storage.put(filename, file);
+    }
+    async function onChangeCB(e) {
+      if (!e.target.files[0]) return
+      const file = e.target.files[0];
+      const filename = uuid() + file.name
+      setAccionistaGlobal({ ...accionistaGlobal, acc_doc_certificado_bancario: filename });
+      await Storage.put(filename, file);
+    }
+    async function onChangeDIC(e) {
+      if (!e.target.files[0]) return
+      const file = e.target.files[0];
+      const filename = uuid() + file.name
+      setAccionistaGlobal({ ...accionistaGlobal, acc_doc_identificacion_conyugue: filename });
+      await Storage.put(filename, file);
+    }
+    async function onChangeAD(e) {
+      if (!e.target.files[0]) return
+      const file = e.target.files[0];
+      const filename = uuid() + file.name
+      setAccionistaGlobal({ ...accionistaGlobal, acc_doc_uso_datos: filename });
+      await Storage.put(filename, file);
+    }
+    async function onChangeCAD(e) {
+      if (!e.target.files[0]) return
+      const file = e.target.files[0];
+      const filename = uuid() + file.name
+      setAccionistaGlobal({ ...accionistaGlobal, acc_doc_actualizacion_datos: filename });
+      await Storage.put(filename, file);
+    }
   const handleCloseSnack = (event, reason) => {
     if (reason === 'clickaway') {
       return;
@@ -652,29 +667,29 @@ export default function PersonaJuridica() {
               <div className={classes.formSection}>
                 <label htmlFor="upload-photo1">
                   <input style={{ display: 'none' }} id="upload-photo1" name="upload-photo1" type="file" accept="application/pdf" onChange={onChangeDI} />
-                  <Button component="span" color="primary" size='small'>Documento de Identidad</Button>
-                  {formData.docIdentidadPrincipal.length > 0 && <CheckIcon />}
+                  <Button component="span" color="primary" size='small'>Documento de Nombramiento</Button>
+                  {accionistaGlobal.pj_doc_nombramiento && <CheckIcon />}
                 </label>
               </div>
               <div className={classes.formSection}>
                 <label htmlFor="upload-photo2">
                   <input style={{ display: 'none' }} id="upload-photo2" name="upload-photo2" type="file" accept="application/pdf" onChange={onChangeCB} />
                   <Button component="span" color="primary" size='small' >Certificado Bancario</Button>
-                  {formData.docCertificadoBancario.length > 0 && <CheckIcon />}
+                  {accionistaGlobal.acc_doc_certificado_bancario && <CheckIcon />}
                 </label>
               </div>
               <div className={classes.formSection}>
                 <label htmlFor="upload-photo3">
-                  <input style={{ display: 'none' }} id="upload-photo3" name="upload-photo3" type="file" accept="application/pdf" />
+                  <input style={{ display: 'none' }} id="upload-photo3" name="upload-photo3" type="file" accept="application/pdf" onChange={onChangeCAD} />
                   <Button component="span" color="primary" size='small'>Carta de actualización de datos</Button>
-                  {formData.docIdentidadPrincipal.length > 0 && <CheckIcon />}
+                  {accionistaGlobal.acc_doc_actualizacion_datos && <CheckIcon />}
                 </label>
               </div>
               <div className={classes.formSection}>
                 <label htmlFor="upload-photo4">
-                  <input style={{ display: 'none' }} id="upload-photo4" name="upload-photo4" type="file" accept="application/pdf" />
+                  <input style={{ display: 'none' }} id="upload-photo4" name="upload-photo4" type="file" accept="application/pdf" onChange={onChangeAD} />
                   <Button component="span" color="primary" size='small' >Autorización para uso de datos</Button>
-                  {formData.docCertificadoBancario.length > 0 && <CheckIcon />}
+                  {accionistaGlobal.acc_doc_uso_datos && <CheckIcon />}
                 </label>
               </div>
             </Paper>

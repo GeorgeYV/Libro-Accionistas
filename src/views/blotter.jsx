@@ -354,7 +354,8 @@ export default function Operaciones() {
     setOpenRevisar(true);
     if (values.row.ope_tipo != 0) fetchTitulos(values.row.id);
     fetchAccionistaOperacions(values.row.id);
-    setFormData({ cs: values.row.cs, cg: values.row.cg, ci: values.row.ci, es: values.row.es, cp: values.row.cp })
+    var auxDocs = values.row.ope_documento.split("&");
+    setFormData({ cs: auxDocs[0], cg: auxDocs[1], ci: auxDocs[2], es: auxDocs[3], cp: auxDocs[4] })
     console.log('values', values.row);
   };
 
@@ -845,7 +846,7 @@ export default function Operaciones() {
   const getPictureCS = e => {
     e.stopPropagation();
 
-    Storage.get(transferencia.cs)
+    Storage.get(formData.cs)
       .then(url => {
         var myRequest = new Request(url);
         fetch(myRequest).then(function (response) {
@@ -863,7 +864,7 @@ export default function Operaciones() {
   const getPictureCG = e => {
     e.stopPropagation();
 
-    Storage.get(transferencia.cg)
+    Storage.get(formData.cg)
       .then(url => {
         var myRequest = new Request(url);
         fetch(myRequest).then(function (response) {
@@ -881,7 +882,7 @@ export default function Operaciones() {
   const getPictureCI = e => {
     e.stopPropagation();
 
-    Storage.get(transferencia.ci)
+    Storage.get(formData.ci)
       .then(url => {
         var myRequest = new Request(url);
         fetch(myRequest).then(function (response) {
@@ -898,7 +899,7 @@ export default function Operaciones() {
   const getPictureES = e => {
     e.stopPropagation();
 
-    Storage.get(transferencia.es)
+    Storage.get(formData.es)
       .then(url => {
         var myRequest = new Request(url);
         fetch(myRequest).then(function (response) {
@@ -915,7 +916,7 @@ export default function Operaciones() {
   const getPictureCP = e => {
     e.stopPropagation();
 
-    Storage.get(transferencia.cp)
+    Storage.get(formData.cp)
       .then(url => {
         var myRequest = new Request(url);
         fetch(myRequest).then(function (response) {
@@ -1222,10 +1223,10 @@ export default function Operaciones() {
                           <EditIcon fontSize="small" color='secondary' />
                         </IconButton>
                       </label>}
-                    <Button component="span" color="primary" size='small' style={{ marginTop: 10 }} onClick={getPictureCS} disabled={transferencia.cs ? false : true}>
+                    <Button component="span" color="primary" size='small' style={{ marginTop: 10 }} onClick={getPictureCS} disabled={formData.cs ? false : true}>
                       {transferencia.ope_tipo_letras == 'Cesión' ? 'Carta de Cesión y Gerente' : transferencia.ope_tipo_letras == 'Posesión Efectiva' ? 'Carta de Posesión Efectiva' : transferencia.ope_tipo_letras == 'Bloqueo' || transferencia.ope_tipo_letras == 'Desbloqueo' ? 'Documento de Respaldo' : transferencia.ope_tipo_letras == 'Testamento' ? 'Carta de Testamento' : transferencia.ope_tipo_letras == 'Donación' ? 'Carta de Donación' : 'Titulo Ordinario'}
                     </Button>
-                    {transferencia.cs && <CheckIcon />}
+                    {formData.cs && <CheckIcon />}
                     {formData.cs && <FiberNewOutlined color='secondary' />}
                   </div>
                 }
@@ -1238,11 +1239,11 @@ export default function Operaciones() {
                           <EditIcon fontSize="small" color='secondary' />
                         </IconButton>
                       </label>}
-                    <Button component="span" color="primary" size='small' onClick={getPictureCG} disabled={transferencia.cg ? false : true}>
+                    <Button component="span" color="primary" size='small' onClick={getPictureCG} disabled={formData.cg ? false : true}>
                       {transferencia.ope_tipo_letras == 'Cesión' ? 'Cédulas' : transferencia.ope_tipo_letras == 'Testamento' ? 'Escritura de Testamento' : transferencia.ope_tipo_letras == 'Donación' ? 'Escritura de Donación de Bienes' : 'Impuesto a la Herencia'}
 
                     </Button>
-                    {transferencia.cg && <CheckIcon />}
+                    {formData.cg && <CheckIcon />}
                     {formData.cg && <FiberNewOutlined color='secondary' />}
                   </div>
                 }
@@ -1256,10 +1257,10 @@ export default function Operaciones() {
                           <EditIcon fontSize="small" color='secondary' />
                         </IconButton>
                       </label>}
-                    <Button component="span" color="primary" size='small' onClick={getPictureCI} disabled={transferencia.ci ? false : true}>
+                    <Button component="span" color="primary" size='small' onClick={getPictureCI} disabled={formData.ci ? false : true}>
                       {transferencia.ope_tipo_letras == 'Cesión' ? 'Carta de Instrucciones' : transferencia.ope_tipo_letras == 'Testamento' ? 'Pago de Impuestos' : transferencia.ope_tipo_letras == 'Donación' ? 'Pago de Impuestos' : 'Declaración Jurada'}
                     </Button>
-                    {transferencia.ci && <CheckIcon />}
+                    {formData.ci && <CheckIcon />}
                     {formData.ci && <FiberNewOutlined color='secondary' />}
                   </div>
                 }
@@ -1272,10 +1273,10 @@ export default function Operaciones() {
                           <EditIcon fontSize="small" color='secondary' />
                         </IconButton>
                       </label>}
-                    <Button component="span" color="primary" size='small' onClick={getPictureES} disabled={transferencia.es ? false : true}>
+                    <Button component="span" color="primary" size='small' onClick={getPictureES} disabled={formData.es ? false : true}>
                       {transferencia.ope_tipo_letras == 'Aumento Capital' ? 'Escritura' : transferencia.ope_tipo_letras == 'Cesión' ? 'Escrituras' : transferencia.ope_tipo_letras == 'Testamento' ? 'Declaración Jurada' : transferencia.ope_tipo_letras == 'Donación' ? 'Declaración Jurada' : 'Escritura Posesión efectiva de Bienes'}
                     </Button>
-                    {transferencia.es && <CheckIcon />}
+                    {formData.es && <CheckIcon />}
                     {formData.es && <FiberNewOutlined color='secondary' />}
                   </div>
                 }
@@ -1289,8 +1290,8 @@ export default function Operaciones() {
                           <EditIcon fontSize="small" color='secondary' />
                         </IconButton>
                       </label>}
-                    <Button component="span" color="primary" size='small' onClick={getPictureCP} disabled={transferencia.cp ? false : true}>Poder</Button>
-                    {transferencia.cp && <CheckIcon />}
+                    <Button component="span" color="primary" size='small' onClick={getPictureCP} disabled={formData.cp ? false : true}>Poder</Button>
+                    {formData.cp && <CheckIcon />}
                     {formData.cp && <FiberNewOutlined color='secondary' />}
                   </div>
                 }

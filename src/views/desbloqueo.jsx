@@ -131,7 +131,7 @@ export default function Desbloqueo() {
       setTitulos([])
       setTotal(0)
       setValCedente({})
-      setFormData({es:''});
+      setFormData({cs: '', cg: '', ci: '', es: '', cp: ''});
       setCircular(false);
       setOpenSnack(true);
     } catch (err) {

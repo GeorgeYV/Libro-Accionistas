@@ -33,6 +33,9 @@ import DescriptionIcon from '@material-ui/icons/Description';
 import MuiAlert from '@material-ui/lab/Alert';
 import ClearIcon from '@material-ui/icons/Clear';
 import SearchIcon from '@material-ui/icons/Search';
+import CheckIcon from '@material-ui/icons/Check';
+import CloudUploadOutlinedIcon from '@material-ui/icons/CloudUploadOutlined';
+import { uuid } from 'uuidv4';
 function Alert(props) {
   return <MuiAlert elevation={6} variant="filled" {...props} />;
 }
@@ -83,45 +86,6 @@ export default function Dividendos() {
   const [cantidadEmitido, setCantidadEmitido] = useState(1);
   const [valorNominal, setValorNominal] = useState(1);
   const [baseImponible, setBaseImponible] = useState(0);
-  const [retencionNoResidente, setRetencionNoResidente] = useState(0);
-  const [FB1, setFB1] = useState(0);
-  const [FB2, setFB2] = useState(0);
-  const [FB3, setFB3] = useState(0);
-  const [FB4, setFB4] = useState(0);
-  const [FB5, setFB5] = useState(0);
-  const [FB6, setFB6] = useState(0);
-  const [FE1, setFE1] = useState(0);
-  const [FE2, setFE2] = useState(0);
-  const [FE3, setFE3] = useState(0);
-  const [FE4, setFE4] = useState(0);
-  const [FE5, setFE5] = useState(0);
-  const [FE6, setFE6] = useState(0);
-  const [RFB1, setRFB1] = useState(0);
-  const [RFB2, setRFB2] = useState(0);
-  const [RFB3, setRFB3] = useState(0);
-  const [RFB4, setRFB4] = useState(0);
-  const [RFB5, setRFB5] = useState(0);
-  const [RFB6, setRFB6] = useState(0);
-  const [RFE1, setRFE1] = useState(0);
-  const [RFE2, setRFE2] = useState(0);
-  const [RFE3, setRFE3] = useState(0);
-  const [RFE4, setRFE4] = useState(0);
-  const [RFE5, setRFE5] = useState(0);
-  const [RFE6, setRFE6] = useState(0);
-  const [retencionMinima, setRetencionMinima] = useState(0);
-  const [retencionMaxima, setRetencionMaxima] = useState(0);
-  const [Retencion_PN_Loc, setRetencion_PN_Loc] = useState(0);
-  const [Retencion_PN_NPF, setRetencion_PN_NPF] = useState(0);
-  const [Retencion_PN_PF, setRetencion_PN_PF] = useState(0);
-  const [Retencion_PJ_Loc_Loc, setRetencion_PJ_Loc_Loc] = useState(0);
-  const [Retencion_PJ_Loc_NPF, setRetencion_PJ_Loc_NPF] = useState(0);
-  const [Retencion_PJ_Loc_PF, setRetencion_PJ_Loc_PF] = useState(0);
-  const [Retencion_PJ_PF_Loc, setRetencion_PJ_PF_Loc] = useState(0);
-  const [Retencion_PJ_PF_NPF, setRetencion_PJ_PF_NPF] = useState(0);
-  const [Retencion_PJ_PF_PF, setRetencion_PJ_PF_PF] = useState(0);
-  const [Retencion_PJ_NPF_Loc, setRetencion_PJ_NPF_Loc] = useState(0);
-  const [Retencion_PJ_NPF_NPF, setRetencion_PJ_NPF_NPF] = useState(0);
-  const [Retencion_PJ_NPF_PF, setRetencion_PJ_NPF_PF] = useState(0);
   const [rowsSelectAccionistas, setRowsSelectAccionistas] = useState([]);
   const [userName, setUserName] = useState("");
   const [idDetalleDividendo, setIdDetalleDividendo] = useState("");
@@ -219,12 +183,13 @@ export default function Dividendos() {
   const columnsAccionistasCorte = [
     {
       field: 'acc_identificacion',
-      headerName: 'Identificación'
+      headerName: 'Identificación',
+      width: 100,
     },
     {
       field: 'acc_nombre_completo',
       headerName: 'Nombre',
-      width: 200
+      width: 300
     },
     {
       field: 'acc_tipo_identificacion',
@@ -254,11 +219,6 @@ export default function Dividendos() {
       type: 'number',
     },
     {
-      field: 'baseImponible',
-      headerName: 'Base Imponible',
-      type: 'number',
-    },
-    {
       field: 'retencion',
       headerName: 'Retención',
       type: 'number',
@@ -267,25 +227,7 @@ export default function Dividendos() {
       field: 'dividendoRecibido',
       headerName: 'Pagar',
       type: 'number',
-    }/*,
-    {
-      field: 'opcion',
-      headerName: 'Agregar',
-      renderCell: (cellValues) => {
-        return <Fragment>
-          <Checkbox
-            onChange={() => {
-              var aux;
-              aux = listaAccionistasDividendo.findIndex(x => x.id == cellValues.row.id);
-              if (aux == -1) listaAccionistasDividendo.push(cellValues.row);
-              if (aux != -1) listaAccionistasDividendo.splice(aux, 1);
-              console.log("listaAccionistasDividendo", listaAccionistasDividendo);
-            }
-            }
-          />
-        </Fragment>
-      }
-    },*/
+    }
   ];
 
   const columnsAccionistasCorteDividendos = [
@@ -307,7 +249,7 @@ export default function Dividendos() {
     {
       field: 'acc_nombre_completo',
       headerName: 'Beneficiario',
-      width: 200,
+      width: 300,
     },
     {
       field: 'acc_cantidad_acciones',
@@ -324,12 +266,6 @@ export default function Dividendos() {
     {
       field: 'dividendo',
       headerName: 'Dividendo',
-      type: 'number',
-      width: 110,
-    },
-    {
-      field: 'baseImponible',
-      headerName: 'Base Imponible',
       type: 'number',
       width: 110,
     },
@@ -353,16 +289,79 @@ export default function Dividendos() {
       field: "",
       headerName: 'Pagar',
       renderCell: (cellValues) => {
-        return <Fragment>
-          <IconButton onClick={() => {
-            pagarDividendoAccionista(cellValues.row)
-
-          }
-          } id={cellValues.row.id} color='primary' disabled={cellValues.row.div_tit_fecha_pago == '' ? false : true} ><DescriptionIcon /></IconButton>
-        </Fragment>
+        if (cellValues.row.acc_tipo_identificacion != 'Natural' && cellValues.row.acc_identificacion[2] != 6) {
+          return <Fragment>
+            <label>
+              <input id={'pago' + cellValues.row.id} style={{ display: 'none' }} type="file" accept="application/pdf" onChange={(e) => pagarDividendoAccionista(e, cellValues.row)} />
+              <Button color='primary' disabled={cellValues.row.div_tit_fecha_pago == '' ? false : true} startIcon={<DescriptionIcon />} variant='outlined' component="span" color="primary" size='small' style={{ textTransform: 'none', }}></Button>
+              {cellValues.row.div_tit_fecha_pago != '' && <IconButton ><CheckIcon /></IconButton>}
+            </label>
+            <label>
+              <input id={'respaldo' + cellValues.row.id} style={{ display: 'none' }} type="file" accept="application/pdf" onChange={onChangeRespaldo} />
+              <Button aria-label='Subir Anexo' startIcon={<CloudUploadOutlinedIcon />} variant='outlined' component="span" color="primary" size='small' style={{ textTransform: 'none', }}></Button>
+              {cellValues.row.div_tit_fecha_pago != '' && <IconButton ><CheckIcon /></IconButton>}
+            </label>
+          </Fragment>
+        } else {
+          return <Fragment>
+            <label>
+              <input id={'pago' + cellValues.row.id} style={{ display: 'none' }} type="file" accept="application/pdf" onChange={(e) => pagarDividendoAccionista(e, cellValues.row)} />
+              <Button color='primary' disabled={cellValues.row.div_tit_fecha_pago == '' ? false : true} startIcon={<DescriptionIcon />} variant='outlined' component="span" color="primary" size='small' style={{ textTransform: 'none', }}></Button>
+              {cellValues.row.div_tit_fecha_pago != '' && <IconButton ><CheckIcon /></IconButton>}
+            </label>
+          </Fragment>
+        }
       }
     },
   ];
+
+  async function onChangeRespaldo(e) {
+    if (!e.target.files[0]) {
+      console.log('entro al cancelar')
+      return
+    }
+    const file = e.target.files[0];
+    const filename = uuid() + file.name;
+    console.log('entro', filename)
+    //setFormData({ ...formData, cs: filename });
+    //await Storage.put(filename, file);
+  }
+
+  async function pagarDividendoAccionista(e, row) {
+    if (row.div_tit_fecha_pago != "") return;
+    try {
+      var filtro = { div_tit_accionista_id: { eq: row.id }, div_tit_ddiv_id: { eq: periodoSeleccionado.id } };
+      var apiData = await API.graphql({ query: listDividendosTitulos, variables: { filter: filtro, limit: 10000 } });
+      apiData.data.listDividendosTitulos.items.map((item) => {
+        API.graphql(graphqlOperation(updateDividendosTitulos, {
+          input: {
+            id: item.id,
+            div_tit_fecha_pago: fechaHoyAMD,
+            div_tit_documento: fechaHoyAMD
+          }
+        }));
+      });
+      var aux = accionistasCorteDividendos.findIndex(({ id }) => id === row.id);
+      setAccionistasCorteDividendos(prevLista =>
+        prevLista.map(item =>
+          item.id === row.id ? { ...item, div_tit_fecha_pago: fechaHoyAMD } : item
+        )
+      );
+      await API.graphql(graphqlOperation(updateDetalleDividendo, {
+        input: {
+          id: periodoSeleccionado.id,
+          ddiv_dividendo: row.dividendo + periodoSeleccionado.ddiv_dividendo,
+        }
+      }));
+      setRows(prevLista =>
+        prevLista.map(item =>
+          item.id === periodoSeleccionado.id ? { ...item, saldo_dividendo: periodoSeleccionado.saldo_dividendo - row.dividendo } : item
+        )
+      );
+    } catch (err) {
+      console.log('error creando pago dividendo accionista:', err)
+    }
+  }
 
   const handleClose = () => {
     setOpenAccionistas(false);
@@ -379,44 +378,35 @@ export default function Dividendos() {
   }
 
   function getRetencion1(base, persona, residente, beneficiario) {
-    residente = residente.trim();
-    residente = residente.trim();
-    beneficiario = beneficiario.trim();
-    beneficiario = beneficiario.trim();
-    //revisar los valores del parametro
+    let num = 0, reduccion = 0, retencion = 0;
     persona = parseInt(persona);
-    let retencion = 4;
-    let residenciaFiscal = "NPF";
-    let residenciaFiscalBenef = "NPF";
-    if (residente == "Ecuador") residenciaFiscal = "Local"
-    if (residente == "Panama") residenciaFiscal = "PF"
-    if (beneficiario == "Ecuador") residenciaFiscalBenef = "Local"
-    if (beneficiario == "Panama") residenciaFiscalBenef = "PF"
-    if (persona == 0 && residenciaFiscal == "Local") retencion = Retencion_PN_Loc;
-    if (persona == 0 && residenciaFiscal == "NPF") retencion = Retencion_PN_NPF;
-    if (persona == 0 && residenciaFiscal == "PF") retencion = Retencion_PN_PF;
-    if (persona == 1 && residenciaFiscal == "Local" && residenciaFiscalBenef == "Local") retencion = Retencion_PJ_Loc_Loc;
-    if (persona == 1 && residenciaFiscal == "Local" && residenciaFiscalBenef == "NPF") retencion = Retencion_PJ_Loc_NPF;
-    if (persona == 1 && residenciaFiscal == "Local" && residenciaFiscalBenef == "PF") retencion = Retencion_PJ_Loc_PF;
-    if (persona == 1 && residenciaFiscal == "PF" && residenciaFiscalBenef == "Local") retencion = Retencion_PJ_PF_Loc;
-    if (persona == 1 && residenciaFiscal == "PF" && residenciaFiscalBenef == "NPF") retencion = Retencion_PJ_PF_NPF;
-    if (persona == 1 && residenciaFiscal == "PF" && residenciaFiscalBenef == "PF") retencion = Retencion_PJ_PF_PF;
-    if (persona == 1 && residenciaFiscal == "NPF" && residenciaFiscalBenef == "Local") retencion = Retencion_PJ_NPF_Loc;
-    if (persona == 1 && residenciaFiscal == "NPF" && residenciaFiscalBenef == "NPF") retencion = Retencion_PJ_NPF_NPF;
-    if (persona == 1 && residenciaFiscal == "NPF" && residenciaFiscalBenef == "PF") retencion = Retencion_PJ_NPF_PF;
-    let num = 0;
-    if (retencion == 1) num = base * retencionMinima / 100.00;
-    if (retencion == 2) num = base * retencionMaxima / 100.00;
-    if (retencion == 4) num = 0;
-    if (retencion == 3) {
-      if (base > FB1 && base < FE1) { num = RFB1 + (base - FB1) * RFE1 / 100.00; }
-      if (base > FB2 && base < FE2) { num = RFB2 + (base - FB2) * RFE2 / 100.00; }
-      if (base > FB3 && base < FE3) { num = RFB3 + (base - FB3) * RFE3 / 100.00; }
-      if (base > FB4 && base < FE4) { num = RFB4 + (base - FB4) * RFE4 / 100.00; }
-      if (base > FB5 && base < FE5) { num = RFB5 + (base - FB5) * RFE5 / 100.00; }
-      if (base > FB6 && base < FE6) { num = RFB6 + (base - FB6) * RFE6 / 100.00; }
+    residente = residente.trim();
+    beneficiario = beneficiario.trim();
+    if (persona == 3) {
+      return ((base * 14 / 100.00) - reduccion).toFixed(2);
     }
-    return num.toFixed(2);
+    //persona natural residente 12% reduccion de 3 salarios basicos
+    if (persona == 0 && residente == "Ecuador") {
+      num = 12;
+      reduccion = 3 * baseImponible;
+    }
+    //Sociedad no residente 10%
+    if (persona == 1 && residente != "Ecuador") num = 10;
+    //persona natural no residente 10%
+    if (persona == 0 && residente != "Ecuador") num = 10;
+    //sociedad residente 0%
+    if (persona == 1 && residente == "Ecuador" && beneficiario == "Ecuador") num = 0;
+    //sociedad no residente beneficiario en ecuador 12% reduccion de 3 salarios basicos
+    if (persona == 1 && residente != "Ecuador" && beneficiario == "Ecuador") {
+      num = 12;
+      reduccion = 3 * baseImponible;
+    }
+    //sociedad no residente paraiso fiscal beneficiario en ecuador 14%
+    if (persona == 0 && residente != "Panama" && beneficiario == "Ecuador") num = 14;
+    //las empresas necesitan adjuntar el archivo rebefics caso contrario se retiene 14%
+
+    retencion = ((base * num / 100.00) - reduccion).toFixed(2);
+    return retencion < 0 ? 0 : retencion;
   }
 
   const handleCloseCrearDividendo = () => {
@@ -483,7 +473,7 @@ export default function Dividendos() {
             div_tit_participacion: Math.round(e.div_tit_participacion * auxCalculoParticipacionTitulo * 100) / 100,
             div_tit_dividendo: Math.round(e.div_tit_dividendo * auxCalculoParticipacionTitulo * 100) / 100,
             div_tit_retencion: Math.round(e.div_tit_retencion * auxCalculoParticipacionTitulo * 100) / 100,
-            div_tit_base_imponible: Math.round(e.div_tit_base_imponible * auxCalculoParticipacionTitulo * 100) / 100,
+            div_tit_base_imponible: e.div_tit_base_imponible,
             div_tit_fecha_pago: "",
             div_tit_documento: ""
           }
@@ -508,45 +498,6 @@ export default function Dividendos() {
     setCantidadEmitido(parametrosFromAPI.cantidadEmitida);
     setValorNominal(parametrosFromAPI.valorNominal);
     setBaseImponible(parametrosFromAPI.baseImponible);
-    setRetencionNoResidente(parametrosFromAPI.noResidente);
-    setFB1(parametrosFromAPI.IGdesde1);
-    setFB2(parametrosFromAPI.IGdesde2);
-    setFB3(parametrosFromAPI.IGdesde3);
-    setFB4(parametrosFromAPI.IGdesde4);
-    setFB5(parametrosFromAPI.IGdesde5);
-    setFB6(parametrosFromAPI.IGdesde6);
-    setFE1(parametrosFromAPI.IGhasta1);
-    setFE2(parametrosFromAPI.IGhasta2);
-    setFE3(parametrosFromAPI.IGhasta3);
-    setFE4(parametrosFromAPI.IGhasta4);
-    setFE5(parametrosFromAPI.IGhasta5);
-    setFE6(parametrosFromAPI.IGhasta6);
-    setRFB1(parametrosFromAPI.FBretencion1);
-    setRFB2(parametrosFromAPI.FBretencion2);
-    setRFB3(parametrosFromAPI.FBretencion3);
-    setRFB4(parametrosFromAPI.FBretencion4);
-    setRFB5(parametrosFromAPI.FBretencion5);
-    setRFB6(parametrosFromAPI.FBretencion6);
-    setRFE1(parametrosFromAPI.FEretencion1);
-    setRFE2(parametrosFromAPI.FEretencion2);
-    setRFE3(parametrosFromAPI.FEretencion3);
-    setRFE4(parametrosFromAPI.FEretencion4);
-    setRFE5(parametrosFromAPI.FEretencion5);
-    setRFE6(parametrosFromAPI.FEretencion6);
-    setRetencionMinima(parametrosFromAPI.Retencion_Minima);
-    setRetencionMaxima(parametrosFromAPI.Retencion_Maxima);
-    setRetencion_PN_Loc(parametrosFromAPI.Retencion_PN_Loc);
-    setRetencion_PN_NPF(parametrosFromAPI.Retencion_PN_NPF);
-    setRetencion_PN_PF(parametrosFromAPI.Retencion_PN_PF);
-    setRetencion_PJ_Loc_Loc(parametrosFromAPI.Retencion_PJ_Loc_Loc);
-    setRetencion_PJ_Loc_NPF(parametrosFromAPI.Retencion_PJ_Loc_NPF);
-    setRetencion_PJ_Loc_PF(parametrosFromAPI.Retencion_PJ_Loc_PF);
-    setRetencion_PJ_PF_Loc(parametrosFromAPI.Retencion_PJ_PF_Loc);
-    setRetencion_PJ_PF_NPF(parametrosFromAPI.Retencion_PJ_PF_NPF);
-    setRetencion_PJ_PF_PF(parametrosFromAPI.Retencion_PJ_PF_PF);
-    setRetencion_PJ_NPF_Loc(parametrosFromAPI.Retencion_PJ_NPF_Loc);
-    setRetencion_PJ_NPF_NPF(parametrosFromAPI.Retencion_PJ_NPF_NPF);
-    setRetencion_PJ_NPF_PF(parametrosFromAPI.Retencion_PJ_NPF_PF);
   }
 
   async function fetchDividendos() {
@@ -600,13 +551,13 @@ export default function Dividendos() {
   }
 
   async function fetchAccionistas(row) {
-    var accionistasCalculo, retencionAux = 0, dividendoGenerado = row.div_dividendo * (row.ddiv_porcentaje / 100);
+    var accionistasCalculo, retencionAux = 0, retencionMaxima = 0, dividendoGenerado = row.div_dividendo * (row.ddiv_porcentaje / 100);
     var apiData3, accionistasFromAPI3;
     if (row.ddiv_titulos == 0) {
       apiData3 = await API.graphql({ query: listAccionistas, variables: { filter: { acc_estado: { eq: '1' } }, limit: 1000 } });
       accionistasFromAPI3 = apiData3.data.listAccionistas.items;
       accionistasCalculo = accionistasFromAPI3.map(function (e) {
-        retencionAux = getRetencion1(((baseImponible / 100.00) * (dividendoGenerado * e.acc_cantidad_acciones / cantidadEmitido)), e.acc_tipo_identificacion, e.acc_residencia, e.acc_nacionalidad)
+        retencionAux = getRetencion1((dividendoGenerado * e.acc_cantidad_acciones / cantidadEmitido), e.acc_tipo_identificacion, e.acc_residencia, e.acc_nacionalidad)
         return {
           id: e.id,
           acc_nombre_completo: e.acc_nombre_completo,
@@ -621,7 +572,7 @@ export default function Dividendos() {
           acc_tipo_acciones: e.acc_tipo_acciones,
           periodo: row.periodo,
           dividendo: (dividendoGenerado * e.acc_cantidad_acciones / cantidadEmitido).toFixed(2),
-          baseImponible: ((baseImponible / 100) * (dividendoGenerado * e.acc_cantidad_acciones / cantidadEmitido)).toFixed(2),
+          baseImponible: 0,
           retencion: retencionAux,
           dividendoRecibido: ((dividendoGenerado * e.acc_cantidad_acciones / cantidadEmitido).toFixed(2) - retencionAux).toFixed(2),
         };
@@ -640,10 +591,11 @@ export default function Dividendos() {
           dividendoAux = 0;
           baseImponibleAux = 0;
           retencionAux = 0;
+          if (e.acc_tipo_identificacion != 'Natural' && e.acc_identificacion[2] != 6)
+            retencionMaxima = getRetencion1((dividendoGenerado * e.acc_cantidad_acciones / cantidadEmitido), 3, e.acc_residencia, e.acc_nacionalidad);
           titulosAux = titulos.filter((titulo) => titulo.div_tit_accionista_id == e.id);
           titulosAux.forEach((element) => {
             dividendoAux += element.div_tit_dividendo;
-            baseImponibleAux += element.div_tit_base_imponible;
             retencionAux += element.div_tit_retencion;
             fecgaPago = element.div_tit_fecha_pago;
           });
@@ -661,8 +613,8 @@ export default function Dividendos() {
             acc_tipo_acciones: e.acc_tipo_acciones,
             periodo: row.div_periodo,
             dividendo: dividendoAux,
-            baseImponible: baseImponibleAux,
             retencion: retencionAux,
+            retencion_maxima: retencionMaxima,
             dividendoRecibido: dividendoAux - retencionAux,
             div_tit_fecha_pago: fecgaPago
           };
@@ -791,42 +743,6 @@ export default function Dividendos() {
       setRefrescar(!refrescar);
     } catch (err) {
       console.log('error creating transaction:', err)
-    }
-  }
-
-  async function pagarDividendoAccionista(row) {
-    if (row.div_tit_fecha_pago != "") return;
-    try {
-      var filtro = { div_tit_accionista_id: { eq: row.id }, div_tit_ddiv_id: { eq: periodoSeleccionado.id } };
-      var apiData = await API.graphql({ query: listDividendosTitulos, variables: { filter: filtro, limit: 10000 } });
-      apiData.data.listDividendosTitulos.items.map((item) => {
-        API.graphql(graphqlOperation(updateDividendosTitulos, {
-          input: {
-            id: item.id,
-            div_tit_fecha_pago: fechaHoyAMD,
-            div_tit_documento: fechaHoyAMD
-          }
-        }));
-      });
-      var aux = accionistasCorteDividendos.findIndex(({ id }) => id === row.id);
-      setAccionistasCorteDividendos(prevLista =>
-        prevLista.map(item =>
-          item.id === row.id ? { ...item, div_tit_fecha_pago: fechaHoyAMD } : item
-        )
-      );
-      await API.graphql(graphqlOperation(updateDetalleDividendo, {
-        input: {
-          id: periodoSeleccionado.id,
-          ddiv_dividendo: row.dividendo + periodoSeleccionado.ddiv_dividendo,
-        }
-      }));
-      setRows(prevLista =>
-        prevLista.map(item =>
-          item.id === periodoSeleccionado.id ? { ...item, saldo_dividendo: periodoSeleccionado.saldo_dividendo - row.dividendo } : item
-        )
-      );
-    } catch (err) {
-      console.log('error creando pago dividendo accionista:', err)
     }
   }
 
