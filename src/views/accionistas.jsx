@@ -455,7 +455,7 @@ export default function Accionistas() {
         acc_obs_telefonos: accionistaMap.acc_obs_telefonos,
         acc_correos: accionistaMap.acc_correos,
         acc_cantidad_acciones: accionistaMap.acc_cantidad_acciones,
-        acc_participacion: accionistaMap.acc_participacion,
+        acc_participacion: (accionistaMap.acc_participacion * 100).toFixed(8),
         acc_tipo_acciones: accionistaMap.acc_tipo_acciones,
         acc_tipo_persona: accionistaMap.acc_tipo_persona,
         pn_primer_nombre: pnVar.pn_primer_nombre,
