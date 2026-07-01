@@ -1,17 +1,20 @@
 import React, { useState, useEffect, Fragment } from 'react'
-import { API, graphqlOperation, Auth } from 'aws-amplify';
+import { API, Storage, graphqlOperation, Auth } from 'aws-amplify';
 import {
   getParametro, listDividendosAccionistas, listDividendoNuevos,
   listAccionistas, listDetalleDividendos, listTitulos,
   listDividendosTitulos,
-  listTituloPorOperacions
+  listTituloPorOperacions,
+  listAsambleas,
+  listAccionistasxJuntas
 } from '../graphql/queries';
 import {
   createDividendoNuevo, updateDividendoNuevo, updateDividendosAccionista,
   createDetalleDividendo, createTitulo,
   createDividendosTitulos,
   updateDetalleDividendo,
-  updateDividendosTitulos
+  updateDividendosTitulos,
+  updateAsamblea
 } from '../graphql/mutations';
 
 import { makeStyles } from '@material-ui/core/styles';
@@ -79,6 +82,7 @@ const date =
 const fechaHoyAMD = `${date}-${month}-${year}`;
 
 export default function Dividendos() {
+  const [asambleas, setAsambleas] = useState([]);
   const [accionistasCorte, setAccionistasCorte] = useState([]);
   const [openAccionistas, setOpenAccionistas] = useState(false);
   const [accionistasCorteDividendos, setAccionistasCorteDividendos] = useState([]);
@@ -94,10 +98,12 @@ export default function Dividendos() {
   const [rows, setRows] = useState([]);
   const [periodoSeleccionado, setPeriodoSeleccionado] = useState([]);
   const [openSnack, setOpenSnack] = useState(false);
+  const [openSnackDanger, setOpenSnackDanger] = useState(false);
   const [circular, setCircular] = useState(false);
   const [refrescar, setRefrescar] = useState(false);
   const [searchText, setSearchText] = useState('');
   var [periodos, setPeriodos] = useState([]);
+  var [listaPeriodosSeleccionados, setListaPeriodosSeleccionados] = useState([]);
   var [listaAccionistasDividendo, setListaAccionistasDividendo] = useState([]);
   var [formData, setFormData] = useState({
     periodo: '',
@@ -289,62 +295,60 @@ export default function Dividendos() {
       field: "",
       headerName: 'Pagar',
       renderCell: (cellValues) => {
-        if (cellValues.row.acc_tipo_identificacion != 'Natural' && cellValues.row.acc_identificacion[2] != 6) {
-          return <Fragment>
-            <label>
-              <input id={'pago' + cellValues.row.id} style={{ display: 'none' }} type="file" accept="application/pdf" onChange={(e) => pagarDividendoAccionista(e, cellValues.row)} />
-              <Button color='primary' disabled={cellValues.row.div_tit_fecha_pago == '' ? false : true} startIcon={<DescriptionIcon />} variant='outlined' component="span" color="primary" size='small' style={{ textTransform: 'none', }}></Button>
-              {cellValues.row.div_tit_fecha_pago != '' && <IconButton ><CheckIcon /></IconButton>}
-            </label>
-            <label>
-              <input id={'respaldo' + cellValues.row.id} style={{ display: 'none' }} type="file" accept="application/pdf" onChange={onChangeRespaldo} />
-              <Button aria-label='Subir Anexo' startIcon={<CloudUploadOutlinedIcon />} variant='outlined' component="span" color="primary" size='small' style={{ textTransform: 'none', }}></Button>
-              {cellValues.row.div_tit_fecha_pago != '' && <IconButton ><CheckIcon /></IconButton>}
-            </label>
-          </Fragment>
-        } else {
-          return <Fragment>
-            <label>
-              <input id={'pago' + cellValues.row.id} style={{ display: 'none' }} type="file" accept="application/pdf" onChange={(e) => pagarDividendoAccionista(e, cellValues.row)} />
-              <Button color='primary' disabled={cellValues.row.div_tit_fecha_pago == '' ? false : true} startIcon={<DescriptionIcon />} variant='outlined' component="span" color="primary" size='small' style={{ textTransform: 'none', }}></Button>
-              {cellValues.row.div_tit_fecha_pago != '' && <IconButton ><CheckIcon /></IconButton>}
-            </label>
-          </Fragment>
-        }
+        return <Fragment>
+          <label>
+            <input id={'pago' + cellValues.row.id} style={{ display: 'none' }} type="file" accept="application/pdf" onChange={(e) => pagarDividendoAccionista(e, cellValues.row)} />
+            <Button color='primary' disabled={cellValues.row.div_tit_fecha_pago == '' ? false : true} startIcon={<DescriptionIcon />} variant='outlined' component="span" color="primary" size='small' style={{ textTransform: 'none', }}></Button>
+            {cellValues.row.div_tit_fecha_pago != '' && <IconButton onClick={() => getPagoCliente(cellValues.row.div_tit_documento)} ><CheckIcon /></IconButton>}
+          </label>
+        </Fragment>
       }
     },
   ];
 
-  async function onChangeRespaldo(e) {
-    if (!e.target.files[0]) {
-      console.log('entro al cancelar')
-      return
-    }
+  async function putPagoCliente(e) {
+    if (!e.target.files[0]) { return }
     const file = e.target.files[0];
-    const filename = uuid() + file.name;
-    console.log('entro', filename)
-    //setFormData({ ...formData, cs: filename });
-    //await Storage.put(filename, file);
+    const filename = uuid() + file.name
+    await Storage.put(filename, file);
+    return filename;
   }
+
+  const getPagoCliente = (filename_aux) => {
+    //e.stopPropagation();
+    Storage.get(filename_aux)
+      .then(url => {
+        var myRequest = new Request(url);
+        fetch(myRequest).then(function (response) {
+          if (response.status === 200) {
+            window.open(url)
+          }
+        });
+      })
+      .catch(err => console.log(err));
+  };
 
   async function pagarDividendoAccionista(e, row) {
     if (row.div_tit_fecha_pago != "") return;
     try {
       var filtro = { div_tit_accionista_id: { eq: row.id }, div_tit_ddiv_id: { eq: periodoSeleccionado.id } };
+      console.log("Filtro:", filtro);
       var apiData = await API.graphql({ query: listDividendosTitulos, variables: { filter: filtro, limit: 10000 } });
+      const filename_aux = await putPagoCliente(e);
+      console.log("filename_aux:", filename_aux);
       apiData.data.listDividendosTitulos.items.map((item) => {
         API.graphql(graphqlOperation(updateDividendosTitulos, {
           input: {
             id: item.id,
             div_tit_fecha_pago: fechaHoyAMD,
-            div_tit_documento: fechaHoyAMD
+            div_tit_documento: filename_aux
           }
         }));
       });
       var aux = accionistasCorteDividendos.findIndex(({ id }) => id === row.id);
       setAccionistasCorteDividendos(prevLista =>
         prevLista.map(item =>
-          item.id === row.id ? { ...item, div_tit_fecha_pago: fechaHoyAMD } : item
+          item.id === row.id ? { ...item, div_tit_fecha_pago: fechaHoyAMD, div_tit_documento: filename_aux } : item
         )
       );
       await API.graphql(graphqlOperation(updateDetalleDividendo, {
@@ -427,7 +431,8 @@ export default function Dividendos() {
       entregado: 0,
       porEntregar: 0,
     });
-    setOpenCrearDividendo(false)
+    setOpenCrearDividendo(false);
+    setListaPeriodosSeleccionados([]);
   }
   const handleCloseSelectAccionistas = () => {
     setListaAccionistasDividendo([]);
@@ -443,7 +448,10 @@ export default function Dividendos() {
     setRowsSelectAccionistas(aux);
     setSelectAccionistas(true);
   }
-  const handleOpenCrearDividendo = () => setOpenCrearDividendo(true);
+  const handleOpenCrearDividendo = () => {
+    fetchAsambleas();
+    setOpenCrearDividendo(true);
+  };
 
   const handleConfirmarDividendo = async () => {
     var listaDividendosTitulos, titulosTotales = 0, titulosAux;
@@ -521,26 +529,31 @@ export default function Dividendos() {
           ddiv_porcentaje: e.ddiv_porcentaje,
           ddiv_dividendo_id: e.ddiv_dividendo_id,
           div_periodo: aux.div_periodo,
-          div_concepto: aux.div_concepto,
+          div_asamblea_id: aux.div_concepto.split("&&")[1],
+          div_concepto: aux.div_concepto.split("&&")[0],
           div_dividendo: aux.div_dividendo,
           div_repartido: aux.div_repartido,
           repartir: (aux.div_dividendo * (e.ddiv_porcentaje / 100)),
           saldo_dividendo: (aux.div_dividendo * (e.ddiv_porcentaje / 100)) - e.ddiv_dividendo
         };
       });
+      console.log("dividendosRelacionados:", dividendosRelacionados);
       apiData.data.listDividendoNuevos.items.map(function (e) {
         var repetidos = dividendosRelacionados.filter(x => x.div_periodo === e.div_periodo);
         repetido = auxperiodos.findIndex(x => x.periodo === e.div_periodo);
         var auxPorcentajeTotal = 0;
         repetidos.map(function (x) {
-          auxPorcentajeTotal = auxPorcentajeTotal + x.ddiv_porcentaje;
+          auxPorcentajeTotal = auxPorcentajeTotal + x.ddiv_dividendo;
         });
-        if (repetido != -1 && auxPorcentajeTotal != 100) {
+        if (repetido != -1 && auxPorcentajeTotal < e.div_dividendo) {
           auxperiodos[repetido].tipo = "Parcial";
           var aux = dividendosRelacionados.find(({ div_periodo }) => div_periodo === auxperiodos[repetido].periodo);
           auxperiodos[repetido].id = aux.ddiv_dividendo_id;
-          auxperiodos[repetido].div_repartido = aux.div_repartido;
+          auxperiodos[repetido].div_repartido = auxPorcentajeTotal;
           auxperiodos[repetido].hijos = dividendosRelacionados.filter((e) => e.div_periodo == auxperiodos[repetido].periodo).length;
+          auxperiodos[repetido].asamblea = aux.div_asamblea_id;
+          auxperiodos[repetido].div_dividendo = aux.div_dividendo;
+          auxperiodos[repetido].ddiv_porcentaje = aux.ddiv_porcentaje;
         } else {
           auxperiodos.splice(repetido, 1);
         }
@@ -548,15 +561,28 @@ export default function Dividendos() {
       setRows(dividendosRelacionados);
     }
     setPeriodos(auxperiodos);
+    console.log("auxperiodos:", auxperiodos);
+  }
+
+  async function fetchAsambleas() {
+    var apiData;
+    apiData = await API.graphql({ query: listAsambleas, variables: { limit: 1000, filter: { estado: { eq: 'Realizada' } } } });
+    setAsambleas(apiData.data.listAsambleas.items);
   }
 
   async function fetchAccionistas(row) {
     var accionistasCalculo, retencionAux = 0, retencionMaxima = 0, dividendoGenerado = row.div_dividendo * (row.ddiv_porcentaje / 100);
-    var apiData3, accionistasFromAPI3;
+    var apiData3, accionistasFromAPI3, listaAccionistasAsamblea;
     if (row.ddiv_titulos == 0) {
+      apiData3 = await API.graphql({ query: listAccionistasxJuntas, variables: { filter: { asambleaID: { eq: row.div_asamblea_id } }, limit: 1000 } });
+      listaAccionistasAsamblea = apiData3.data.listAccionistasxJuntas.items;
       apiData3 = await API.graphql({ query: listAccionistas, variables: { filter: { acc_estado: { eq: '1' } }, limit: 1000 } });
       accionistasFromAPI3 = apiData3.data.listAccionistas.items;
-      accionistasCalculo = accionistasFromAPI3.map(function (e) {
+      accionistasCalculo = accionistasFromAPI3.filter(obj1 =>
+        listaAccionistasAsamblea.some(obj2 => obj1.id === obj2.accionistaID)
+      );
+      console.log("accionistasCalculo:", accionistasCalculo);
+      accionistasCalculo = accionistasCalculo.map(function (e) {
         retencionAux = getRetencion1((dividendoGenerado * e.acc_cantidad_acciones / cantidadEmitido), e.acc_tipo_identificacion, e.acc_residencia, e.acc_nacionalidad)
         return {
           id: e.id,
@@ -577,6 +603,7 @@ export default function Dividendos() {
           dividendoRecibido: ((dividendoGenerado * e.acc_cantidad_acciones / cantidadEmitido).toFixed(2) - retencionAux).toFixed(2),
         };
       });
+      console.log("accionistasCalculo:", accionistasCalculo);
       setAccionistasCorte(accionistasCalculo);
       setOpenAccionistas(true);
     } else {
@@ -584,7 +611,7 @@ export default function Dividendos() {
       accionistasFromAPI3 = apiData3.data.listAccionistas.items;
       const apiData = await API.graphql({ query: listDividendosTitulos, variables: { filter: { div_tit_ddiv_id: { eq: row.id } }, limit: 10000 } });
       var titulos = apiData.data.listDividendosTitulos.items;
-      var titulosAux = 0, dividendoAux = 0, baseImponibleAux = 0, fecgaPago = "";
+      var titulosAux = 0, dividendoAux = 0, baseImponibleAux = 0, fecgaPago = "", documento = "";
 
       accionistasCalculo = accionistasFromAPI3.map(function (e) {
         if (titulos.find(({ div_tit_accionista_id }) => div_tit_accionista_id == e.id)) {
@@ -598,6 +625,7 @@ export default function Dividendos() {
             dividendoAux += element.div_tit_dividendo;
             retencionAux += element.div_tit_retencion;
             fecgaPago = element.div_tit_fecha_pago;
+            documento = element.div_tit_documento;
           });
           return {
             id: e.id,
@@ -616,7 +644,8 @@ export default function Dividendos() {
             retencion: retencionAux,
             retencion_maxima: retencionMaxima,
             dividendoRecibido: dividendoAux - retencionAux,
-            div_tit_fecha_pago: fecgaPago
+            div_tit_fecha_pago: fecgaPago,
+            div_tit_documento: documento
           };
         }
       });
@@ -626,7 +655,7 @@ export default function Dividendos() {
   }
 
   const handlePeriodoChange = (event) => {
-    document.getElementById("formControl-select-concepto").disabled = false;
+    /*document.getElementById("formControl-select-concepto").disabled = false;
     document.getElementById("textfield-dividendo").disabled = false;
     setFormData({ ...formData, 'periodo': event.target.value });
     var aux = periodos.findIndex(x => x.periodo === event.target.value),
@@ -647,15 +676,15 @@ export default function Dividendos() {
       console.log("fechaHoyAMD", fechaHoyAMD);
       console.log("fecha reverse", formData.fechaPago.split(" ")[0].split("-").reverse().join("-"));
       console.log("formData periodo change if", formData);
-    }
+    }*/
     setFormData({
       ...formData,
       periodo: event.target.value,
-      concepto: aux_concepto,
+      /*concepto: aux_concepto,
       dividendo: aux_dividendo,
-      saldoDividendo: aux_dividendo - aux_repartido,
+      saldoDividendo: aux_dividendo - aux_repartido,*/
     });
-    console.log("formData periodo change fuera", formData);
+    console.log("formData periodo change fuera", event.target.value);
   };
 
   const handleConceptoChange = (event) => {
@@ -663,21 +692,28 @@ export default function Dividendos() {
   };
 
   const handleDividendoChange = (event) => {
-    setFormData({
-      ...formData,
-      'dividendo': event.target.value,
-      'dividendoRepartir': (event.target.value * formData.porcentajeRepartir / 100.00).toFixed(2),
-      'saldoDividendo': (event.target.value - (event.target.value * formData.porcentajeRepartir / 100.00)).toFixed(2),
-      'saldoPorcentajeDividendo': 100.00 - formData.porcentajeRepartir
-    })
+    var id_aux = event.target.id.replace("dividendo-", "");
+    if (listaPeriodosSeleccionados.find(x => x.id == id_aux) == undefined)
+      setListaPeriodosSeleccionados([...listaPeriodosSeleccionados, { id: id_aux, dividendo: event.target.value, periodo: id_aux, }]);
+    else
+      listaPeriodosSeleccionados[listaPeriodosSeleccionados.findIndex(x => x.id === id_aux)].dividendo = event.target.value;
   };
 
   const handlePorcentajeRepartirChange = (event) => {
+    var id_aux = event.target.id.replace("porcentaje-repartir-", "");
+    if (listaPeriodosSeleccionados.find(x => x.id == id_aux) == undefined)
+      setListaPeriodosSeleccionados([...listaPeriodosSeleccionados, { id: id_aux, porcentaje: event.target.value }]);
+    else {
+      listaPeriodosSeleccionados[listaPeriodosSeleccionados.findIndex(x => x.id === id_aux)].porcentaje = event.target.value;
+      var index_aux = listaPeriodosSeleccionados.findIndex(x => x.id === id_aux);
+      listaPeriodosSeleccionados[index_aux].calculo = listaPeriodosSeleccionados[index_aux]["dividendo"] * event.target.value / 100.00;
+    }
+    var total_aux = listaPeriodosSeleccionados.reduce((acumulador, objetoActual) => acumulador + objetoActual.calculo, 0);
+
+
     setFormData({
-      ...formData, 'porcentajeRepartir': event.target.value,
-      'dividendoRepartir': (event.target.value * formData.dividendo / 100.00).toFixed(2),
-      'saldoDividendo': (formData.dividendo - (event.target.value * formData.dividendo / 100.00)).toFixed(2),
-      'saldoPorcentajeDividendo': 100.00 - event.target.value
+      ...formData,
+      'dividendoRepartir': total_aux
     })
   };
 
@@ -690,37 +726,57 @@ export default function Dividendos() {
 
   const addDividendo = async () => {
     try {
-      if (!formData.periodo || !formData.dividendo || !formData.porcentajeRepartir || !formData.fechaCorte ||
-        !formData.fechaPago) return;
+      if (!formData.periodo || !formData.fechaCorte ||
+        !formData.fechaPago) {
+        setOpenSnackDanger(true);
+        return;
+      }
       setCircular(true);
       var dividendoID;
-      const dividendo = {
-        div_periodo: formData.periodo,
-        div_concepto: formData.concepto,
-        div_dividendo: formData.dividendo,
+      var dividendo = {
+        div_periodo: '',
+        div_concepto: '',
+        div_dividendo: 0,
         div_repartido: 0
       }
-      var aux = periodos.findIndex(x => x.periodo === formData.periodo);
-      if (aux != -1 && periodos[aux].tipo != "Nuevo") {
-        dividendoID = periodos[aux].id;
-        dividendo.div_repartido = parseFloat(periodos[aux].div_repartido);
-        aux = periodos[aux].hijos + 1;
-      } else {
-        var response = await API.graphql(graphqlOperation(createDividendoNuevo, { input: dividendo }));
-        dividendoID = response.data.createDividendoNuevo.id
-        aux = 1;
-      }
-      const detalleDividendo = {
-        ddiv_usuario: userName,
-        ddiv_secuencial: aux,
-        ddiv_fecha_junta: formData.fechaPago,
-        ddiv_fecha_pago: formData.fechaCorte,
-        ddiv_titulos: 0,
-        ddiv_dividendo: 0,
-        ddiv_porcentaje: formData.porcentajeRepartir,
-        ddiv_dividendo_id: dividendoID
-      }
-      const idDetalleDividendo = API.graphql(graphqlOperation(createDetalleDividendo, { input: detalleDividendo }));
+      var aux = 0;
+      listaPeriodosSeleccionados.map(async (e) => {
+        dividendo = {
+          div_periodo: e.periodo,
+          div_concepto: formData.concepto + "&&" + formData.periodo,
+          div_dividendo: e.dividendo,
+          div_repartido: 0
+        }
+        aux = periodos.findIndex(x => x.periodo === e.periodo);
+        if (aux != -1 && periodos[aux].tipo != "Nuevo") {
+          dividendoID = periodos[aux].id;
+          dividendo.div_repartido = parseFloat(periodos[aux].div_repartido);
+          aux = periodos[aux].hijos + 1;
+        } else {
+          var response = await API.graphql(graphqlOperation(createDividendoNuevo, { input: dividendo }));
+          dividendoID = response.data.createDividendoNuevo.id
+          aux = 1;
+        }
+        console.log("dividendo", dividendo);
+        const detalleDividendo = {
+          ddiv_usuario: userName,
+          ddiv_secuencial: aux,
+          ddiv_fecha_junta: formData.fechaPago,
+          ddiv_fecha_pago: formData.fechaCorte,
+          ddiv_titulos: 0,
+          ddiv_dividendo: 0,
+          ddiv_porcentaje: e.porcentaje,
+          ddiv_dividendo_id: dividendoID
+        }
+        console.log("detalleDividendo", detalleDividendo);
+        const idDetalleDividendo = await API.graphql(graphqlOperation(createDetalleDividendo, { input: detalleDividendo }));
+      });
+      await API.graphql(graphqlOperation(updateAsamblea, {
+        input: {
+          id: formData.periodo,
+          estado: "DividendoGenerado"
+        }
+      }));
       setFormData({
         periodo: '',
         secuencial: '',
@@ -752,26 +808,12 @@ export default function Dividendos() {
     }
     setOpenSnack(false);
   };
-
-  function LinearProgressWithLabel(props) {
-    return (
-      <Box sx={{ display: 'flex', alignItems: 'center' }}>
-        <Box sx={{ width: '100%', mr: 1 }}>
-          <LinearProgress variant="determinate" {...props} />
-        </Box>
-        <Box sx={{ minWidth: 35 }}>
-          <Typography variant="body2" color="text.secondary">{`${Math.round(
-            props.value,
-          )}%`}</Typography>
-        </Box>
-      </Box>
-    );
-  }
-
-  LinearProgressWithLabel.propTypes = {
-    value: PropTypes.number.isRequired,
+  const handleCloseSnackDanger = (event, reason) => {
+    if (reason === 'clickaway') {
+      return;
+    }
+    setOpenSnackDanger(false);
   };
-
   const classes = useStyles();
 
   const preventMinus = (e) => {
@@ -789,6 +831,14 @@ export default function Dividendos() {
     fetchParametros();
     fetchDividendos();
   }, [refrescar]);
+
+  function mostrarElemento(id) {
+    var elemento = document.getElementById(id);
+    if (elemento.style.display == 'block')
+      elemento.style.display = 'none';
+    else
+      elemento.style.display = 'block';
+  }
 
   return (
     <main className={classes.content}>
@@ -883,22 +933,49 @@ export default function Dividendos() {
           </DialogActions>
         </Dialog>
 
-        <Dialog open={openCrearDividendo} onClose={handleCloseCrearDividendo} aria-labelledby="form-dialog-title" fullWidth maxWidth='sm'>
+        <Dialog open={openCrearDividendo} onClose={handleCloseCrearDividendo} aria-labelledby="form-dialog-title" fullWidth maxWidth='md'>
           <DialogTitle id="form-dialog-title">Crear nuevo dividendo</DialogTitle>
           <DialogContent style={{ height: '450px' }}>
             <div style={{ display: 'flex', flexDirection: 'row', alignItems: 'flex-start', justifyContent: 'space-between', width: '100%', }}>
               <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'flex-start', justifyContent: 'space-between', width: '100%', }}>
                 <div style={{ display: 'flex', flexDirection: 'row', alignItems: 'flex-start', justifyContent: 'space-evenly', width: '100%', }}>
+                  <label>Periodos:</label>
+                  <Grid container spacing={3}>
+                    {periodos.map((e) => {
+                      return <Grid item xs={12} sm={6} md={4}>
+                        <input type="checkbox" onChange={() => mostrarElemento("fragment-periodo-" + e.id)} />
+                        <label>{e.periodo}</label>
+                        <div id={"fragment-periodo-" + e.id} style={{ display: 'none' }}>
+                          <TextField
+                            id={"dividendo-" + e.id}
+                            label="Dividendo (USD)"
+                            type='number'
+                            value={e.div_dividendo}
+                            onBlur={handleDividendoChange}
+                          />
+                          <TextField
+                            id={"porcentaje-repartir-" + e.id}
+                            label="% a repartir"
+                            type='number'
+                            value={e.ddiv_porcentaje}
+                            onBlur={handlePorcentajeRepartirChange}
+                          />
+                        </div>
+                      </Grid>
+                    })}
+                  </Grid>
+                </div>
+                <div style={{ display: 'flex', flexDirection: 'row', alignItems: 'flex-start', justifyContent: 'space-evenly', width: '100%', }}>
                   <FormControl style={{ width: '100%' }}>
-                    <InputLabel id="periodo-select-label">Periodo</InputLabel>
+                    <InputLabel id="periodo-select-label">Asamblea</InputLabel>
                     <Select
                       labelId="periodo-select-label"
                       id="select-periodo"
                       value={formData.periodo}
                       onChange={handlePeriodoChange}
                     >
-                      {periodos.map((e) => {
-                        return <MenuItem value={e.periodo}>{e.periodo}</MenuItem>;
+                      {asambleas.map((e) => {
+                        return <MenuItem value={e.id}>{e.fecha}</MenuItem>;
                       })}
                     </Select>
                   </FormControl>
@@ -917,26 +994,6 @@ export default function Dividendos() {
                   </Select>
                 </FormControl>
                 <TextField
-                  id="textfield-dividendo"
-                  label="Dividendo (USD)"
-                  value={formData.dividendo}
-                  type='number'
-                  onChange={handleDividendoChange}
-                  fullWidth
-                  inputProps={inputProps}
-                />
-
-                <TextField
-                  id="outlined-required"
-                  label="% a repartir"
-                  value={formData.porcentajeRepartir}
-                  type='number'
-                  onChange={handlePorcentajeRepartirChange}
-                  fullWidth
-                  inputProps={inputProps}
-                />
-
-                <TextField
                   id="outlined-required"
                   label="Dividendo a Repartir (USD)"
                   value={formData.dividendoRepartir}
@@ -944,7 +1001,6 @@ export default function Dividendos() {
                   disabled
                   type='number'
                 />
-
                 <FormControl fullWidth style={{ paddingTop: 10 }}>
                   <TextField
                     size='small'
@@ -1004,7 +1060,11 @@ export default function Dividendos() {
             Se registró correctamente el dividendo.
           </Alert>
         </Snackbar>
-
+        <Snackbar open={openSnackDanger} autoHideDuration={6000} onClose={handleCloseSnackDanger}>
+          <Alert onClose={handleCloseSnackDanger} severity="error">
+            Registre todos los campos requeridos!
+          </Alert>
+        </Snackbar>
       </Grid>
     </main>
   );
