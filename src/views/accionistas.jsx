@@ -523,7 +523,7 @@ export default function Accionistas() {
   }
   
   const separarCadenas = (name, value) => {
-    var aux = value.split("&");
+    var aux = value ? value.split("&") : [];
     if (aux[0]) accionistaSeleccionadoCadenas[name + "1"] = aux[0];
     if (aux[1]) accionistaSeleccionadoCadenas[name + "2"] = aux[1];
     if (aux[2]) accionistaSeleccionadoCadenas[name + "3"] = aux[2];

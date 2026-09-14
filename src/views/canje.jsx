@@ -128,13 +128,14 @@ export default function Canje() {
     const filter = {
       acc_estado: {
         eq: 1
-      },
+      },/*
       acc_tipo_acciones: {
         eq: 0
-      },
+      },*/
     };
     const apiData = await API.graphql({ query: listAccionistas, variables: { filter: filter, limit: 1000 } });
-    setAccionistas(apiData.data.listAccionistas.items);
+
+    setAccionistas(apiData.data.listAccionistas.items.filter(item => item.acc_tipo_acciones === 0));
   }
   async function fetchTitulos(accId) {
     let filtro = {

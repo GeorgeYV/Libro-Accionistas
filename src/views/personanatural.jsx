@@ -172,7 +172,7 @@ export default function PersonaNatural() {
   const location = useLocation();
   var [accionistaGlobal, setAccionistaGlobal] = useState(location.state ? location.state.preloadedValue : {});
   const separarCadenas = (name) => {
-    var aux = accionistaGlobal[name].split("&");
+    var aux = accionistaGlobal[name] ? accionistaGlobal[name].split("&") : [];
     if (aux[0]) accionistaGlobal[name + "1"] = aux[0];
     if (aux[1]) accionistaGlobal[name + "2"] = aux[1];
     if (aux[2]) accionistaGlobal[name + "3"] = aux[2];
@@ -202,7 +202,8 @@ export default function PersonaNatural() {
   }
   if (location.state && !prevenirSaturacion) {
     console.log("location", location.state.preloadedValue);
-    console.log("herederos", herederos);
+    console.log("herederos",herederos);
+    setPrevenirSaturacion(true);
     separarCadenas("acc_telefonos");
     separarCadenas("acc_obs_telefonos");
     separarCadenas("acc_correos");
@@ -413,6 +414,8 @@ export default function PersonaNatural() {
         }
       }
       accionistaAux.acc_tiene_herederos = tieneHerederosAux;
+      console.log("accionistaAux: ", accionistaAux);
+      console.log("personaNaturalAux: ", personaNaturalAux);
       await API.graphql({ query: updateAccionista, variables: { input: accionistaAux } });
       await API.graphql({ query: updatePersonaNatural, variables: { input: personaNaturalAux } });
       if (personaNaturalAux.pn_estado_civil == 1 || personaNaturalAux.pn_estado_civil == 2) {
@@ -503,7 +506,7 @@ export default function PersonaNatural() {
     }
     setOpenSnackDanger(false);
   };
-  const [checked, setChecked] = useState(location.state ? location.state.preloadedValue.herederos != null ? location.state.preloadedValue.herederos : '' : '');
+  const [checked, setChecked] = useState(location.state ? location.state.preloadedValue.herederos != null ? location.state.preloadedValue.herederos : false : false);
   const handleChange = (event) => {
     setChecked(event.target.checked);
     var herederosAux = {};

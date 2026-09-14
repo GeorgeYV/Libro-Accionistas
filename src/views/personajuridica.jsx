@@ -180,6 +180,7 @@ export default function PersonaJuridica() {
   const navigate = useHistory();
   var [countTelef, setCountTelef] = useState(1);
   var [countEmail, setCountEmail] = useState(1);
+  var [prevenirSaturacion, setPrevenirSaturacion] = useState(false);
   const location = useLocation();
   var [accionistaGlobal, setAccionistaGlobal] = useState(location.state ? location.state.preloadedValue : {});
   const separarCadenas = (name) => {
@@ -190,8 +191,9 @@ export default function PersonaJuridica() {
     if (name == "acc_telefonos") setCountTelef(aux.length);
     if (name == "acc_correos") setCountEmail(aux.length);
   }
-  if (location.state) {
+  if (location.state && !prevenirSaturacion) {
     console.log("location", location);
+    setPrevenirSaturacion(true);
     separarCadenas("acc_telefonos");
     separarCadenas("acc_obs_telefonos");
     separarCadenas("acc_correos");

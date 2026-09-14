@@ -83,7 +83,7 @@ export function devolverSoloPersonaNatural(accionista) {
     pn_segundo_nombre: accionista.pn_segundo_nombre ? accionista.pn_segundo_nombre : "",
     pn_apellido_paterno: accionista.pn_apellido_paterno ? accionista.pn_apellido_paterno : "",
     pn_apellido_materno: accionista.pn_apellido_materno ? accionista.pn_apellido_materno : "",
-    pn_estado_civil: accionista.pn_estado_civil ? accionista.pn_estado_civil : 0,
+    pn_estado_civil: accionista.pn_estado_civil ? parseInt(accionista.pn_estado_civil) : 0,
     pn_doc_identificacion: accionista.pn_doc_identificacion ? accionista.pn_doc_identificacion : "",
   };
   return personaNaturalAux;

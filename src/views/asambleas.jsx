@@ -287,8 +287,9 @@ export default function Asambleas() {
   const [asambleaSeleccionada, setAsambleaSeleccionada] = useState({});
 
   const [openSnack, setOpenSnack] = useState(false);
+  const [openSnackWarning, setOpenSnackWarning] = useState(false);
 
-  const [circular, setCircular] = useState(false);
+  const [circular, setCircular] = useState(true);
 
   const handleChangeTab = (event, newValue) => {
     setValue(newValue);
@@ -308,6 +309,7 @@ export default function Asambleas() {
   const [nombreRepresentante, setNombreRepresentante] = useState('');
   const [identificacionRepresentante, setIdentificacionRepresentante] = useState('');
   var [listCesionarios, setListCesionarios] = useState([]);
+  const [addTodosAccionistasControl, setAddTodosAccionistasControl] = useState(false);
 
   const handleClickCedente = (option, value) => {
     if (value) {
@@ -879,6 +881,76 @@ export default function Asambleas() {
     }
   }
 
+  const addTodosAccionistas = async () => {
+    try {
+      if (addTodosAccionistasControl) return
+      setAddTodosAccionistasControl(true);
+      setCircular(true);
+      setOpenSnackWarning(true);
+      var accionista_aux = {
+        asambleaID: '',
+        accionistaID: '',
+        nombre: '',
+        identificacion: '',
+        acciones: '',
+        estado: '',
+        presente: 'false',
+        representanteNombre: '',
+        representanteDocumento: '',
+        representanteDI: '',
+        votacion1: '',
+        votacion2: '',
+        votacion3: '',
+        votacion4: '',
+        votacion5: '',
+        votacion6: '',
+        votacion7: '',
+        votacion8: '',
+        votacion9: '',
+        votacion10: '',
+      }
+      accionistas.map(accionista => {
+        accionista_aux = {
+          asambleaID: asambleaSeleccionada.id,
+          accionistaID: accionista.id,
+          nombre: accionista.acc_nombre_completo,
+          identificacion: accionista.acc_identificacion,
+          acciones: accionista.acc_cantidad_acciones,
+          estado: accionista.acc_estado,
+          presente: 'false',
+          representanteNombre: '',
+          representanteDocumento: '',
+          representanteDI: '',
+          votacion1: asambleaSeleccionada.votacionTema1 ? true : '',
+          votacion2: asambleaSeleccionada.votacionTema2 ? true : '',
+          votacion3: asambleaSeleccionada.votacionTema3 ? true : '',
+          votacion4: asambleaSeleccionada.votacionTema4 ? true : '',
+          votacion5: asambleaSeleccionada.votacionTema5 ? true : '',
+          votacion6: asambleaSeleccionada.votacionTema6 ? true : '',
+          votacion7: asambleaSeleccionada.votacionTema7 ? true : '',
+          votacion8: asambleaSeleccionada.votacionTema8 ? true : '',
+          votacion9: asambleaSeleccionada.votacionTema9 ? true : '',
+          votacion10: asambleaSeleccionada.votacionTema10 ? true : '',
+        }
+        API.graphql(graphqlOperation(createAccionistasxJunta, { input: accionista_aux }))
+      }
+      )
+      setValCedente({});
+      setNombreRepresentante('');
+      setIdentificacionRepresentante('');
+      setIDRepresentante('');
+      console.log("updateAsamblea antes", asambleaSeleccionada.id, accionistasxJuntas.length);
+      const updateAsambleaReturn = await API.graphql({ query: updateAsamblea, variables: { input: { id: asambleaSeleccionada.id, registrados: accionistas.length } } });
+      console.log("updateAsamblea desp", updateAsambleaReturn);
+      setOpenSnackWarning(false);
+      setRefrescar(!refrescar);
+      setCircular(false);
+    } catch (err) {
+      console.log('error creating transaction:', err)
+    }
+  }
+
+
 
   const handleCloseSnack = (event, reason) => {
     if (reason === 'clickaway') {
@@ -886,7 +958,12 @@ export default function Asambleas() {
     }
     setOpenSnack(false);
   };
-
+  const handleCloseSnackWarning = (event, reason) => {
+    if (reason === 'clickaway') {
+      return;
+    }
+    setOpenSnackWarning(false);
+  };
 
   function LinearProgressWithLabel(props) {
     return (
@@ -1389,7 +1466,6 @@ export default function Asambleas() {
             </Box>
 
             <TabPanel value={value} index={0}>
-
               <div style={{ display: 'flex', flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', width: '100%', marginBottom: '20px' }}>
                 <Autocomplete
                   value={valCedente}
@@ -1440,7 +1516,17 @@ export default function Asambleas() {
                 >
                   Agregar
                 </Button>
-
+                <Button
+                  variant="contained"
+                  color="primary"
+                  className={classes.button}
+                  size='medium'
+                  //onClick={ addAccionista(asambleaSeleccionada.id) }
+                  onClick={addTodosAccionistas}
+                  style={{ textTransform: 'none', marginLeft: 10 }}
+                >
+                  Agregar Todos
+                </Button>
               </div>
 
 
@@ -2138,13 +2224,19 @@ export default function Asambleas() {
           </DialogActions>
         </Dialog>
 
-        {circular && <CircularProgress />}
+
         <Snackbar open={openSnack} autoHideDuration={6000} onClose={handleCloseSnack}>
           <Alert onClose={handleCloseSnack} severity="success">
             Se registró correctamente la asamblea.
+
           </Alert>
         </Snackbar>
-
+        <Snackbar open={openSnackWarning} onClose={handleCloseSnackWarning}>
+          <Alert onClose={handleCloseSnackWarning} severity="warning" style={{ marginBottom: 50, paddingBottom: 30 }}>
+            Procesando la transacción. Por favor espere unos segundos antes de realizar otra acción.
+            {circular && <CircularProgress size={40} />}
+          </Alert>
+        </Snackbar>
       </Grid>
     </main>
   );
