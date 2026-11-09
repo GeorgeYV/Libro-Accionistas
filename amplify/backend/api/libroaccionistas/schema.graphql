@@ -74,7 +74,8 @@ type Conyuge @model @auth(rules: [{allow: public}]) {
   con_doc_identifcacion: String
 }
 
-type DividendosTitulos @model @auth(rules: [{allow: public}]) {
+# byAccionista: dividendos de un accionista (reporte por accionista y cambios de dueño) sin recorrer toda la tabla.
+type DividendosTitulos @model @key(name: "byAccionista", fields: ["div_tit_accionista_id"], queryField: "dividendosTitulosByAccionista") @auth(rules: [{allow: public}]) {
   id: ID!
   div_tit_participacion: Float
   div_tit_dividendo: Float
@@ -85,8 +86,20 @@ type DividendosTitulos @model @auth(rules: [{allow: public}]) {
   div_tit_ddiv_id: String
   div_tit_titulo_id: String
   div_tit_accionista_id: String
+  # Control de cobertura anual: qué acciones (rango) recibieron este dividendo.
+  div_tit_periodo: Int
+  div_tit_desde: Int
+  div_tit_hasta: Int
+  div_tit_acciones: Int
+  # % del dividendo del período que este tramo paga a esas acciones (null = 100, repartos sin porcentaje).
+  div_tit_porcentaje: Float
+  # Pendiente | Retenido (accionista o título bloqueado al corte) | Pagado
+  div_tit_estado: String
+  div_tit_aprobador: String
+  div_tit_fecha_aprobacion: String
 }
 
+# Un reparto dentro del período (DividendoNuevo).
 type DetalleDividendo @model @auth(rules: [{allow: public}]) {
   id: ID!
   ddiv_usuario: String
@@ -97,6 +110,12 @@ type DetalleDividendo @model @auth(rules: [{allow: public}]) {
   ddiv_dividendo: Float
   ddiv_porcentaje: Float
   ddiv_dividendo_id: String
+  ddiv_asamblea_id: ID
+  ddiv_fecha_corte: String
+  ddiv_valor_accion: Float
+  ddiv_acciones: Int
+  # Monto total del reparto (incluye lo que se pone al día de repartos anteriores).
+  ddiv_monto: Float
 }
 
 type DividendoNuevo @model @auth(rules: [{allow: public}]) {
@@ -105,6 +124,8 @@ type DividendoNuevo @model @auth(rules: [{allow: public}]) {
   div_concepto: String
   div_dividendo: Float
   div_repartido: Float
+  # Acciones que forman el 100% del período; se actualiza si hay aumento de capital en el año.
+  div_acciones_base: Int
 }
 
 type Pais @model @auth(rules: [{allow: public}]) {
@@ -217,6 +238,7 @@ type Parametro @model @auth(rules: [{allow: public}]) {
   modeloCartaCesion: String
   modeloCartaGerente: String
   modeloCartaInstrucciones: String
+  modeloSolicitudDividendos: String
   titulos_totales: Int
 }
 
@@ -354,9 +376,24 @@ type Asamblea @model @auth(rules: [{allow: public}]) {
   habilitanteTema14: String
   habilitanteTema15: String
   rutaGrabacion: String
+  # Número del tema (1..15) cuya votación decide el reparto de dividendos; null si no aplica.
+  temaDividendo: Int
 }
 
-type AccionistasxJunta @model @key(name: "byAsamblea", fields: ["asambleaID"]) @auth(rules: [{allow: public}]) {
+# Foto de los títulos al armar la lista de la asamblea (incluye accionistas bloqueados).
+type TituloxJunta @model @key(name: "byAsamblea", fields: ["asambleaID"], queryField: "titulosxJuntaByAsamblea") @auth(rules: [{allow: public}]) {
+  id: ID!
+  asambleaID: ID!
+  accionistaID: ID!
+  tituloID: ID!
+  desde: Int!
+  hasta: Int!
+  acciones: Int!
+  tituloEstado: Int
+  accionistaEstado: Int
+}
+
+type AccionistasxJunta @model @key(name: "byAsamblea", fields: ["asambleaID"], queryField: "accionistasxJuntaByAsamblea") @auth(rules: [{allow: public}]) {
   id: ID!
   asambleaID: ID!
   accionistaID: ID!

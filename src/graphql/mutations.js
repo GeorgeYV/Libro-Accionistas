@@ -461,6 +461,14 @@ export const createDividendosTitulos = /* GraphQL */ `
       div_tit_ddiv_id
       div_tit_titulo_id
       div_tit_accionista_id
+      div_tit_periodo
+      div_tit_desde
+      div_tit_hasta
+      div_tit_acciones
+      div_tit_porcentaje
+      div_tit_estado
+      div_tit_aprobador
+      div_tit_fecha_aprobacion
       createdAt
       updatedAt
       __typename
@@ -483,6 +491,14 @@ export const updateDividendosTitulos = /* GraphQL */ `
       div_tit_ddiv_id
       div_tit_titulo_id
       div_tit_accionista_id
+      div_tit_periodo
+      div_tit_desde
+      div_tit_hasta
+      div_tit_acciones
+      div_tit_porcentaje
+      div_tit_estado
+      div_tit_aprobador
+      div_tit_fecha_aprobacion
       createdAt
       updatedAt
       __typename
@@ -505,6 +521,14 @@ export const deleteDividendosTitulos = /* GraphQL */ `
       div_tit_ddiv_id
       div_tit_titulo_id
       div_tit_accionista_id
+      div_tit_periodo
+      div_tit_desde
+      div_tit_hasta
+      div_tit_acciones
+      div_tit_porcentaje
+      div_tit_estado
+      div_tit_aprobador
+      div_tit_fecha_aprobacion
       createdAt
       updatedAt
       __typename
@@ -526,6 +550,11 @@ export const createDetalleDividendo = /* GraphQL */ `
       ddiv_dividendo
       ddiv_porcentaje
       ddiv_dividendo_id
+      ddiv_asamblea_id
+      ddiv_fecha_corte
+      ddiv_valor_accion
+      ddiv_acciones
+      ddiv_monto
       createdAt
       updatedAt
       __typename
@@ -547,6 +576,11 @@ export const updateDetalleDividendo = /* GraphQL */ `
       ddiv_dividendo
       ddiv_porcentaje
       ddiv_dividendo_id
+      ddiv_asamblea_id
+      ddiv_fecha_corte
+      ddiv_valor_accion
+      ddiv_acciones
+      ddiv_monto
       createdAt
       updatedAt
       __typename
@@ -568,6 +602,11 @@ export const deleteDetalleDividendo = /* GraphQL */ `
       ddiv_dividendo
       ddiv_porcentaje
       ddiv_dividendo_id
+      ddiv_asamblea_id
+      ddiv_fecha_corte
+      ddiv_valor_accion
+      ddiv_acciones
+      ddiv_monto
       createdAt
       updatedAt
       __typename
@@ -585,6 +624,7 @@ export const createDividendoNuevo = /* GraphQL */ `
       div_concepto
       div_dividendo
       div_repartido
+      div_acciones_base
       createdAt
       updatedAt
       __typename
@@ -602,6 +642,7 @@ export const updateDividendoNuevo = /* GraphQL */ `
       div_concepto
       div_dividendo
       div_repartido
+      div_acciones_base
       createdAt
       updatedAt
       __typename
@@ -619,6 +660,7 @@ export const deleteDividendoNuevo = /* GraphQL */ `
       div_concepto
       div_dividendo
       div_repartido
+      div_acciones_base
       createdAt
       updatedAt
       __typename
@@ -999,6 +1041,7 @@ export const createParametro = /* GraphQL */ `
       modeloCartaCesion
       modeloCartaGerente
       modeloCartaInstrucciones
+      modeloSolicitudDividendos
       titulos_totales
       createdAt
       updatedAt
@@ -1059,6 +1102,7 @@ export const updateParametro = /* GraphQL */ `
       modeloCartaCesion
       modeloCartaGerente
       modeloCartaInstrucciones
+      modeloSolicitudDividendos
       titulos_totales
       createdAt
       updatedAt
@@ -1119,6 +1163,7 @@ export const deleteParametro = /* GraphQL */ `
       modeloCartaCesion
       modeloCartaGerente
       modeloCartaInstrucciones
+      modeloSolicitudDividendos
       titulos_totales
       createdAt
       updatedAt
@@ -1394,6 +1439,7 @@ export const createAsamblea = /* GraphQL */ `
       habilitanteTema14
       habilitanteTema15
       rutaGrabacion
+      temaDividendo
       createdAt
       updatedAt
       __typename
@@ -1488,6 +1534,7 @@ export const updateAsamblea = /* GraphQL */ `
       habilitanteTema14
       habilitanteTema15
       rutaGrabacion
+      temaDividendo
       createdAt
       updatedAt
       __typename
@@ -1582,6 +1629,70 @@ export const deleteAsamblea = /* GraphQL */ `
       habilitanteTema14
       habilitanteTema15
       rutaGrabacion
+      temaDividendo
+      createdAt
+      updatedAt
+      __typename
+    }
+  }
+`;
+export const createTituloxJunta = /* GraphQL */ `
+  mutation CreateTituloxJunta(
+    $input: CreateTituloxJuntaInput!
+    $condition: ModelTituloxJuntaConditionInput
+  ) {
+    createTituloxJunta(input: $input, condition: $condition) {
+      id
+      asambleaID
+      accionistaID
+      tituloID
+      desde
+      hasta
+      acciones
+      tituloEstado
+      accionistaEstado
+      createdAt
+      updatedAt
+      __typename
+    }
+  }
+`;
+export const updateTituloxJunta = /* GraphQL */ `
+  mutation UpdateTituloxJunta(
+    $input: UpdateTituloxJuntaInput!
+    $condition: ModelTituloxJuntaConditionInput
+  ) {
+    updateTituloxJunta(input: $input, condition: $condition) {
+      id
+      asambleaID
+      accionistaID
+      tituloID
+      desde
+      hasta
+      acciones
+      tituloEstado
+      accionistaEstado
+      createdAt
+      updatedAt
+      __typename
+    }
+  }
+`;
+export const deleteTituloxJunta = /* GraphQL */ `
+  mutation DeleteTituloxJunta(
+    $input: DeleteTituloxJuntaInput!
+    $condition: ModelTituloxJuntaConditionInput
+  ) {
+    deleteTituloxJunta(input: $input, condition: $condition) {
+      id
+      asambleaID
+      accionistaID
+      tituloID
+      desde
+      hasta
+      acciones
+      tituloEstado
+      accionistaEstado
       createdAt
       updatedAt
       __typename

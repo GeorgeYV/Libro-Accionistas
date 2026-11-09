@@ -1,681 +1,265 @@
-import { useState, useEffect } from 'react';
+import React, { useState, useEffect, useMemo } from 'react';
+import { Auth } from 'aws-amplify';
 import {
-  makeStyles, Paper, Divider, Grid, Typography, TextField, Button, withStyles, ListItem, ListItemText, ListSubheader,
-  List, IconButton, Snackbar, Switch, FormControlLabel, CircularProgress
+  Paper, Grid, Typography, TextField, Button, Snackbar, CircularProgress, Avatar, Box, Chip, IconButton, Radio,
+  Table, TableHead, TableBody, TableRow, TableCell, Stepper, Step, StepLabel,
 } from '@material-ui/core';
-import Table from '@material-ui/core/Table';
-import TableBody from '@material-ui/core/TableBody';
-import TableCell from '@material-ui/core/TableCell';
-import TableHead from '@material-ui/core/TableHead';
-import TableRow from '@material-ui/core/TableRow';
+import { makeStyles } from '@material-ui/core/styles';
 import Autocomplete from '@material-ui/lab/Autocomplete';
-import { API, Storage, graphqlOperation, Auth } from 'aws-amplify';
-import { listAccionistas, listHerederos, listTitulos } from './../graphql/queries';
-import SaveIcon from '@material-ui/icons/Save';
-import CheckIcon from '@material-ui/icons/Check';
 import MuiAlert from '@material-ui/lab/Alert';
+import AccountBalanceOutlinedIcon from '@material-ui/icons/AccountBalanceOutlined';
 import CloudUploadOutlinedIcon from '@material-ui/icons/CloudUploadOutlined';
+import CheckCircleIcon from '@material-ui/icons/CheckCircle';
+import PageviewIcon from '@material-ui/icons/Pageview';
 import DeleteOutlineIcon from '@material-ui/icons/DeleteOutline';
-import { uuid } from 'uuidv4';
-import { createAccionistaOperacion, createOperacion, createTituloPorOperacion, updateHeredero } from '../graphql/mutations';
-function Alert(props) {
-  return <MuiAlert elevation={6} variant="filled" {...props} />;
-}
-const BlaclTextTypography = withStyles({
-  root: {
-    color: "#000000",
-  }
-})(Typography);
+import SendIcon from '@material-ui/icons/Send';
+import { listAccionistas } from '../graphql/queries';
+import { listarTodos } from '../services/listarTodos';
+import { listarTitulosVigentes, listarHerederosDe, solicitarPosesionEfectiva } from '../services/operaciones';
+import { subirArchivo, abrirArchivo } from '../services/archivos';
+import { repartoInicial, validarReparto } from '../utils/operaciones';
+
 const useStyles = makeStyles((theme) => ({
-  paper: {
-    padding: theme.spacing(2),
-    textAlign: 'left',
-    color: theme.palette.text.secondary,
-    //height: '83vh',
-    height: 'calc(100%)',
-  },
-  appBarSpacer: {
-    ...theme.mixins.toolbar,
-  },
-  content: {
-    flexGrow: 1,
-    padding: theme.spacing(2),
-  },
-  button: {
-    margin: theme.spacing(1),
-    marginTop: 35,
-  },
-  titulos: {
-    flexDirection: 'row',
-  },
-  cedente: {
-    display: 'flex',
-    flexDirection: 'column',
-    paddingRight: 30,
-    paddingLeft: 30,
-  },
+  appBarSpacer: { ...theme.mixins.toolbar },
+  content: { flexGrow: 1, padding: theme.spacing(2) },
+  encabezado: { display: 'flex', alignItems: 'center', gap: theme.spacing(1.5), marginBottom: theme.spacing(2) },
+  avatar: { backgroundColor: theme.palette.primary.main },
+  tarjeta: { padding: theme.spacing(2), height: '100%' },
 }));
-const today = new Date();
-const fecha = today.getDate() + '-' + (today.getMonth() + 1) + '-' + today.getFullYear();
+
+const enteros = (n) => new Intl.NumberFormat('en-US').format(n || 0);
+// Orden de ope_documento ("cs&cg&ci&es&cp"), igual que en las demás operaciones: el blotter los lee por posición.
+const DOCUMENTOS = ['Partición extrajudicial', 'Impuesto a la herencia', 'Declaración jurada', 'Escritura de posesión efectiva de bienes', 'Carta poder'];
+
+// Solicita la posesión efectiva de un título del causante, repartido entre sus herederos registrados.
+// Al aprobarse en el blotter, cada heredero recibe su tramo del título (los nuevos quedan como accionistas bloqueados).
 export default function PosesionEfectiva() {
-  const [userName, setUserName] = useState("");
   const classes = useStyles();
-  const [countHerederos, setCountHerederos] = useState(0);
-  const [formData, setFormData] = useState({
-    Parti: '', Escri: '', Impue: '', Decla: '', Carta: ''
-  });
-  var [total, setTotal] = useState(0);
-  const [accionistas, setAccionistas] = useState([])
-  var [titulos, setTitulos] = useState([])
-  const [formHerederos, setFormHerederos] = useState([]);
-  var [openSnack, setOpenSnack] = useState(false);
-  var [openSnackDanger, setOpenSnackDanger] = useState(false);
-  const [totalAccionesHerencia, setTotalAccionesHerencia] = useState(0);
-  const [circular, setCircular] = useState(false);
-  var [herederos, setHerederos] = useState({});
-  var [valCedente, setValCedente] = useState({});
-  const limpiarForm = async () => {
-    setFormData({ Parti: '', Escri: '', Impue: '', Decla: '', Carta: '' });
-    setTitulos([]);
-    setTotal(0);
-    setCountHerederos(0);
-    setHerederos({});
-  }
-  const addOperacion = async () => {
+  const [causantes, setCausantes] = useState([]);
+  const [causante, setCausante] = useState(null);
+  const [titulos, setTitulos] = useState([]);
+  const [tituloId, setTituloId] = useState('');
+  const [herederos, setHerederos] = useState([]);
+  const [cantidades, setCantidades] = useState([]); // texto por heredero
+  const [documentos, setDocumentos] = useState(() => DOCUMENTOS.map(() => ''));
+  const [cargando, setCargando] = useState(true);
+  const [mensaje, setMensaje] = useState(null); // { tipo, texto }
+
+  async function ejecutar(fn) {
+    setCargando(true);
     try {
-      if (!herederos) {
-        setOpenSnackDanger(true);
-        return;
-      }
-      setCircular(true);
-      var auxDocs = "Parti&" + formData.Parti + "&Escri&" + formData.Escri + "&Impue&" + formData.Impue +
-        "&Decla&" + formData.Decla + "&Carta&" + formData.Carta;
-      const operacion = {
-        ope_fecha: fecha,
-        ope_tipo: 6,
-        ope_acciones: total,
-        ope_estado: 0,
-        ope_ingresador: userName,
-        ope_aprobador: "",
-        ope_fecha_aprobacion: "",
-        ope_motivo_rechazo: -1,
-        ope_observacion: "",
-        ope_documento: auxDocs
-      }
-      console.log("operacion", operacion);
-      var operacionIdNew = await API.graphql(graphqlOperation(createOperacion, { input: operacion }));
-      var accionistaOperacion = {
-        acc_ope_operacion_id: operacionIdNew.data.createOperacion.id,
-        acc_ope_accionista_id: valCedente.id,
-        acc_ope_detalle: "Cedente"
-      }
-      console.log("accionistaOperacion", accionistaOperacion);
-      await API.graphql(graphqlOperation(createAccionistaOperacion, { input: accionistaOperacion }));
-      var herederosAux = Object.keys(herederos).filter(key => key.includes("her_identificacion")).map(function (e) {
-        return {
-          acc_ope_operacion_id: operacionIdNew.data.createOperacion.id,
-          acc_ope_accionista_id: herederos[e],
-          acc_ope_detalle: "Heredero"
-        };
-      });
-      console.log("herederosAux", herederosAux);
-      Promise.all(
-        herederosAux.map(input => API.graphql(graphqlOperation(createAccionistaOperacion, { input: input })))
-      );
-      var herederosAux = Object.keys(herederos).filter(key => key.includes("ID")).map(function (e) {
-        return {
-          id: herederos[e],
-          her_cant_acciones: parseInt(herederos["her_acciones" + e.slice(-1)])
-        };
-      });
-      console.log("herederosAux", herederosAux);
-      Promise.all(
-        herederosAux.map(input => API.graphql(graphqlOperation(updateHeredero, { input: input })))
-      );
-      const transferir = titulos.map(function (e) {
-        return {
-          tit_ope_titulo_id: e.id,
-          tit_ope_operacion_id: operacionIdNew.data.createOperacion.id,
-          tit_ope_acciones: e.tit_acciones
-        };
-      });
-      Promise.all(
-        transferir.map(input => API.graphql(graphqlOperation(createTituloPorOperacion, { input: input })))
-      );
-      setOpenSnack(true);
-      setCircular(false);
-      limpiarForm();
+      await fn();
     } catch (err) {
-      console.log('Error agregar operacion:', err)
+      console.log('Error en posesión efectiva:', err);
+      setMensaje({ tipo: 'error', texto: err.message || 'Ocurrió un error al registrar la operación.' });
     }
+    setCargando(false);
   }
+
   useEffect(() => {
-    fetchAccionistas();
-    let user = Auth.user;
-    setUserName(user.username);
-  }, [])
-  async function fetchAccionistas() {
-    const filter = {
-      acc_tiene_herederos: {
-        eq: true,
-      },
-      acc_estado: {
-        eq: 1
-      }
-    };
-    const apiData = await API.graphql({ query: listAccionistas, variables: { filter: filter, limit: 1000 } });
-    setAccionistas(apiData.data.listAccionistas.items);
-  }
-  async function fetchHerederos(idPadre, totalAux) {
-    const filter = {
-      her_id_accionisa: {
-        eq: idPadre,
-      }
-    };
-    const apiData = await API.graphql({ query: listHerederos, variables: { filter: filter, limit: 1000 } });
-    var herederosAux = {};
-    apiData.data.listHerederos.items.forEach((e) => {
-      herederosAux["ID" + (apiData.data.listHerederos.items.indexOf(e) + 1)] = e.id;
-      herederosAux["her_identificacion" + (apiData.data.listHerederos.items.indexOf(e) + 1)] = e.her_identificacion;
-      herederosAux["her_nombre" + (apiData.data.listHerederos.items.indexOf(e) + 1)] = e.her_nombre;
-      if (e.her_cant_acciones == null || e.her_cant_acciones == 0) {
-        herederosAux["her_acciones" + (apiData.data.listHerederos.items.indexOf(e) + 1)] = Math.trunc(totalAux / apiData.data.listHerederos.items.length);
-        if (apiData.data.listHerederos.items.indexOf(e) == 0) {
-          herederosAux["her_acciones" + (apiData.data.listHerederos.items.indexOf(e) + 1)] = Math.trunc(totalAux / apiData.data.listHerederos.items.length) + (totalAux % apiData.data.listHerederos.items.length);
-        }
-      } else {
-        herederosAux["her_acciones" + (apiData.data.listHerederos.items.indexOf(e) + 1)] = e.her_cant_acciones;
-      }
+    ejecutar(async () => {
+      const lista = await listarTodos(listAccionistas, 'listAccionistas', { filter: { acc_tiene_herederos: { eq: true }, acc_estado: { eq: 1 } } });
+      setCausantes(lista.sort((a, b) => (a.acc_nombre_completo || '').localeCompare(b.acc_nombre_completo || '')));
     });
-    setHerederos(herederosAux);
-    setCountHerederos(apiData.data.listHerederos.items.length);
-    console.log("herederosAux", herederosAux);
-  }
-  async function fetchTitulos(cedenteId) {
-    let filter = {
-      tit_accionista_id: {
-        eq: cedenteId
-      }
-    };
-    var totalAux = 0;
-    var apiData = await API.graphql({ query: listTitulos, variables: { filter: filter, limit: 1000 } });
-    setTitulos(apiData.data.listTitulos.items);
-    apiData.data.listTitulos.items.forEach((elemento) => totalAux += elemento.tit_acciones);
-    setTotal(totalAux);
-    return totalAux;
-  }
-  const handleClickCedente = (option, value) => {
-    if (value) {
-      fetchTitulos(value.id, value.nombre).then(totAux => {
-        fetchHerederos(value.id, totAux);
-        setValCedente(value);
-      });
-    }
-    else {
-      console.log('entró para borrar cedente', value);
-      setHerederos({});
-      setCountHerederos(0);
-      setFormData({ ...formData, 'idCedente': '', 'cedente': '' });
-      setTitulos([]);
-      setTotal(0);
-      setValCedente({});
-    }
-  }
-  const handleCloseSnack = (event, reason) => {
-    if (reason === 'clickaway') {
-      return;
-    }
-    setOpenSnack(false);
+  }, []); // eslint-disable-line react-hooks/exhaustive-deps
+
+  const titulo = titulos.find((t) => t.id === tituloId) || null;
+  const total = titulo ? titulo.tit_acciones : 0;
+
+  const elegirTitulo = (t, lista = herederos) => {
+    setTituloId(t ? t.id : '');
+    setCantidades(repartoInicial(lista, t ? t.tit_acciones : 0).map(String));
   };
-  const handleCloseSnackDanger = (event, reason) => {
-    if (reason === 'clickaway') {
-      return;
-    }
-    setOpenSnackDanger(false);
+
+  const elegirCausante = (valor) => {
+    setCausante(valor);
+    setTitulos([]);
+    setHerederos([]);
+    setTituloId('');
+    setCantidades([]);
+    if (!valor) return;
+    ejecutar(async () => {
+      const [lista, suyos] = await Promise.all([listarTitulosVigentes(valor.id), listarHerederosDe(valor.id)]);
+      const activos = lista.filter((t) => t.tit_estado === 1);
+      setTitulos(activos);
+      setHerederos(suyos);
+      elegirTitulo(activos.length === 1 ? activos[0] : null, suyos);
+    });
   };
-  async function onChangeParti(e) {
-    if (!e.target.files[0]) return
-    const file = e.target.files[0];
-    const filename = "Parti_" + uuid();
-    setFormData({ ...formData, Parti: filename });
-    await Storage.put(filename, file);
-  }
-  async function onChangeEscri(e) {
-    if (!e.target.files[0]) return
-    const file = e.target.files[0];
-    const filename = "Escri_" + uuid();
-    setFormData({ ...formData, Escri: filename });
-    await Storage.put(filename, file);
-  }
-  async function onChangeImpue(e) {
-    if (!e.target.files[0]) return
-    const file = e.target.files[0];
-    const filename = "Impue_" + uuid();
-    setFormData({ ...formData, Impue: filename });
-    await Storage.put(filename, file);
-  }
-  async function onChangeDecla(e) {
-    if (!e.target.files[0]) return
-    const file = e.target.files[0];
-    const filename = "Decla_" + uuid();
-    setFormData({ ...formData, Decla: filename });
-    await Storage.put(filename, file);
-  }
-  async function onChangeCarta(e) {
-    if (!e.target.files[0]) return
-    const file = e.target.files[0];
-    const filename = "Carta_" + uuid();
-    setFormData({ ...formData, Carta: filename });
-    await Storage.put(filename, file);
-  }
-  const asignarValoresHerederos = (event) => {
-    if (event.target.name.includes("her_acciones")) {
-      const totalAcciones = Object.keys(herederos).filter(key => key.includes("her_acciones")).map(key => parseInt(herederos[key]) || 0).reduce((prev, next) => prev + next, 0);
-      if (totalAcciones > total) {
-        alert("La cantidad total de acciones asignadas a los herederos no puede ser mayor a la cantidad de acciones del cedente.");
-        setHerederos({ ...herederos, [event.target.name]: 0 });
-        return;
-      } else {
-        setHerederos({ ...herederos, [event.target.name]: event.target.value });
-      }
-    }
-    setHerederos({ ...herederos, [event.target.name]: event.target.value });
+
+  const numeros = useMemo(() => cantidades.map((c) => parseInt(c, 10) || 0), [cantidades]);
+  const validacion = titulo ? validarReparto(numeros, total) : { asignado: 0, error: 'Seleccione el título.' };
+  const documentosCargados = documentos.filter(Boolean).length;
+  const paso = !causante ? 0 : !titulo ? 1 : validacion.error ? 2 : documentosCargados === 0 ? 3 : 4;
+
+  const subir = (i) => (e) => {
+    const archivo = e.target.files[0];
+    e.target.value = '';
+    if (archivo) ejecutar(async () => { const clave = await subirArchivo(archivo); setDocumentos((d) => d.map((x, j) => (j === i ? clave : x))); });
   };
+
+  const solicitar = () => ejecutar(async () => {
+    if (!causante || !titulo) throw new Error('Seleccione el causante y el título.');
+    if (validacion.error) throw new Error(validacion.error);
+    await solicitarPosesionEfectiva({
+      causante,
+      titulo,
+      reparto: herederos.map((h, i) => ({ heredero: h, acciones: numeros[i] })),
+      documento: documentos.join('&'),
+      usuario: Auth.user ? Auth.user.username : '',
+    });
+    elegirCausante(null);
+    setDocumentos(DOCUMENTOS.map(() => ''));
+    setMensaje({ tipo: 'success', texto: 'Se registró la solicitud de posesión efectiva. Queda pendiente de aprobación.' });
+  });
+
   return (
     <main className={classes.content}>
       <div className={classes.appBarSpacer} />
-      <Paper variant="outlined" className={classes.paper}>
-        <Grid container>
-          <Grid item xs={12} >
-            <BlaclTextTypography variant='h6'>
-              Posesión Efectiva
-            </BlaclTextTypography>
-          </Grid>
-          <Grid item xs={4} >
-            <div className={classes.cedente}>
-              <Autocomplete
-                value={valCedente}
-                size='small'
-                //key={operacion}
-                id="combo-box-cedente"
-                options={accionistas}
-                getOptionLabel={(option) => option.acc_nombre_completo ? option.acc_nombre_completo : ""}
-                renderInput={(params) => <TextField {...params} label="Cedente" margin="normal" variant="outlined" />}
-                onChange={(option, value) => handleClickCedente(option, value)}
-              />
-              {total > 0 &&
-                <Table className={classes.table} aria-label="simple table">
-                  <TableHead>
-                    <TableRow>
-                      <TableCell>F.Compra</TableCell>
-                      <TableCell>Título</TableCell>
-                      <TableCell align="right">Cantidad</TableCell>
-                    </TableRow>
-                  </TableHead>
-                  <TableBody>
-                    {titulos.map((row) => (
-                      <TableRow key={row.id}>
-                        <TableCell component="th" scope="row">
-                          {row.createdAt}
-                        </TableCell>
-                        <TableCell>{row.id}</TableCell>
-                        <TableCell align="right">{row.tit_acciones}</TableCell>
-                      </TableRow>
-                    ))}
-                    <TableRow>
-                      <TableCell colSpan={2} align="right">Total Acciones:</TableCell>
-                      <TableCell>{total}</TableCell>
-                    </TableRow>
-                  </TableBody>
-                </Table>
-              }
-            </div>
-          </Grid>
-          <Grid item xs={5} >
-            <div className={classes.cedente}>
-              {countHerederos > 0 &&
-                <div style={{ display: 'flex', flexDirection: 'row', justifyContent: 'space-evenly', alignItems: 'center', marginBottom: '10px' }}>
-                  <TextField
-                    id="her_identificacion1"
-                    name='her_identificacion1'
-                    label="Identificación"
-                    variant="outlined"
-                    size='small'
-                    value={herederos.her_identificacion1}
-                    aria-readonly
-                  />
-                  <TextField
-                    id="her_nombre1"
-                    name='her_nombre1'
-                    label="Nombre"
-                    variant="outlined"
-                    size='small'
-                    value={herederos.her_nombre1}
-                    aria-readonly
-                    autoFocus={true} />
-                  <TextField
-                    id="her_acciones1"
-                    name='her_acciones1'
-                    label="Acciones"
-                    variant="outlined"
-                    size='small'
-                    value={herederos.her_acciones1}
-                    onChange={asignarValoresHerederos}
-                  />
-                </div>
-              }
-              {countHerederos > 1 &&
-                <div style={{ display: 'flex', flexDirection: 'row', justifyContent: 'space-evenly', alignItems: 'center', marginBottom: '10px' }}>
-                  <TextField
-                    id="her_identificacion2"
-                    name='her_identificacion2'
-                    label="Identificación"
-                    variant="outlined"
-                    size='small'
-                    value={herederos.her_identificacion2}
-                    aria-readonly
-                    autoFocus={true} />
-                  <TextField
-                    id="her_nombre2"
-                    name='her_nombre2'
-                    label="Nombre"
-                    variant="outlined"
-                    size='small'
-                    value={herederos.her_nombre2}
-                    aria-readonly
-                    autoFocus={true} />
-                  <TextField
-                    id="her_acciones2"
-                    name='her_acciones2'
-                    label="Acciones"
-                    variant="outlined"
-                    size='small'
-                    value={herederos.her_acciones2}
-                    onChange={asignarValoresHerederos}
-                  />
-                </div>
-              }
-              {countHerederos > 2 &&
-                <div style={{ display: 'flex', flexDirection: 'row', justifyContent: 'space-evenly', alignItems: 'center', marginBottom: '10px' }}>
-                  <TextField
-                    id="her_identificacion3"
-                    name='her_identificacion3'
-                    label="Identificación"
-                    variant="outlined"
-                    size='small'
-                    value={herederos.her_identificacion3}
-                    aria-readonly
-                    autoFocus={true} />
-                  <TextField
-                    id="her_nombre3"
-                    name='her_nombre3'
-                    label="Nombre"
-                    variant="outlined"
-                    size='small'
-                    value={herederos.her_nombre3}
-                    aria-readonly
-                    autoFocus={true} />
-                  <TextField
-                    id="her_acciones3"
-                    name='her_acciones3'
-                    label="Acciones"
-                    variant="outlined"
-                    size='small'
-                    value={herederos.her_acciones3}
-                    onChange={asignarValoresHerederos}
-                  />
-                </div>
-              }
-              {countHerederos > 3 &&
-                <div style={{ display: 'flex', flexDirection: 'row', justifyContent: 'space-evenly', alignItems: 'center', marginBottom: '10px' }}>
-                  <TextField
-                    id="her_identificacion4"
-                    name='her_identificacion4'
-                    label="Identificación"
-                    variant="outlined"
-                    size='small'
-                    value={herederos.her_identificacion4}
-                    aria-readonly
-                    autoFocus={true} />
-                  <TextField
-                    id="her_nombre4"
-                    name='her_nombre4'
-                    label="Nombre"
-                    variant="outlined"
-                    size='small'
-                    value={herederos.her_nombre4}
-                    aria-readonly
-                    autoFocus={true} />
-                  <TextField
-                    id="her_acciones4"
-                    name='her_acciones4'
-                    label="Acciones"
-                    variant="outlined"
-                    size='small'
-                    value={herederos.her_acciones4}
-                    onChange={asignarValoresHerederos}
-                  />
-                </div>
-              }
-              {countHerederos > 4 &&
-                <div style={{ display: 'flex', flexDirection: 'row', justifyContent: 'space-evenly', alignItems: 'center', marginBottom: '10px' }}>
-                  <TextField
-                    id="her_identificacion5"
-                    name='her_identificacion5'
-                    label="Identificación"
-                    variant="outlined"
-                    size='small'
-                    value={herederos.her_identificacion5}
-                    aria-readonly
-                    autoFocus={true} />
-                  <TextField
-                    id="her_nombre5"
-                    name='her_nombre5'
-                    label="Nombre"
-                    variant="outlined"
-                    size='small'
-                    value={herederos.her_nombre5}
-                    aria-readonly
-                    autoFocus={true} />
-                  <TextField
-                    id="her_acciones5"
-                    name='her_acciones5'
-                    label="Acciones"
-                    variant="outlined"
-                    size='small'
-                    value={herederos.her_acciones5}
-                    onChange={asignarValoresHerederos}
-                  />
-                </div>
-              }
-              {countHerederos > 5 &&
-                <div style={{ display: 'flex', flexDirection: 'row', justifyContent: 'space-evenly', alignItems: 'center', marginBottom: '10px' }}>
-                  <TextField
-                    id="her_identificacion6"
-                    name='her_identificacion6'
-                    label="Identificación"
-                    variant="outlined"
-                    size='small'
-                    value={herederos.her_identificacion6}
-                    aria-readonly
-                    autoFocus={true} />
-                  <TextField
-                    id="her_nombre6"
-                    name='her_nombre6'
-                    label="Nombre"
-                    variant="outlined"
-                    size='small'
-                    value={herederos.her_nombre6}
-                    aria-readonly
-                    autoFocus={true} />
-                  <TextField
-                    id="her_acciones6"
-                    name='her_acciones6'
-                    label="Acciones"
-                    variant="outlined"
-                    size='small'
-                    value={herederos.her_acciones6}
-                    onChange={asignarValoresHerederos}
-                  />
-                </div>
-              }
-              {countHerederos > 6 &&
-                <div style={{ display: 'flex', flexDirection: 'row', justifyContent: 'space-evenly', alignItems: 'center', marginBottom: '10px' }}>
-                  <TextField
-                    id="her_identificacion7"
-                    name='her_identificacion7'
-                    label="Identificación"
-                    variant="outlined"
-                    size='small'
-                    value={herederos.her_identificacion7}
-                    aria-readonly
-                    autoFocus={true} />
-                  <TextField
-                    id="her_nombre7"
-                    name='her_nombre7'
-                    label="Nombre"
-                    variant="outlined"
-                    size='small'
-                    value={herederos.her_nombre7}
-                    aria-readonly
-                    autoFocus={true} />
-                  <TextField
-                    id="her_acciones7"
-                    name='her_acciones7'
-                    label="Acciones"
-                    variant="outlined"
-                    size='small'
-                    value={herederos.her_acciones7}
-                    onChange={asignarValoresHerederos}
-                  />
-                </div>
-              }
-              {countHerederos > 7 &&
-                <div style={{ display: 'flex', flexDirection: 'row', justifyContent: 'space-evenly', alignItems: 'center', marginBottom: '10px' }}>
-                  <TextField
-                    id="her_identificacion8"
-                    name='her_identificacion8'
-                    label="Identificación"
-                    variant="outlined"
-                    size='small'
-                    value={herederos.her_identificacion8}
-                    aria-readonly
-                    autoFocus={true} />
-                  <TextField
-                    id="her_nombre8"
-                    name='her_nombre8'
-                    label="Nombre"
-                    variant="outlined"
-                    size='small'
-                    value={herederos.her_nombre8}
-                    aria-readonly
-                    autoFocus={true} />
-                  <TextField
-                    id="her_acciones8"
-                    name='her_acciones8'
-                    label="Acciones"
-                    variant="outlined"
-                    size='small'
-                    value={herederos.her_acciones8}
-                    onChange={asignarValoresHerederos}
-                  />
-                </div>
-              }
-              {countHerederos > 8 &&
-                <div style={{ display: 'flex', flexDirection: 'row', justifyContent: 'space-evenly', alignItems: 'center', }}>
-                  <TextField
-                    id="her_identificacion9"
-                    name='her_identificacion9'
-                    label="Identificación"
-                    variant="outlined"
-                    size='small'
-                    value={herederos.her_identificacion9}
-                    aria-readonly
-                    autoFocus={true} />
-                  <TextField
-                    id="her_nombre9"
-                    name='her_nombre9'
-                    label="Nombre"
-                    variant="outlined"
-                    size='small'
-                    value={herederos.her_nombre9}
-                    aria-readonly
-                    autoFocus={true} />
-                  <TextField
-                    id="her_acciones9"
-                    name='her_acciones9'
-                    label="Acciones"
-                    variant="outlined"
-                    size='small'
-                    value={herederos.her_acciones9}
-                    onChange={asignarValoresHerederos}
-                  />
-                </div>
-              }
-              {total > 0 &&
-                <small style={{ color: total - totalAccionesHerencia < 0 ? 'red' : 'black' }}> Saldo: <strong>{total - totalAccionesHerencia}</strong> </small>
-              }
-            </div>
-            {circular && <CircularProgress />}
-          </Grid>
-          <Grid item xs={3} container direction='column' justifyContent='flex-start' style={{ backgroundColor: '#f9f9f9', padding: 20, }}>
-            <BlaclTextTypography variant='subtitle1' >
-              Documentos requeridos
-            </BlaclTextTypography>
-            <label htmlFor="upload-photo1" style={{ marginTop: '10px', display: 'flex', flexDirection: 'row', alignItems: 'center' }}>
-              <input style={{ display: 'none' }} id="upload-photo1" name="upload-photo1" type="file" accept="application/pdf" onChange={onChangeParti} />
-              <Button startIcon={<CloudUploadOutlinedIcon />} variant='outlined' component="span" color="primary" size='small' style={{ textTransform: 'none', }}>Partición extrajudicial</Button>
-              {formData.Parti.length > 0 && <div style={{ display: 'flex', flexDirection: 'row', alignItems: 'center' }}> <CheckIcon color='primary' /> <IconButton onClick={() => setFormData({ ...formData, 'Parti': '' })} ><DeleteOutlineIcon color='aria-readonly' /></IconButton>  </div>}
-            </label>
-            <label htmlFor="upload-photo4" style={{ marginTop: '10px', display: 'flex', flexDirection: 'row', alignItems: 'center' }}>
-              <input style={{ display: 'none' }} id="upload-photo4" name="upload-photo4" type="file" accept="application/pdf" onChange={onChangeDecla} />
-              <Button startIcon={<CloudUploadOutlinedIcon />} variant='outlined' component="span" color="primary" size='small' style={{ textTransform: 'none', }}>Escritura de Posesión efectiva de Bienes</Button>
-              {formData.Escri.length > 0 && <div style={{ display: 'flex', flexDirection: 'row', alignItems: 'center' }}> <CheckIcon color='primary' /> <IconButton onClick={() => setFormData({ ...formData, 'Escri': '' })} ><DeleteOutlineIcon color='aria-readonly' /></IconButton>  </div>}
-            </label>
-            <label htmlFor="upload-photo2" style={{ marginTop: '10px', display: 'flex', flexDirection: 'row', alignItems: 'center' }}>
-              <input style={{ display: 'none' }} id="upload-photo2" name="upload-photo2" type="file" accept="application/pdf" onChange={onChangeEscri} />
-              <Button startIcon={<CloudUploadOutlinedIcon />} variant='outlined' component="span" color="primary" size='small' style={{ textTransform: 'none', }}>Impuesto a la Herencia</Button>
-              {formData.Impue.length > 0 && <div style={{ display: 'flex', flexDirection: 'row', alignItems: 'center' }}> <CheckIcon color='primary' /> <IconButton onClick={() => setFormData({ ...formData, 'Impue': '' })} ><DeleteOutlineIcon color='aria-readonly' /></IconButton>  </div>}
-            </label>
-            <label htmlFor="upload-photo3" style={{ marginTop: '10px', display: 'flex', flexDirection: 'row', alignItems: 'center' }}>
-              <input style={{ display: 'none' }} id="upload-photo3" name="upload-photo3" type="file" accept="application/pdf" onChange={onChangeImpue} />
-              <Button startIcon={<CloudUploadOutlinedIcon />} variant='outlined' component="span" color="primary" size='small' style={{ textTransform: 'none', }}>Declaración Jurada</Button>
-              {formData.Decla.length > 0 && <div style={{ display: 'flex', flexDirection: 'row', alignItems: 'center' }}> <CheckIcon color='primary' /> <IconButton onClick={() => setFormData({ ...formData, 'Decla': '' })} ><DeleteOutlineIcon color='aria-readonly' /></IconButton>  </div>}
-            </label>
-            <label htmlFor="upload-photo5" style={{ marginTop: '10px', display: 'flex', flexDirection: 'row', alignItems: 'center' }}>
-              <input style={{ display: 'none' }} id="upload-photo5" name="upload-photo5" type="file" accept="application/pdf" onChange={onChangeCarta} />
-              <Button startIcon={<CloudUploadOutlinedIcon />} variant='outlined' component="span" color="primary" size='small' style={{ textTransform: 'none', }}>Carta Poder</Button>
-              {formData.Carta.length > 0 && <div style={{ display: 'flex', flexDirection: 'row', alignItems: 'center' }}> <CheckIcon color='primary' /> <IconButton onClick={() => setFormData({ ...formData, 'Carta': '' })} ><DeleteOutlineIcon color='aria-readonly' /></IconButton>  </div>}
-            </label>
-          </Grid>
-          <Grid item xs={12} style={{ paddingTop: 20 }} >
-            <Divider />
-          </Grid>
-          <Grid item xs={12} container direction='row' justifyContent='flex-end'>
-            <Button
-              variant="contained"
-              color="primary"
-              className={classes.button}
-              startIcon={<SaveIcon />}
-              size='small'
-              onClick={addOperacion}
-            //aria-readonly={total - formHerederos.length > 0 && particion ? totalAccionesHerencia < 0 ? true : false : 0}
-            >
-              Solicitar aprobación
-            </Button>
-          </Grid>
-        </Grid>
-        <Snackbar open={openSnack} autoHideDuration={6000} onClose={handleCloseSnack}>
-          <Alert onClose={handleCloseSnack} severity="success">
-            Se registró la solicitud de Posesión Efectiva.
-          </Alert>
-        </Snackbar>
-        <Snackbar open={openSnackDanger} autoHideDuration={6000} onClose={handleCloseSnackDanger}>
-          <Alert onClose={handleCloseSnackDanger} severity="error">
-            Registre todos los campos requeridos!
-          </Alert>
-        </Snackbar>
+      <div className={classes.encabezado}>
+        <Avatar className={classes.avatar}><AccountBalanceOutlinedIcon /></Avatar>
+        <div>
+          <Typography variant="h6">Posesión efectiva</Typography>
+          <Typography variant="body2" color="textSecondary">
+            Reparte un título del causante entre sus herederos registrados. Se aprueba un título por operación.
+          </Typography>
+        </div>
+      </div>
+
+      <Paper variant="outlined" style={{ marginBottom: 16 }}>
+        <Stepper activeStep={paso}>
+          <Step><StepLabel>Causante</StepLabel></Step>
+          <Step><StepLabel>Título</StepLabel></Step>
+          <Step><StepLabel>Reparto entre herederos</StepLabel></Step>
+          <Step><StepLabel optional={<Typography variant="caption">Opcional</Typography>}>Documentos</StepLabel></Step>
+          <Step><StepLabel>Solicitar aprobación</StepLabel></Step>
+        </Stepper>
       </Paper>
+
+      <Grid container spacing={2}>
+        <Grid item xs={12} md={5}>
+          <Paper variant="outlined" className={classes.tarjeta}>
+            <Typography variant="subtitle1" gutterBottom>Causante</Typography>
+            <Autocomplete
+              size="small"
+              options={causantes}
+              value={causante}
+              onChange={(e, v) => elegirCausante(v)}
+              getOptionLabel={(o) => o.acc_nombre_completo || ''}
+              getOptionSelected={(o, v) => o.id === v.id}
+              noOptionsText="No hay accionistas activos con herederos registrados"
+              renderOption={(o) => (
+                <Box>
+                  <Typography variant="body2">{o.acc_nombre_completo}</Typography>
+                  <Typography variant="caption" color="textSecondary">{`${o.acc_identificacion} — ${enteros(o.acc_cantidad_acciones)} acciones`}</Typography>
+                </Box>
+              )}
+              renderInput={(params) => <TextField {...params} label="Accionista con herederos registrados" variant="outlined" />}
+            />
+            {causante && (
+              <Box mt={2}>
+                <Typography variant="subtitle2" gutterBottom>Títulos activos</Typography>
+                {titulos.length === 0 && !cargando && <Typography variant="body2" color="textSecondary">No tiene títulos activos.</Typography>}
+                {titulos.length > 0 && (
+                  <Table size="small">
+                    <TableHead>
+                      <TableRow>
+                        <TableCell padding="checkbox" />
+                        <TableCell>Título</TableCell>
+                        <TableCell align="right">Rango</TableCell>
+                        <TableCell align="right">Acciones</TableCell>
+                      </TableRow>
+                    </TableHead>
+                    <TableBody>
+                      {titulos.map((t) => (
+                        <TableRow key={t.id} hover selected={t.id === tituloId} onClick={() => elegirTitulo(t)} style={{ cursor: 'pointer' }}>
+                          <TableCell padding="checkbox"><Radio color="primary" checked={t.id === tituloId} inputProps={{ 'aria-label': `Título ${t.id}` }} /></TableCell>
+                          <TableCell>{t.id}</TableCell>
+                          <TableCell align="right">{`${enteros(t.tit_desde)} – ${enteros(t.tit_hasta)}`}</TableCell>
+                          <TableCell align="right">{enteros(t.tit_acciones)}</TableCell>
+                        </TableRow>
+                      ))}
+                    </TableBody>
+                  </Table>
+                )}
+                {titulos.length > 1 && <MuiAlert severity="info" style={{ marginTop: 8 }}>El causante tiene varios títulos: registre una posesión efectiva por cada uno.</MuiAlert>}
+              </Box>
+            )}
+          </Paper>
+        </Grid>
+
+        <Grid item xs={12} md={7}>
+          <Paper variant="outlined" className={classes.tarjeta} style={{ marginBottom: 16, height: 'auto' }}>
+            <Box display="flex" alignItems="center" justifyContent="space-between" mb={1}>
+              <Typography variant="subtitle1">Reparto entre herederos</Typography>
+              {titulo && <Chip color={validacion.error ? 'default' : 'primary'} label={`${enteros(validacion.asignado)} de ${enteros(total)} acciones`} />}
+            </Box>
+            {!causante && <Typography variant="body2" color="textSecondary">Seleccione el causante para ver sus herederos.</Typography>}
+            {causante && herederos.length === 0 && !cargando && (
+              <MuiAlert severity="warning">El accionista no tiene herederos registrados. Regístrelos en su ficha de persona natural.</MuiAlert>
+            )}
+            {herederos.length > 0 && (
+              <Table size="small">
+                <TableHead>
+                  <TableRow>
+                    <TableCell>Identificación</TableCell>
+                    <TableCell>Nombre</TableCell>
+                    <TableCell align="right" style={{ width: 160 }}>Acciones</TableCell>
+                  </TableRow>
+                </TableHead>
+                <TableBody>
+                  {herederos.map((h, i) => (
+                    <TableRow key={h.id}>
+                      <TableCell>{h.her_identificacion}</TableCell>
+                      <TableCell>{h.her_nombre}</TableCell>
+                      <TableCell align="right">
+                        <TextField
+                          size="small" disabled={!titulo} value={cantidades[i] || ''}
+                          onChange={(e) => { const v = e.target.value.replace(/[^0-9]/g, ''); setCantidades((c) => c.map((x, j) => (j === i ? v : x))); }}
+                          inputProps={{ inputMode: 'numeric', style: { textAlign: 'right' }, 'aria-label': `Acciones de ${h.her_nombre}` }}
+                        />
+                      </TableCell>
+                    </TableRow>
+                  ))}
+                </TableBody>
+              </Table>
+            )}
+            {titulo && herederos.length > 0 && validacion.error && <MuiAlert severity="warning" style={{ marginTop: 12 }}>{validacion.error}</MuiAlert>}
+          </Paper>
+
+          <Paper variant="outlined" className={classes.tarjeta} style={{ height: 'auto' }}>
+            <Typography variant="subtitle1" gutterBottom>{`Documentos (${documentosCargados}/${DOCUMENTOS.length})`}</Typography>
+            {DOCUMENTOS.map((etiqueta, i) => (
+              <Box key={etiqueta} display="flex" alignItems="center" justifyContent="space-between" py={0.5}>
+                <Box display="flex" alignItems="center" style={{ gap: 8 }}>
+                  <CheckCircleIcon fontSize="small" color={documentos[i] ? 'primary' : 'disabled'} />
+                  <Typography variant="body2">{etiqueta}</Typography>
+                </Box>
+                <Box display="flex" alignItems="center">
+                  {documentos[i] && <IconButton size="small" title="Ver" onClick={() => ejecutar(() => abrirArchivo(documentos[i]))}><PageviewIcon /></IconButton>}
+                  {documentos[i] && <IconButton size="small" title="Quitar" onClick={() => setDocumentos((d) => d.map((x, j) => (j === i ? '' : x)))}><DeleteOutlineIcon /></IconButton>}
+                  <IconButton size="small" component="label" color="primary" title={documentos[i] ? 'Reemplazar' : 'Subir PDF'}>
+                    <CloudUploadOutlinedIcon />
+                    <input hidden type="file" accept="application/pdf" onChange={subir(i)} />
+                  </IconButton>
+                </Box>
+              </Box>
+            ))}
+          </Paper>
+        </Grid>
+      </Grid>
+
+      <Box display="flex" justifyContent="flex-end" alignItems="center" mt={2} style={{ gap: 8 }}>
+        {cargando && <CircularProgress size={24} />}
+        <Button variant="contained" color="primary" startIcon={<SendIcon />} onClick={solicitar}
+          disabled={cargando || !causante || !titulo || herederos.length === 0 || !!validacion.error}>
+          Solicitar aprobación
+        </Button>
+      </Box>
+
+      <Snackbar open={!!mensaje} autoHideDuration={6000} onClose={(e, razon) => razon !== 'clickaway' && setMensaje(null)}>
+        {mensaje ? <MuiAlert elevation={6} variant="filled" severity={mensaje.tipo} onClose={() => setMensaje(null)}>{mensaje.texto}</MuiAlert> : <span />}
+      </Snackbar>
     </main>
   );
 }

@@ -1,1433 +1,322 @@
-import React, { useState, useEffect } from 'react';
-
+import React, { useState, useEffect, useMemo } from 'react';
+import { Auth } from 'aws-amplify';
 import {
-  Snackbar, Grid, Button, Typography, makeStyles, ButtonGroup, Badge, Dialog, DialogActions, DialogContent, DialogContentText, DialogTitle, IconButton, TextField,
-  ListItem, ListItemText, ListSubheader, List, CircularProgress, ListItemIcon, Switch, FormControlLabel, InputLabel, MenuItem, Select, OutlinedInput, Icon
+  Paper, Grid, Typography, Button, Chip, IconButton, TextField, Tabs, Tab, Badge, Box, Divider, Snackbar, CircularProgress,
+  Dialog, DialogTitle, DialogContent, DialogActions, MenuItem, InputAdornment,
+  Table, TableHead, TableBody, TableRow, TableCell,
 } from '@material-ui/core';
-
-import ClearIcon from '@material-ui/icons/Clear';
-import SearchIcon from '@material-ui/icons/Search';
-import EditIcon from '@material-ui/icons/Edit';
-import DeleteIcon from '@material-ui/icons/DeleteOutlineOutlined';
-import CheckIcon from '@material-ui/icons/Check';
-import WarningIcon from '@material-ui/icons/ErrorOutlineOutlined';
-import PersonOutlineIcon from '@material-ui/icons/PersonOutline';
-import DescriptionIcon from '@material-ui/icons/Description';
-import FiberNewOutlined from '@material-ui/icons/FiberNewOutlined';
+import { makeStyles } from '@material-ui/core/styles';
 import MuiAlert from '@material-ui/lab/Alert';
-
 import { DataGrid, GridToolbarContainer, GridToolbarExport } from '@mui/x-data-grid';
-import { API, Storage, Auth, graphqlOperation } from 'aws-amplify';
-import { listOperacions, listTituloPorOperacions, listTitulos, getParametro, listAccionistaOperacions, listAccionistas, getAccionista, getPersonaNatural, getPersonaJuridica, getTitulo, listHerederos } from './../graphql/queries';
-import { updateTitulo, createTitulo, updateAccionista, updateOperacion, createHeredero, createTituloPorOperacion, updateParametro, deleteTitulo, createPersonaNatural, createPersonaJuridica, createAccionista } from './../graphql/mutations';
-import PropTypes from 'prop-types';
-
-import { styled } from '@material-ui//styles';
-import { uuid } from 'uuidv4';
+import SearchIcon from '@material-ui/icons/Search';
+import ClearIcon from '@material-ui/icons/Clear';
+import PageviewIcon from '@material-ui/icons/Pageview';
+import CloudUploadOutlinedIcon from '@material-ui/icons/CloudUploadOutlined';
+import CheckCircleIcon from '@material-ui/icons/CheckCircle';
+import ArrowForwardIcon from '@material-ui/icons/ArrowForward';
+import {
+  cargarOperaciones, cargarDetalle, aprobar, anular, rechazar, reenviar, guardarDocumentos,
+  ESTADOS_OPERACION, MOTIVOS_RECHAZO, DOCUMENTOS_POR_TIPO,
+} from '../services/aprobacion';
+import { subirArchivo, abrirArchivo } from '../services/archivos';
+import { valorFecha } from '../utils/libro'; // entiende d-m-aaaa y aaaammdd (registros antiguos)
 
 const useStyles = makeStyles((theme) => ({
-  appBarSpacer: {
-    ...theme.mixins.toolbar,
-  },
-  content: {
-    flexGrow: 1,
-    padding: theme.spacing(2),
-  },
-  root: {
-    padding: theme.spacing(0.5, 0.5, 0),
-    justifyContent: 'flex-end',
-    display: 'flex',
-    alignItems: 'flex-start',
-    flexWrap: 'wrap',
-  },
-  textField: {
-    [theme.breakpoints.down('xs')]: {
-      width: '100%',
-    },
-    margin: theme.spacing(1, 0.5, 1.5),
-    '& .MuiSvgIcon-root': {
-      marginRight: theme.spacing(0.5),
-    },
-    '& .MuiInput-underline:before': {
-      borderBottom: `1px solid ${theme.palette.divider}`,
-    },
-  },
-  botonAnular: {
-    backgroundColor: theme.palette.error.light,
-  },
-  botonCellAnular: {
-    color: theme.palette.error.light,
-  }
+  appBarSpacer: { ...theme.mixins.toolbar },
+  content: { flexGrow: 1, padding: theme.spacing(2) },
+  toolbar: { display: 'flex', justifyContent: 'space-between', padding: theme.spacing(1, 1, 0) },
+  tarjeta: { padding: theme.spacing(2), height: '100%' },
+  peligro: { backgroundColor: theme.palette.error.main, color: theme.palette.error.contrastText, '&:hover': { backgroundColor: theme.palette.error.dark } },
 }));
 
-const Input = styled('input')({
-  display: 'none',
-});
+const enteros = (n) => new Intl.NumberFormat('en-US').format(n || 0);
+const COLOR_ESTADO = { 0: 'default', 1: 'primary', 2: 'secondary', 3: 'secondary' };
+const ETIQUETA_PRINCIPAL = { 0: 'Beneficiario', 1: 'Accionista', 2: 'Accionista', 3: 'Cedente', 4: 'Accionista', 5: 'Donante', 6: 'Causante', 7: 'Testador' };
+const ETIQUETA_CESIONARIO = { 3: 'Cesionario', 5: 'Donatario', 7: 'Beneficiario' };
 
-function escapeRegExp(value) {
-  return value.replace(/[-[\]{}()*+?.,\\^$|#\s]/g, '\\$&');
-}
-
-function QuickSearchToolbar(props) {
+function Toolbar({ value, onChange }) {
   const classes = useStyles();
-
   return (
-    <div className={classes.root}>
+    <GridToolbarContainer className={classes.toolbar}>
       <TextField
-        variant="standard"
-        value={props.value}
-        onChange={props.onChange}
-        placeholder="Buscar..."
-        className={classes.textField}
+        size="small" value={value} placeholder="Buscar operación…" onChange={(e) => onChange(e.target.value)} style={{ width: 320 }}
         InputProps={{
-          startAdornment: <SearchIcon fontSize="small" />,
-          endAdornment: (
-            <IconButton
-              title="Clear"
-              aria-label="Clear"
-              size="small"
-              style={{ visibility: props.value ? 'visible' : 'hidden' }}
-              onClick={props.clearSearch}
-            >
-              <ClearIcon fontSize="small" />
-            </IconButton>
-          ),
+          startAdornment: <InputAdornment position="start"><SearchIcon fontSize="small" /></InputAdornment>,
+          endAdornment: value ? <IconButton size="small" title="Limpiar" onClick={() => onChange('')}><ClearIcon fontSize="small" /></IconButton> : null,
         }}
       />
-      <GridToolbarContainer>
-        <GridToolbarExport />
-      </GridToolbarContainer>
-    </div>
+      <GridToolbarExport csvOptions={{ fileName: 'operaciones' }} />
+    </GridToolbarContainer>
   );
 }
 
-QuickSearchToolbar.propTypes = {
-  clearSearch: PropTypes.func.isRequired,
-  onChange: PropTypes.func.isRequired,
-  value: PropTypes.string.isRequired,
-};
-const today = new Date();
-const fecha = today.getDate() + '-' + (today.getMonth() + 1) + '-' + today.getFullYear();
+function Dato({ titulo, valor }) {
+  return (
+    <Box mb={1}>
+      <Typography variant="caption" color="textSecondary">{titulo}</Typography>
+      <Typography variant="body2">{valor || '-'}</Typography>
+    </Box>
+  );
+}
+
 export default function Operaciones() {
   const classes = useStyles();
-  var [accionistaGlobal, setAccionistaGlobal] = useState([]);
-  var [cesionario, setCesionario] = useState([]);
-  var [listaAccionistaOperaciones, setListaAccionistaOperaciones] = useState([]);
-  const [userName, setUserName] = useState("");
   const [operaciones, setOperaciones] = useState([]);
-  const [searchText, setSearchText] = useState('');
-  const [rows, setRows] = useState([]);
-  const [count, setCount] = useState(0);
-  const [openRevisar, setOpenRevisar] = useState(false);
-  const [imageCS, setImageCS] = useState('');
-  const [transferencia, setTransferencia] = useState([]);
   const [estado, setEstado] = useState(0);
-  const [titulos, setTitulos] = useState([])
-  const [countEstado, setCountEstado] = useState([0, 0, 0, 0])
-  const [circular, setCircular] = useState(false);
-  const [herederos, setHerederos] = useState([]);
-  const [anular, setAnular] = useState(false);
-  const [rechazo, setRechazo] = useState(false);
-  const [motivosRechazo, setMotivosRechazo] = useState([]);
-  const [formData, setFormData] = useState({ cs: '', cg: '', ci: '', es: '', cp: '' });
-  const [openSnack, setOpenSnack] = useState(false);
-  const columns = [
-    //{ field: 'id', headerName: 'Nro', width: 80, type: 'number' },
-    {
-      field: 'ope_fecha',
-      headerName: 'Fecha',
-      flex: 1,
-    },
-    {
-      field: 'ope_tipo_letras',
-      headerName: 'Operación',
-      //width: 180,
-      flex: 1,
-    },
-    {
-      field: 'ope_ingresador',
-      headerName: 'Ingresador',
-      //width: 180,
-      flex: 1,
-    },
-    {
-      field: 'ope_acciones',
-      headerName: 'Acciones',
-      type: 'number',
-      //width: 150,
-      flex: 1,
-    },
-    {
-      field: "Opciones",
-      flex: 1,
-      type: 'number',
-      hide: (estado == 1 || estado == 0) ? false : true,
-      renderCell: (cellValues) => {
-        return (
-          <Button
-            //variant="contained"
-            color="primary"
-            onClick={(event) => {
-              handleClickRevisar(event, cellValues);
-            }}
-          >
-            Revisar
-          </Button>
-        );
-      }
-    },
-    {
-      field: "Anular",
-      flex: 1,
-      hide: estado == 1 ? false : true,
-      //width: 180,
-      renderCell: (cellValues) => {
-        return (
-          <Button
-            //variant="contained"
-            //color="primary"
-            classes={{ root: classes.botonCellAnular }}
-            onClick={(event) => {
-              handleClickAnular(event, cellValues);
-            }}
-          >
-            Anular
-          </Button>
-        );
-      }
-    },
-    {
-      field: "Detalles",
-      flex: 1,
-      hide: (estado == 1 || estado == 0) ? true : false,
-      renderCell: (cellValues) => {
-        return (
-          <IconButton
-            //variant="contained"
-            //color="primary"
-            onClick={(event) => {
-              handleClickRevisar(event, cellValues);
-              //console.log('click Icon',event,cellValues)
-            }}
-          >
-            <DescriptionIcon />
-          </IconButton>
-        );
-      }
-    },
+  const [busqueda, setBusqueda] = useState('');
+  const [seleccionada, setSeleccionada] = useState(null);
+  const [detalle, setDetalle] = useState(null);
+  const [documentos, setDocumentos] = useState([]);
+  const [motivos, setMotivos] = useState([]);
+  const [confirmar, setConfirmar] = useState(null); // 'aprobar' | 'anular' | 'rechazar' | 'reenviar'
+  const [cargando, setCargando] = useState(true);
+  const [mensaje, setMensaje] = useState(null); // { tipo, texto }
+  const usuario = Auth.user ? Auth.user.username : '';
 
-  ];
+  async function ejecutar(fn) {
+    setCargando(true);
+    try {
+      await fn();
+    } catch (err) {
+      console.log('Error en operaciones:', err);
+      setMensaje({ tipo: 'error', texto: err.message || 'Ocurrió un error al procesar la operación.' });
+    }
+    setCargando(false);
+  }
 
-  const motivoRechazo = [
+  const recargar = () => ejecutar(async () => setOperaciones(await cargarOperaciones()));
+  useEffect(() => { recargar(); }, []); // eslint-disable-line react-hooks/exhaustive-deps
+
+  const conteo = useMemo(() => [0, 1, 2, 3].map((e) => operaciones.filter((o) => o.ope_estado === e).length), [operaciones]);
+  const filas = useMemo(() => {
+    const t = busqueda.trim().toLowerCase();
+    return operaciones
+      .filter((o) => o.ope_estado === estado)
+      .filter((o) => !t || [o.tipo, o.ope_fecha, o.ope_ingresador, o.ope_aprobador, o.ope_acciones, o.ope_observacion]
+        .some((v) => v != null && String(v).toLowerCase().includes(t)))
+      .sort((a, b) => valorFecha(b.ope_fecha) - valorFecha(a.ope_fecha));
+  }, [operaciones, estado, busqueda]);
+
+  const abrir = (op) => ejecutar(async () => {
+    const d = await cargarDetalle(op);
+    const etiquetas = DOCUMENTOS_POR_TIPO[op.ope_tipo] || [];
+    const guardados = String(op.ope_documento || '').split('&');
+    setDocumentos(etiquetas.map((_, i) => guardados[i] || ''));
+    setMotivos([]);
+    setDetalle(d);
+    setSeleccionada(op);
+  });
+  const cerrar = () => { setSeleccionada(null); setDetalle(null); setConfirmar(null); };
+
+  // Acciones que cambian datos: siempre tras confirmar.
+  const ACCIONES = {
+    aprobar: { titulo: 'Aprobar operación', texto: 'Se aplicarán los cambios sobre accionistas y títulos.', boton: 'Aprobar', fn: () => aprobar(seleccionada, detalle, usuario), exito: 'La operación se aprobó correctamente.' },
+    anular: { titulo: 'Anular operación', texto: 'Se revertirán los cambios que hizo la aprobación.', boton: 'Anular', fn: () => anular(seleccionada, detalle, usuario), exito: 'La operación se anuló correctamente.' },
+    rechazar: { titulo: 'Rechazar operación', texto: 'La operación quedará rechazada con los motivos indicados.', boton: 'Rechazar', fn: () => rechazar(seleccionada, motivos, usuario), exito: 'La operación se rechazó.' },
+    reenviar: { titulo: 'Volver a solicitar aprobación', texto: 'La operación volverá a quedar pendiente.', boton: 'Reenviar', fn: () => reenviar(seleccionada), exito: 'La operación volvió a pendientes.' },
+  };
+  const ejecutarAccion = () => {
+    const accion = ACCIONES[confirmar];
+    ejecutar(async () => {
+      const resultado = await accion.fn();
+      cerrar();
+      setMensaje(resultado && resultado.aviso ? { tipo: 'warning', texto: resultado.aviso } : { tipo: 'success', texto: accion.exito });
+      setOperaciones(await cargarOperaciones());
+    });
+  };
+
+  const reemplazarDocumento = (i) => (e) => {
+    const archivo = e.target.files[0];
+    e.target.value = '';
+    if (archivo) ejecutar(async () => { const clave = await subirArchivo(archivo); setDocumentos((d) => d.map((x, j) => (j === i ? clave : x))); });
+  };
+  const documentosCambiaron = seleccionada && documentos.join('&') !== (DOCUMENTOS_POR_TIPO[seleccionada.ope_tipo] || []).map((_, i) => String(seleccionada.ope_documento || '').split('&')[i] || '').join('&');
+  const guardarDocs = () => ejecutar(async () => {
+    const ope_documento = await guardarDocumentos(seleccionada, documentos);
+    setSeleccionada((s) => ({ ...s, ope_documento }));
+    setOperaciones((lista) => lista.map((o) => (o.id === seleccionada.id ? { ...o, ope_documento } : o)));
+    setMensaje({ tipo: 'success', texto: 'Documentos actualizados.' });
+  });
+
+  const columnas = [
+    { field: 'ope_fecha', headerName: 'Fecha', width: 110, sortComparator: (a, b) => valorFecha(a) - valorFecha(b) },
+    { field: 'tipo', headerName: 'Operación', flex: 1, minWidth: 160 },
+    { field: 'ope_acciones', headerName: 'Acciones', type: 'number', width: 130, valueFormatter: (p) => enteros(p.value) },
+    { field: 'ope_ingresador', headerName: 'Solicitante', flex: 1, minWidth: 140 },
+    ...(estado === 0 ? [] : [
+      { field: 'ope_aprobador', headerName: 'Revisor', flex: 1, minWidth: 140 },
+      { field: 'ope_fecha_aprobacion', headerName: 'Fecha revisión', width: 130, sortComparator: (a, b) => valorFecha(a) - valorFecha(b) },
+    ]),
+    ...(estado === 2 ? [{ field: 'ope_observacion', headerName: 'Motivo', flex: 1, minWidth: 180 }] : []),
     {
-      label: "Falta documentación",
-      value: "1",
-    },
-    {
-      label: "Documentación errada",
-      value: "2",
-    },
-    {
-      label: "Documentación duplicada",
-      value: "3",
-    },
-    {
-      label: "Error en acciones",
-      value: "4",
-    },
-    {
-      label: "Error en valor",
-      value: "5",
+      field: 'revisar', headerName: '', width: 120, sortable: false, disableExport: true,
+      renderCell: (p) => <Button size="small" color="primary" startIcon={<PageviewIcon />} onClick={() => abrir(p.row)}>{estado === 0 ? 'Revisar' : 'Detalle'}</Button>,
     },
   ];
 
-  const generateSelectMotivoRechazo = () => {
-    return motivoRechazo.map((option) => {
-      return (
-        <MenuItem key={option.value} value={option.value}>
-          {option.label}
-        </MenuItem>
-      );
-    });
-  };
-
-  function getUser() {
-    //console.log("AUTH.USER",Auth)
-    let user
-    if (Auth.user != null) user = Auth.user.username;
-    return user;
-  }
-
-  useEffect(() => {
-    fetchOperaciones("Pendiente");
-    fetchParametros();
-    const user = getUser();
-    setUserName(user);
-  }, [operaciones.length, count]);
-  const handleCloseSnack = (event, reason) => {
-    if (reason === 'clickaway') {
-      return;
-    }
-    setOpenSnack(false);
-  };
-
-  async function fetchOperaciones() {
-    let filter = {
-      ope_estado: {
-        eq: estado
-      }
-    };
-    const apiData = await API.graphql({ query: listOperacions, variables: { filter: filter, limit: 10000 }, });
-    var operacionesFromAPI = apiData.data.listOperacions.items;
-    var pendientes, aprobada, rechazada, anulada;
-    operacionesFromAPI = operacionesFromAPI.map(function (e) {
-      if (e.ope_estado == 0) pendientes = + 1;
-      if (e.ope_estado == 1) aprobada = + 1;
-      if (e.ope_estado == 2) rechazada = + 1;
-      if (e.ope_estado == 3) anulada = + 1;
-      return {
-        id: e.id,
-        ope_fecha: e.ope_fecha,
-        ope_tipo_letras: e.ope_tipo == 0 ? 'Aumento de Capital' : e.ope_tipo == 1 ? 'Bloqueo' :
-          e.ope_tipo == 2 ? 'Canje' : e.ope_tipo == 3 ? 'Cesión' : e.ope_tipo == 4 ? 'Desbloqueo' :
-            e.ope_tipo == 5 ? 'Donación' : e.ope_tipo == 6 ? 'Posesión Efectiva' : e.ope_tipo == 7 ? 'Testamento' : 'Desconocida',
-        ope_tipo: e.ope_tipo,
-        ope_acciones: e.ope_acciones,
-        ope_estado: e.ope_estado,
-        ope_ingresador: e.ope_ingresador,
-        ope_aprobador: e.ope_aprobador,
-        ope_fecha_aprobacion: e.ope_fecha_aprobacion,
-        ope_motivo_rechazo: e.ope_motivo_rechazo,
-        ope_observacion: e.ope_observacion,
-        ope_documento: e.ope_documento
-      }
-    });
-    setOperaciones(operacionesFromAPI);
-    if (count === 0) {
-      setCount(1);
-      setRows(operacionesFromAPI);
-    }
-    setCountEstado([pendientes, aprobada, rechazada, anulada]);
-  }
-
-  const [cantidadEmitida, setCantidadEmitida] = useState(0);
-  const [valorNominal, setValorNominal] = useState(0);
-
-  async function fetchParametros() {
-
-    const apiData = await API.graphql({ query: getParametro, variables: { id: '1' } });
-
-    const parametrosFromAPI = apiData.data.getParametro;
-
-    setCantidadEmitida(parametrosFromAPI.cantidadEmitida);
-    console.log(parametrosFromAPI.cantidadEmitida);
-    setValorNominal(parametrosFromAPI.valorNominal);
-
-  }
-
-  const requestSearch = (searchValue) => {
-    setSearchText(searchValue);
-    const searchRegex = new RegExp(escapeRegExp(searchValue), 'i');
-    const filteredRows = operaciones.filter((row) => {
-      return Object.keys(row).some((field) => {
-
-        //if (row[field] != null) {
-        return row[field] && searchRegex.test(row[field].toString());
-        //}
-      });
-    });
-    setRows(filteredRows);
-  };
-
-  const handleClickAnular = (e, values) => {
-    setTransferencia(values.row);
-    setOpenRevisar(true);
-    setAnular(true);
-    fetchTitulos(values.row.id);
-    fetchAccionistaOperacions(values.row.id);
-    console.log('values anular', values.row);
-    //console.log('operacion',values.row.id);
-  };
-
-  const handleClickRevisar = (e, values) => {
-    setTransferencia(values.row);
-    setOpenRevisar(true);
-    if (values.row.ope_tipo != 0) fetchTitulos(values.row.id);
-    fetchAccionistaOperacions(values.row.id);
-    var auxDocs = values.row.ope_documento.split("&");
-    setFormData({ cs: auxDocs[0], cg: auxDocs[1], ci: auxDocs[2], es: auxDocs[3], cp: auxDocs[4] })
-    console.log('values', values.row);
-  };
-
-  const handleRevisarOperacion = () => {
-    setOpenRevisar(false);
-    setAnular(false);
-    setRechazo(false);
-  };
-
-  const handleReenviarOperacion = async () => {
-    setCircular(true);
-    var operacionAux = {
-      id: transferencia.id,
-      ope_estado: 0,
-      ope_fecha_aprobacion: fecha,
-    }
-    const apiDataUpdateOper = await API.graphql({
-      query: updateOperacion,
-      variables: { input: operacionAux }
-    });
-    console.log("apiDataUpdateOper", apiDataUpdateOper);
-    setCircular(false);
-    setOpenRevisar(false);
-    setAnular(false);
-    setCount(0);
-    setTransferencia([]);
-    setTitulos([]);
-    fetchOperaciones("Pendiente");
-    setRechazo(false);
-    setMotivosRechazo([]);
-  }
-
-  const handleActualizarDocumentos = async () => {
-    setCircular(true);
-    const operacion = { ...formData }
-    var auxDocs = formData.cs + "&" + formData.cg + "&" + formData.ci + "&" + formData.es + "&" + formData.cp;
-    const apiDataUpdateOper = await API.graphql({ query: updateOperacion, variables: { input: { id: transferencia.id, auxDocs } } });
-    setFormData({ cs: '', cg: '', ci: '', es: '', cp: '' })
-    setCircular(false);
-    setOpenRevisar(false);
-    setAnular(false);
-    setCount(0);
-    setTransferencia([]);
-    setTitulos([]);
-    fetchOperaciones("Aprobada");
-    setRechazo(false);
-    setMotivosRechazo([]);
-  }
-
-  const handleAnularOperacion = async () => {
-    var control = true;
-    setCircular(true);
-    switch (transferencia.ope_tipo_letras) {
-      case "Aumento de Capital":
-        control = (await operacionAnularAumentoCapital()).valueOf();
-        break;
-      case "Bloqueo":
-        control = (await operacionBloqueoDesbloqueo(1, 1, 3)).valueOf();
-        break;
-      case "Cesión":
-        control = (await operacionAnularCesion()).valueOf();
-        break;
-      case "Donación":
-        control = (await operacionAnularCesion()).valueOf();
-        break;
-      case "Testamento":
-        control = (await operacionAnularCesion()).valueOf();
-        break;
-      case "Desbloqueo":
-        control = (await operacionBloqueoDesbloqueo(3, 0, 3)).valueOf();
-        break;
-      case "Canje":
-        control = (await operacionAnularCanje()).valueOf();
-        break;
-      default:
-        control = false;
-        console.log('Error anulando la operación');
-        break;
-    }
-    if (control) {
-      console.log("Operación anulada correctamente");
-      setOpenSnack(true);
-    }
-    else {
-      console.log("Error al anular la operación. Proceso: handleAnularOperacion");
-    }
-    handleRevisarOperacion();
-    setCircular(false);
-    setOpenRevisar(false);
-    setAnular(false);
-    setCount(0);
-    setTransferencia([]);
-    setTitulos([]);
-    fetchOperaciones("Anulada");
-  }
-
-  const handleRechazarOperacion = async () => {
-    setCircular(true);
-    let obs = '';
-    motivosRechazo.map(motivo => {
-      obs = obs + motivoRechazo.find(item => item.value == motivo).label + ' | '
-    });
-    var operacionAux = {
-      id: transferencia.id,
-      ope_estado: 2,
-      ope_fecha_aprobacion: fecha,
-      ope_motivo_rechazo: motivosRechazo[0],
-      ope_observacion: obs
-    }
-    const apiDataUpdateOper = await API.graphql({
-      query: updateOperacion,
-      variables: { input: operacionAux }
-    });
-    console.log("apiDataUpdateOper", apiDataUpdateOper);
-    setCircular(false);
-    setOpenRevisar(false);
-    setAnular(false);
-    setCount(0);
-    setTransferencia([]);
-    setTitulos([]);
-    fetchOperaciones("Pendiente");
-    setRechazo(false);
-    setMotivosRechazo([]);
-  }
-
-  async function actualizarOperacion(idOperacion, opeEstado) {
-    try {
-      const operacion = {
-        id: idOperacion,
-        ope_estado: opeEstado,
-        ope_aprobador: userName,
-        ope_fecha_aprobacion: fecha,
-      }
-      await API.graphql(graphqlOperation(updateOperacion, { input: operacion }));
-      return true;
-    } catch (err) {
-      console.log('Error actualizando la operación:', err);
-      return false;
-    }
-  }
-  async function operacionBloqueoDesbloqueo(acc_estadoAux, tit_estadoAux, opeEstado) {
-    try {
-      if (!(await actualizarOperacion(transferencia.id, opeEstado)).valueOf()) return false;
-      await API.graphql(graphqlOperation(updateAccionista, { input: { id: accionistaGlobal.id, acc_estado: acc_estadoAux } }));
-      Promise.all(
-        titulos.map(input => API.graphql({ query: updateTitulo, variables: { input: { id: input.tit_ope_titulo_id, tit_estado: tit_estadoAux } } }))
-      );
-      return true;
-    } catch (error) {
-      console.log('Error aprobando la operación:', error);
-      return false;
-    }
-  }
-  async function actualizarParticipacionAccionistas(cantidadEmitida) {
-    try {
-      const api = await API.graphql({ query: listAccionistas });
-      const listaAccionistas = api.data.listAccionistas.items;
-      Promise.all(
-        listaAccionistas.map(input =>
-          API.graphql({
-            query: updateAccionista,
-            variables: {
-              input: {
-                id: input.id,
-                acc_participacion: input.acc_cantidad_acciones / cantidadEmitida
-              }
-            }
-          }))
-      );
-    } catch (err) {
-      console.log('error creating transaction:', err);
-    }
-  }
-  const operacionAumentoCapital = async () => {
-    try {
-      if (!(await actualizarOperacion(transferencia.id, 1)).valueOf()) return false;
-      var apiData = await API.graphql({ query: getTitulo, variables: { id: 'IDTituloPadreDeTodos' } });
-      const tituloPadre = apiData.data.getTitulo;
-      const tituloAux = {
-        tit_accionista_id: accionistaGlobal.id,
-        tit_estado: 1,
-        tit_acciones: transferencia.ope_acciones,
-        tit_desde: parseInt(tituloPadre.tit_hasta + 1),
-        tit_hasta: parseInt(tituloPadre.tit_hasta + transferencia.ope_acciones),
-        tit_padre: tituloPadre.id,
-        tit_nivel: 1,
-      }
-      var tituloIdNew = await API.graphql(graphqlOperation(createTitulo, { input: tituloAux }));
-      var tituloPorOperacionAux = {
-        tit_ope_operacion_id: transferencia.id,
-        tit_ope_titulo_id: tituloIdNew.data.createTitulo.id,
-        tit_ope_acciones: transferencia.ope_acciones
-      };
-      await API.graphql(graphqlOperation(createTituloPorOperacion, { input: tituloPorOperacionAux }));
-      const tituloPadreAux = {
-        id: "IDTituloPadreDeTodos",
-        tit_hasta: tituloPadre.tit_hasta + transferencia.ope_acciones
-      }
-      await API.graphql(graphqlOperation(updateTitulo, { input: tituloPadreAux }));
-      accionistaGlobal.acc_cantidad_acciones += transferencia.ope_acciones;
-      actualizarParticipacionAccionistas(tituloPadreAux.tit_hasta);
-      await API.graphql(graphqlOperation(updateAccionista, {
-        input: {
-          id: accionistaGlobal.id,
-          acc_estado: 1,
-          acc_cantidad_acciones: accionistaGlobal.acc_cantidad_acciones,
-          acc_participacion: accionistaGlobal.acc_cantidad_acciones / tituloPadreAux.tit_hasta
-        }
-      }));
-      await API.graphql(graphqlOperation(updateParametro, { input: { id: '1', cantidadEmitida: tituloPadreAux.tit_hasta } }));
-      return true;
-    } catch (err) {
-      console.log('error creating transaction:', err);
-      return false;
-    }
-  }
-  const operacionAnularAumentoCapital = async () => {
-    try {
-      console.log("transferencia", transferencia);
-      console.log("accionistaGlobal", accionistaGlobal);
-      if (!(await actualizarOperacion(transferencia.id, 3)).valueOf()) return false;
-      var apiData = await API.graphql({ query: getTitulo, variables: { id: 'IDTituloPadreDeTodos' } });
-      const tituloPadre = apiData.data.getTitulo;
-      apiData = await API.graphql({ query: listTituloPorOperacions, variables: { tit_ope_operacion_id: transferencia.id } });
-      console.log("apiData", apiData.data.listTituloPorOperacions.items);
-      const tituloPadreAux = {
-        id: "IDTituloPadreDeTodos",
-        tit_hasta: tituloPadre.tit_hasta - transferencia.ope_acciones
-      }
-      console.log("tituloPadreAux", tituloPadreAux);
-      await API.graphql(graphqlOperation(updateTitulo, { input: tituloPadreAux }));
-      accionistaGlobal.acc_cantidad_acciones -= transferencia.ope_acciones;
-      actualizarParticipacionAccionistas(tituloPadreAux.tit_hasta);
-      await API.graphql(graphqlOperation(updateAccionista, {
-        input: {
-          id: accionistaGlobal.id,
-          acc_estado: 1,
-          acc_cantidad_acciones: accionistaGlobal.acc_cantidad_acciones,
-          acc_participacion: accionistaGlobal.acc_cantidad_acciones / tituloPadreAux.tit_hasta
-        }
-      }));
-      await API.graphql(graphqlOperation(updateParametro, { input: { id: '1', cantidadEmitida: tituloPadreAux.tit_hasta } }));
-      var response = await API.graphql({ query: deleteTitulo, variables: { input: { id: apiData.data.listTituloPorOperacions.items[0].tit_ope_titulo_id } } });
-      console.log("response", response);
-      return true;
-    } catch (err) {
-      console.log('error creating transaction:', err);
-      return false;
-    }
-  }
-  const operacionCanje = async () => {
-    try {
-      if (!(await actualizarOperacion(transferencia.id, 1)).valueOf()) return false;
-      await API.graphql(graphqlOperation(updateAccionista, {
-        input: {
-          id: accionistaGlobal.id,
-          acc_tipo_acciones: 1,
-        }
-      }));
-      return true;
-    } catch (error) {
-      console.log('Error aprobando la operación:', error);
-      return false;
-    }
-  }
-  const operacionAnularCanje = async () => {
-    try {
-      if (!(await actualizarOperacion(transferencia.id, 3)).valueOf()) return false;
-      await API.graphql(graphqlOperation(updateAccionista, {
-        input: {
-          id: accionistaGlobal.id,
-          acc_tipo_acciones: 0,
-        }
-      }));
-      return true;
-    } catch (error) {
-      console.log('Error aprobando la operación:', error);
-      return false;
-    }
-  }
-  const operacionCesion = async () => {
-    try {
-      if (!(await actualizarOperacion(transferencia.id, 1)).valueOf()) return false;
-      await API.graphql(graphqlOperation(updateAccionista, {
-        input: {
-          id: accionistaGlobal.id,
-          acc_cantidad_acciones: accionistaGlobal.acc_cantidad_acciones - transferencia.ope_acciones,
-          acc_participacion: (accionistaGlobal.acc_cantidad_acciones - transferencia.ope_acciones) / cantidadEmitida
-        }
-      }));
-      console.log("accionistaGlobal", accionistaGlobal);
-      console.log("transferencia", transferencia);
-      console.log("cantidadEmitida", cantidadEmitida);
-      await API.graphql(graphqlOperation(updateAccionista, {
-        input: {
-          id: cesionario.id,
-          acc_cantidad_acciones: cesionario.acc_cantidad_acciones + transferencia.ope_acciones,
-          acc_participacion: (cesionario.acc_cantidad_acciones + transferencia.ope_acciones) / cantidadEmitida
-        }
-      }));
-      console.log("cantidades", titulos[0], transferencia.ope_acciones);
-      if (titulos[0].tit_ope_acciones == transferencia.ope_acciones) {
-        Promise.all(
-          titulos.map(input => {
-            API.graphql({
-              query: updateTitulo, variables: {
-                input: {
-                  id: input.tit_ope_titulo_id,
-                  tit_accionista_id: cesionario.id
-                }
-              }
-            });
-          })
-        );
-      } else {
-        var auxLenght = 0;
-        titulos.map(input => { auxLenght++ })
-        if (auxLenght == 1) {
-          var tituloPadre = await API.graphql(graphqlOperation(getTitulo, {
-            id: titulos[0].tit_ope_titulo_id
-          }));
-          await API.graphql(graphqlOperation(updateTitulo, {
-            input: {
-              id: titulos[0].tit_ope_titulo_id,
-              tit_acciones: tituloPadre.data.getTitulo.tit_acciones - transferencia.ope_acciones,
-            }
-          }));
-          var idNuevoTitulo = await API.graphql(graphqlOperation(createTitulo, {
-            input: {
-              tit_accionista_id: cesionario.id,
-              tit_estado: 1,
-              tit_acciones: transferencia.ope_acciones,
-              tit_desde: parseInt(tituloPadre.data.getTitulo.tit_acciones - transferencia.ope_acciones + 1),
-              tit_hasta: parseInt(tituloPadre.data.getTitulo.tit_acciones),
-              tit_padre: tituloPadre.data.getTitulo.id,
-              tit_nivel: tituloPadre.data.getTitulo.tit_nivel + 1,
-            }
-          }));
-          API.graphql({
-            query: createTituloPorOperacion, variables: {
-              input: {
-                tit_ope_operacion_id: transferencia.id,
-                tit_ope_titulo_id: idNuevoTitulo.data.createTitulo.id,
-                tit_ope_acciones: transferencia.ope_acciones
-              }
-            }
-          });
-        }
-      }
-      return true;
-    } catch (error) {
-      console.log('Error aprobando la operación:', error);
-      return false;
-    }
-  }
-
-  const operacionAnularCesion = async () => {
-    try {
-      if (!(await actualizarOperacion(transferencia.id, 3)).valueOf()) return false;
-      await API.graphql(graphqlOperation(updateAccionista, {
-        input: {
-          id: accionistaGlobal.id,
-          acc_cantidad_acciones: accionistaGlobal.acc_cantidad_acciones + transferencia.ope_acciones,
-          acc_participacion: (accionistaGlobal.acc_cantidad_acciones + transferencia.ope_acciones) / cantidadEmitida
-        }
-      }));
-      await API.graphql(graphqlOperation(updateAccionista, {
-        input: {
-          id: cesionario.id,
-          acc_cantidad_acciones: cesionario.acc_cantidad_acciones - transferencia.ope_acciones,
-          acc_participacion: (cesionario.acc_cantidad_acciones - transferencia.ope_acciones) / cantidadEmitida
-        }
-      }));
-      if (titulos[0].tit_ope_acciones == transferencia.ope_acciones) {
-        Promise.all(
-          titulos.map(input => API.graphql({
-            query: updateTitulo, variables: {
-              input: {
-                id: input.tit_ope_titulo_id,
-                tit_accionista_id: accionistaGlobal.id
-              }
-            }
-          }))
-        );
-      } else {
-        var auxLenght = 0;
-        titulos.map(input => { auxLenght++ })
-        if (auxLenght == 1) {
-          await API.graphql(graphqlOperation(updateTitulo, {
-            input: {
-              id: titulos[0].tit_ope_titulo_id,
-              tit_accionista_id: accionistaGlobal.id,
-            }
-          }));
-        }
-      }
-      return true;
-    } catch (error) {
-      console.log('Error aprobando la operación:', error);
-      return false;
-    }
-  }
-
-  const operacionPosesionEfectiva = async () => {
-    try {
-      if (!(await actualizarOperacion(transferencia.id, 1)).valueOf()) return false;
-      await API.graphql(graphqlOperation(updateAccionista, {
-        input: {
-          id: accionistaGlobal.id,
-          acc_cantidad_acciones: accionistaGlobal.acc_cantidad_acciones - transferencia.ope_acciones,
-          acc_participacion: (accionistaGlobal.acc_cantidad_acciones - transferencia.ope_acciones) / cantidadEmitida
-        }
-      }));
-      var tituloPadre = await API.graphql(graphqlOperation(getTitulo, {
-        id: titulos[0].tit_ope_titulo_id
-      }));
-      var accionesRestantes = transferencia.ope_acciones;
-      var accionesAgregadas = 0;
-      herederos.map(async (heredero) => {
-        if (heredero.her_cant_acciones > 0) {
-          //si existe el heredero no debe crear sino actualizar 
-          
-          var accionistaNuevoAux = {
-            id: heredero.her_identificacion,
-            acc_nombre_completo: heredero.her_nombre,
-            acc_cantidad_acciones: heredero.her_cant_acciones,
-            acc_participacion: heredero.her_cant_acciones / cantidadEmitida,
-            acc_tipo_identificacion: heredero.her_identificacion.length > 10 ? 1 : 0,
-            acc_estado: 3,
-          }
-          await API.graphql(graphqlOperation(createAccionista, { input: accionistaNuevoAux }));
-          if (heredero.her_identificacion.length > 10) {
-            var pJAux = {
-              id: heredero.her_identificacion,
-              pj_razon_social: heredero.her_nombre,
-              pj_rl_tipo_identificacion: 0
-            }
-            await API.graphql(graphqlOperation(createPersonaJuridica, { input: pJAux }));
-          } else {
-            var pNAux = {
-              id: heredero.her_identificacion,
-              pn_estado_civil: 0
-            }
-            await API.graphql(graphqlOperation(createPersonaNatural, { input: pNAux }));
-          }
-          if (accionesRestantes != heredero.her_cant_acciones) {
-            accionesRestantes = accionesRestantes - heredero.her_cant_acciones;
-            const tituloAux = {
-              tit_accionista_id: heredero.her_identificacion,
-              tit_estado: 1,
-              tit_acciones: heredero.her_cant_acciones,
-              tit_desde: parseInt(tituloPadre.data.getTitulo.tit_desde + accionesAgregadas),
-              tit_hasta: parseInt(tituloPadre.data.getTitulo.tit_hasta - accionesRestantes),
-              tit_padre: tituloPadre.data.getTitulo.id,
-              tit_nivel: tituloPadre.data.getTitulo.tit_nivel + 1,
-            }
-            accionesAgregadas = accionesAgregadas + heredero.her_cant_acciones;
-            await API.graphql(graphqlOperation(createTitulo, { input: tituloAux }));
-          } else {
-            await API.graphql(graphqlOperation(updateTitulo, { 
-             input: {
-              id: tituloPadre.data.getTitulo.id,
-              tit_acciones: heredero.her_cant_acciones,
-              tit_accionista_id: heredero.her_identificacion
-              } 
-            }));
-          }
-        }
-      });
-      return true;
-    } catch (error) {
-      console.log('Error aprobando la operación:', error);
-      return false;
-    }
-  }
-
-  const handleAprobarOperacion = async () => {
-    var control = true;
-    setCircular(true);
-    switch (transferencia.ope_tipo_letras) {
-      case "Aumento de Capital":
-        control = (await operacionAumentoCapital()).valueOf();
-        break;
-      case "Bloqueo":
-        control = (await operacionBloqueoDesbloqueo(3, 0, 1)).valueOf();
-        break;
-      case "Cesión":
-        control = (await operacionCesion()).valueOf();
-        break;
-      case "Donación":
-        control = (await operacionCesion()).valueOf();
-        break;
-      case "Testamento":
-        control = (await operacionCesion()).valueOf();
-        break;
-      case "Desbloqueo":
-        control = (await operacionBloqueoDesbloqueo(1, 1, 1)).valueOf();
-        break;
-      case "Canje":
-        control = (await operacionCanje()).valueOf();
-        break;
-      case "Posesión Efectiva":
-        control = (await operacionPosesionEfectiva()).valueOf();
-        break;
-      default:
-        control = false;
-        console.log('Error aprobando la operación');
-        break;
-    }
-    if (control) {
-      console.log("Operación completada correctamente");
-      setOpenSnack(true);
-    }
-    else {
-      console.log("Error al aprobar la operación. Proceso: handleAprobarOperacion");
-    }
-    handleRevisarOperacion();
-    setCircular(false);
-    setOpenRevisar(false);
-    setAnular(false);
-    setCount(0);
-    setTransferencia([]);
-    setTitulos([]);
-    fetchOperaciones("Pendiente");
-  }
-  async function fetchAccionistaOperacions(idOperacion) {
-    let filter = {
-      acc_ope_operacion_id: {
-        eq: idOperacion
-      }
-    };
-    const apiData = await API.graphql({ query: listAccionistaOperacions, variables: { filter: filter } });
-    apiData.data.listAccionistaOperacions.items.forEach(element => {
-      if (element.acc_ope_detalle != "Heredero") {
-        fetchAccionista(element.acc_ope_accionista_id).then(
-          data => {
-            if (element.acc_ope_detalle == "Canje" ||
-              element.acc_ope_detalle == "Bloqueo" ||
-              element.acc_ope_detalle == "Desbloqueo" ||
-              element.acc_ope_detalle == "Aumento Capital" ||
-              element.acc_ope_detalle == "Cedente") setAccionistaGlobal(data);
-            if (element.acc_ope_detalle == "Cesionario") setCesionario(data);
-          }
-        );
-      }
-    });
-  }
-
-  async function fetchAccionista(idAccionista) {
-    var accionista;
-    var apiData = await API.graphql({ query: getAccionista, variables: { id: idAccionista } });
-    accionista = apiData.data.getAccionista;
-    return accionista;
-  }
-
-  async function fetchTitulos(idOper) {
-    let filter = {
-      tit_ope_operacion_id: {
-        eq: idOper
-      }
-    };
-    const apiData = await API.graphql({ query: listTituloPorOperacions, variables: { filter: filter, limit: 10000 } });
-    setTitulos(apiData.data.listTituloPorOperacions.items);
-  }
-
-  async function fetchHerederos(idAccionista) {
-    var apiData = await API.graphql({ query: listHerederos, variables: { her_id_accionisa: idAccionista } });
-    setHerederos(apiData.data.listHerederos.items);
-  }
-
-  const getPictureCS = e => {
-    e.stopPropagation();
-
-    Storage.get(formData.cs)
-      .then(url => {
-        var myRequest = new Request(url);
-        fetch(myRequest).then(function (response) {
-          if (response.status === 200) {
-            console.log("DOCUMENTOOOO CS", url);
-            setImageCS(url);
-            window.open(url)
-          }
-        });
-      })
-      .catch(err => console.log(err));
-
-  };
-
-  const getPictureCG = e => {
-    e.stopPropagation();
-
-    Storage.get(formData.cg)
-      .then(url => {
-        var myRequest = new Request(url);
-        fetch(myRequest).then(function (response) {
-          if (response.status === 200) {
-            console.log("DOCUMENTOOOO CG", url.url);
-            setImageCS(url);
-            window.open(url)
-          }
-        });
-      })
-      .catch(err => console.log(err));
-
-  };
-
-  const getPictureCI = e => {
-    e.stopPropagation();
-
-    Storage.get(formData.ci)
-      .then(url => {
-        var myRequest = new Request(url);
-        fetch(myRequest).then(function (response) {
-          if (response.status === 200) {
-            setImageCS(url);
-            window.open(url)
-          }
-        });
-      })
-      .catch(err => console.log(err));
-
-  };
-
-  const getPictureES = e => {
-    e.stopPropagation();
-
-    Storage.get(formData.es)
-      .then(url => {
-        var myRequest = new Request(url);
-        fetch(myRequest).then(function (response) {
-          if (response.status === 200) {
-            setImageCS(url);
-            window.open(url)
-          }
-        });
-      })
-      .catch(err => console.log(err));
-
-  };
-
-  const getPictureCP = e => {
-    e.stopPropagation();
-
-    Storage.get(formData.cp)
-      .then(url => {
-        var myRequest = new Request(url);
-        fetch(myRequest).then(function (response) {
-          if (response.status === 200) {
-            setImageCS(url);
-            window.open(url)
-          }
-        });
-      })
-      .catch(err => console.log(err));
-
-  };
-
-  const handleChangeRechazo = (event) => {
-    setRechazo(event.target.checked);
-  };
-
-  const handleChangeMotivosRechazo = (event) => {
-    const {
-      target: { value },
-    } = event;
-    console.log('motivos', event)
-    setMotivosRechazo(
-      // On autofill we get a the stringified value.
-      typeof value === 'string' ? value.split(',') : value,
-    );
-  };
-
-  async function onChangeCS(e) {
-    if (!e.target.files[0]) return
-    const file = e.target.files[0];
-    const filename = uuid() + file.name
-    setFormData({ ...formData, cs: filename });
-    await Storage.put(filename, file);
-  }
-
-
-  async function onChangeCG(e) {
-    if (!e.target.files[0]) return
-    const file = e.target.files[0];
-    const filename = uuid() + file.name
-    setFormData({ ...formData, cg: filename });
-    await Storage.put(filename, file);
-  }
-
-  async function onChangeCI(e) {
-    if (!e.target.files[0]) return
-    const file = e.target.files[0];
-    const filename = uuid() + file.name
-    setFormData({ ...formData, ci: filename });
-    await Storage.put(filename, file);
-  }
-
-  async function onChangeES(e) {
-    if (!e.target.files[0]) return
-    const file = e.target.files[0];
-    const filename = uuid() + file.name
-    setFormData({ ...formData, es: filename });
-    await Storage.put(filename, file);
-  }
-
-  async function onChangeCP(e) {
-    if (!e.target.files[0]) return
-    const file = e.target.files[0];
-    const filename = uuid() + file.name
-    setFormData({ ...formData, cp: filename });
-    await Storage.put(filename, file);
-  }
-
+  const op = seleccionada;
+  const etiquetas = op ? DOCUMENTOS_POR_TIPO[op.ope_tipo] || [] : [];
+  const puedeEditarDocs = op && (op.ope_estado === 1 || op.ope_estado === 2);
 
   return (
     <main className={classes.content}>
       <div className={classes.appBarSpacer} />
+      <Box display="flex" alignItems="center" justifyContent="space-between" mb={1}>
+        <Typography variant="h6">Operaciones</Typography>
+        {cargando && <CircularProgress size={24} />}
+      </Box>
+      <Paper variant="outlined">
+        <Tabs value={estado} onChange={(e, v) => { setEstado(v); setBusqueda(''); }} indicatorColor="primary" textColor="primary" variant="fullWidth">
+          {[0, 1, 2, 3].map((e) => (
+            <Tab key={e} value={e} label={<Badge color={e === 0 ? 'secondary' : 'default'} badgeContent={conteo[e]} max={999} showZero={false}><Box pr={2}>{`${ESTADOS_OPERACION[e]}s`}</Box></Badge>} />
+          ))}
+        </Tabs>
+      </Paper>
+      <DataGrid
+        style={{ backgroundColor: 'white', marginTop: 8 }}
+        autoHeight density="compact" disableColumnMenu disableSelectionOnClick
+        rows={filas} columns={columnas} pageSize={20} rowsPerPageOptions={[20]}
+        components={{ Toolbar }} componentsProps={{ toolbar: { value: busqueda, onChange: setBusqueda } }}
+        localeText={{ noRowsLabel: `No hay operaciones ${ESTADOS_OPERACION[estado].toLowerCase()}s` }}
+      />
 
-      <Grid container spacing={3} >
-        <Grid item xs={12} >
-          <ButtonGroup size="medium" variant="text" aria-label="text button group" style={{ paddingBottom: 0, backgroundColor: 'white' }} fullWidth='true'>
-            <Button onClick={() => { setEstado(0); setCount(0) }} variant={estado == "Pendiente" ? "contained" : "text"} startIcon={<EditIcon color={estado == 'Pendiente' ? 'inherit' : 'disabled'} />} size="medium" color={estado == "Pendiente" ? "primary" : 'inherit'}>
-              <Typography variant='subtitle2' style={estado == "Pendiente" ? { color: 'white' } : { color: 'grey' }}>Pendientes</Typography>
-              <Badge color="secondary" overlap="circular" badgeContent={countEstado[0]} style={{ left: 30, }}>
-              </Badge>
-            </Button>
-            <Button onClick={() => { setEstado(1); setCount(0) }} variant={estado == "Aprobada" ? "contained" : "text"} startIcon={<CheckIcon color={estado == 'Aprobada' ? 'inherit' : 'disabled'} />} size='medium' color={estado == "Aprobada" ? "primary" : 'inherit'}>
-              <Typography variant='subtitle2' style={estado == "Aprobada" ? { color: 'white' } : { color: 'grey' }} >Aprobadas</Typography>
-              <Badge color="secondary" overlap="circular" badgeContent={countEstado[1]} style={{ left: 30, }}>
-              </Badge>
-            </Button>
-            <Button onClick={() => { setEstado(2); setCount(0) }} variant={estado == "Rechazada" ? "contained" : "text"} startIcon={<WarningIcon color={estado == 'Rechazada' ? 'inherit' : 'disabled'} />} size='medium' color={estado == "Rechazada" ? "primary" : 'inherit'}>
-              <Typography variant='subtitle2' style={estado == "Rechazada" ? { color: 'white' } : { color: 'grey' }}>Rechazadas</Typography>
-              <Badge color="secondary" overlap="circular" badgeContent={countEstado[2]} style={{ left: 30, }}>
-              </Badge>
-            </Button>
-            <Button onClick={() => { setEstado(3); setCount(0) }} variant={estado == "Anulada" ? "contained" : "text"} startIcon={<DeleteIcon color={estado == 'Anulada' ? 'inherit' : 'disabled'} />} size='medium' color={estado == "Anulada" ? "primary" : 'inherit'}>
-              <Typography variant='subtitle2' style={estado == "Anulada" ? { color: 'white' } : { color: 'grey' }}>Anuladas</Typography>
-              <Badge color="secondary" overlap="circular" badgeContent={countEstado[3]} style={{ left: 30, }}>
-              </Badge>
-            </Button>
-          </ButtonGroup>
+      <Dialog open={!!op} onClose={cerrar} fullWidth maxWidth="lg">
+        {op && detalle && (
+          <>
+            <DialogTitle>
+              <Box display="flex" alignItems="center" justifyContent="space-between">
+                <span>{op.tipo}</span>
+                <Chip label={ESTADOS_OPERACION[op.ope_estado]} color={COLOR_ESTADO[op.ope_estado]} />
+              </Box>
+            </DialogTitle>
+            <DialogContent dividers>
+              <Grid container spacing={2}>
+                <Grid item xs={12} md={4}>
+                  <Paper variant="outlined" className={classes.tarjeta}>
+                    <Typography variant="subtitle1" gutterBottom>Detalle</Typography>
+                    <Dato titulo="Fecha de solicitud" valor={op.ope_fecha} />
+                    <Dato titulo="Solicitante" valor={op.ope_ingresador} />
+                    {op.ope_estado !== 0 && <Dato titulo="Revisor / fecha" valor={`${op.ope_aprobador || '-'} — ${op.ope_fecha_aprobacion || '-'}`} />}
+                    {op.ope_observacion && <Dato titulo="Motivos de rechazo" valor={op.ope_observacion} />}
+                    <Dato titulo="Acciones" valor={enteros(op.ope_acciones)} />
+                    <Divider style={{ margin: '8px 0' }} />
+                    <Dato titulo={ETIQUETA_PRINCIPAL[op.ope_tipo] || 'Accionista'} valor={detalle.principal ? `${detalle.principal.acc_nombre_completo} (${detalle.principal.id})` : 'No encontrado'} />
+                    {detalle.cesionario && (
+                      <>
+                        <ArrowForwardIcon color="action" fontSize="small" />
+                        <Dato titulo={ETIQUETA_CESIONARIO[op.ope_tipo] || 'Cesionario'} valor={`${detalle.cesionario.acc_nombre_completo} (${detalle.cesionario.id})`} />
+                      </>
+                    )}
+                    {!detalle.principal && <MuiAlert severity="error">No se encontró el accionista vinculado a la operación.</MuiAlert>}
+                  </Paper>
+                </Grid>
 
-          <DataGrid
-            disableColumnMenu
-            //sortModel={ [{field: 'fecha', sort: 'desc',}]}
-            style={{ backgroundColor: 'white' }}
-            density="compact"
-            autoHeight='true'
-            autoPageSize='true'
-            components={{ Toolbar: QuickSearchToolbar }}
-            rows={rows}
-            columns={columns}
-            componentsProps={{
-              toolbar: {
-                value: searchText,
-                onChange: (event) => requestSearch(event.target.value),
-                clearSearch: () => requestSearch(''),
-              },
-            }}
-          />
+                <Grid item xs={12} md={4}>
+                  <Paper variant="outlined" className={classes.tarjeta}>
+                    <Typography variant="subtitle1" gutterBottom>{op.ope_tipo === 6 ? 'Título y herederos' : 'Títulos'}</Typography>
+                    {detalle.titulos.length === 0
+                      ? <Typography variant="body2" color="textSecondary">{op.ope_tipo === 0 ? 'El título se crea al aprobar el aumento.' : 'Sin títulos vinculados.'}</Typography>
+                      : (
+                        <Table size="small">
+                          <TableHead><TableRow><TableCell>Título</TableCell><TableCell align="right">Acciones</TableCell></TableRow></TableHead>
+                          <TableBody>
+                            {detalle.titulos.map((t) => (
+                              <TableRow key={t.id}><TableCell>{t.tit_ope_titulo_id}</TableCell><TableCell align="right">{enteros(t.tit_ope_acciones)}</TableCell></TableRow>
+                            ))}
+                          </TableBody>
+                        </Table>
+                      )}
+                    {op.ope_tipo === 6 && (
+                      <Box mt={2}>
+                        <Typography variant="subtitle2">Herederos</Typography>
+                        {detalle.herederos.length === 0
+                          ? <MuiAlert severity="warning">El causante no tiene herederos registrados.</MuiAlert>
+                          : (
+                            <Table size="small">
+                              <TableHead><TableRow><TableCell>Heredero</TableCell><TableCell align="right">Acciones</TableCell></TableRow></TableHead>
+                              <TableBody>
+                                {detalle.herederos.map((h) => (
+                                  <TableRow key={h.id}><TableCell>{`${h.her_nombre} (${h.her_identificacion})`}</TableCell><TableCell align="right">{enteros(h.her_cant_acciones)}</TableCell></TableRow>
+                                ))}
+                              </TableBody>
+                            </Table>
+                          )}
+                      </Box>
+                    )}
+                  </Paper>
+                </Grid>
 
-        </Grid>
-      </Grid>
-
-      <Dialog fullWidth='false' maxWidth='lg' open={openRevisar} onClose={handleRevisarOperacion} aria-labelledby="form-dialog-title">
-        <DialogTitle id="form-dialog-title" style={{ backgroundColor: '#ed5761' }}>
-          <div>{transferencia.ope_tipo_letras}</div>
-        </DialogTitle>
-
-        <DialogContent>
-          <DialogContentText>
-            <Grid container style={{ display: 'flex' }}>
-              <Grid item xs={4} >
-                <Typography variant='h6'>
-                  Detalle Operación
-                </Typography>
-                <Typography variant='subtitle1'>
-                  <small>Fecha Solicitud</small>
-                </Typography>
-                <Typography variant='subtitle1'>
-                  {transferencia.ope_fecha}
-                </Typography>
-                <Typography variant='subtitle1'>
-                  {transferencia.ope_tipo_letras != "Cesión" &&
-                    <small>Accionista</small>
-                  }
-                  {transferencia.ope_tipo_letras == "Cesión" &&
-                    <small>Cedente</small>
-                  }
-                </Typography>
-                <Typography variant='subtitle1'>
-                  {accionistaGlobal.acc_nombre_completo}
-                </Typography>
-                {transferencia.ope_tipo_letras == "Cesión" &&
-                  <Typography variant='subtitle1'>
-                    <small>Cesionario</small>
-                  </Typography>
-                }
-                {transferencia.ope_tipo_letras == "Cesión" &&
-                  <Typography variant='subtitle1'>
-                    {cesionario.acc_nombre_completo}
-                  </Typography>
-                }
-                <Typography variant='subtitle1'>
-                  <small>Total de acciones</small>
-                </Typography>
-                <Typography variant='subtitle1'>
-                  {transferencia.ope_acciones}
-                </Typography>
-                {transferencia.ope_tipo_letras == 'Posesión Efectiva' &&
-                  <List dense='true'
-                    subheader={
-                      <ListSubheader component="div" id="nested-list-subheader">
-                        <div style={{ display: 'flex', flexDirection: 'row', justifyContent: 'space-around', width: '100%', marginTop: 10, paddingRight: 70 }}>
-                          <Typography variant='caption' style={{ flex: 1 }}>
-                            Nro. Título
-                          </Typography>
-                          <Typography variant='caption' style={{ flex: 1 }}>
-                            Acciones
-                          </Typography>
-                        </div>
-                      </ListSubheader>
-                    }>
-                    {titulos.map(item => (
-                      <ListItem key={item.id}>
-                        <div style={{ display: 'flex', flexDirection: 'row', justifyContent: 'space-around', width: '100%', paddingRight: 50 }}>
-                          <div style={{ flex: 1 }}>
-                            <ListItemText>{item.id}</ListItemText>
-                          </div>
-                          <div style={{ flex: 1 }}>
-                            <ListItemText>{item.tit_ope_acciones}</ListItemText>
-                          </div>
-                        </div>
-                      </ListItem>
+                <Grid item xs={12} md={4}>
+                  <Paper variant="outlined" className={classes.tarjeta}>
+                    <Typography variant="subtitle1" gutterBottom>Documentos</Typography>
+                    {etiquetas.map((etiqueta, i) => (
+                      <Box key={etiqueta} display="flex" alignItems="center" justifyContent="space-between" py={0.5}>
+                        <Box display="flex" alignItems="center" style={{ gap: 8 }}>
+                          <CheckCircleIcon fontSize="small" color={documentos[i] ? 'primary' : 'disabled'} />
+                          <Typography variant="body2">{etiqueta}</Typography>
+                        </Box>
+                        <Box display="flex">
+                          {documentos[i] && <IconButton size="small" title="Ver" onClick={() => ejecutar(() => abrirArchivo(documentos[i]))}><PageviewIcon /></IconButton>}
+                          {puedeEditarDocs && (
+                            <IconButton size="small" component="label" color="primary" title="Reemplazar documento">
+                              <CloudUploadOutlinedIcon />
+                              <input hidden type="file" accept="application/pdf" onChange={reemplazarDocumento(i)} />
+                            </IconButton>
+                          )}
+                        </Box>
+                      </Box>
                     ))}
-                  </List>
-                }
+                    {puedeEditarDocs && documentosCambiaron && (
+                      <Button size="small" variant="outlined" color="primary" style={{ marginTop: 8 }} onClick={guardarDocs}>Guardar documentos</Button>
+                    )}
+                  </Paper>
+                </Grid>
               </Grid>
 
-              <Grid item xs={4} >
-                {transferencia.ope_tipo_letras == 'Posesión Efectiva' &&
-                  <div>
-                    <Typography variant='h6'>
-                      Herederos
-                    </Typography>
-                    <List dense='true' >
-                      {herederos.map(item => (
-                        <ListItem key={item.id}  >
-                          <ListItemText>Acciones: {item.her_cant_acciones} - {item.her_identificacion} - {item.her_nombre} </ListItemText>
-                        </ListItem>
-                      ))}
-                    </List>
-                  </div>
-                }
-                {transferencia.ope_tipo_letras != 'Posesión Efectiva' && transferencia.ope_tipo_letras != 'Canje' && transferencia.ope_tipo_letras != 'Bloqueo' && transferencia.ope_tipo_letras != 'Desbloqueo' && transferencia.ope_tipo_letras != 'Aumento de Capital' &&
-                  <div>
-                    <Typography variant='h6'>
-                      Acciones a Transferir
-                    </Typography>
-                    <List dense='true'
-                      subheader={
-                        <ListSubheader component="div" id="nested-list-subheader">
-                          <div style={{ display: 'flex', flexDirection: 'row', justifyContent: 'space-around', width: '100%', marginTop: 10 }}>
-                            <Typography variant='caption' style={{ flex: 1 }}>
-                              Título
-                            </Typography>
-                            <Typography variant='caption' style={{ flex: 1 }}>
-                              Acciones
-                            </Typography>
-                            <Typography variant='caption' style={{ flex: 2 }}>
-                              Transferir
-                            </Typography>
-                          </div>
-                        </ListSubheader>
-
-                      }>
-                      {titulos.map(item => (
-                        <ListItem key={item.id}>
-                          <div style={{ display: 'flex', flexDirection: 'row', justifyContent: 'space-around', width: '100%', paddingRight: 40 }}>
-                            <div style={{ flex: 1 }}>
-                              <ListItemText>{item.tit_ope_titulo_id}</ListItemText>
-                            </div>
-                            <div style={{ flex: 1 }}>
-                              <ListItemText>{item.tit_ope_acciones}</ListItemText>
-                            </div>
-                            <div style={{ flex: 1 }}>
-                              <ListItemText style={{ color: '#FFB74D' }}>{transferencia.ope_acciones}</ListItemText>
-                            </div>
-                          </div>
-                        </ListItem>
-                      ))}
-                    </List>
-                  </div>
-                }
-
-                {(transferencia.ope_tipo_letras == 'Canje' || transferencia.ope_tipo_letras == 'Bloqueo' || transferencia.ope_tipo_letras == 'Desbloqueo') &&
-                  <div>
-                    <Typography variant='h6'>
-                      Acciones
-                    </Typography>
-                    <List dense='true'
-                      subheader={
-                        <ListSubheader component="div" id="nested-list-subheader">
-                          <div style={{ display: 'flex', flexDirection: 'row', justifyContent: 'space-around', width: '100%', marginTop: 10, paddingRight: 50 }}>
-                            <Typography variant='caption' style={{ flex: 1 }}>
-                              Título
-                            </Typography>
-                            <Typography variant='caption' style={{ flex: 1 }}>
-                              Acciones
-                            </Typography>
-                          </div>
-                        </ListSubheader>
-
-                      }>
-                      {titulos.map(item => (
-                        <ListItem key={item.id}>
-                          <div style={{ display: 'flex', flexDirection: 'row', justifyContent: 'space-around', width: '100%', paddingRight: 40 }}>
-                            <div style={{ flex: 1 }}>
-                              <ListItemText>{item.id}</ListItemText>
-                            </div>
-                            <div style={{ flex: 1 }}>
-                              <ListItemText>{item.tit_ope_acciones}</ListItemText>
-                            </div>
-                          </div>
-                        </ListItem>
-                      ))}
-                    </List>
-                  </div>
-                }
-                <div style={{ display: 'flex', justifyContent: 'center' }}>
-                  {circular && <CircularProgress />}
-                </div>
-              </Grid>
-              <Grid item xs={4} >
-                <Typography variant='h6'>
-                  Documentación
-                </Typography>
-                {transferencia.ope_tipo_letras != 'Aumento Capital' &&
-                  <div>
-                    {(estado == 'Rechazada' || estado == 'Aprobada') && !anular &&
-                      <label htmlFor="icon-button-fileCS">
-                        <Input id="icon-button-fileCS" type="file" accept="application/pdf" onChange={onChangeCS} />
-                        <IconButton color="primary" aria-label="upload picture" component="span">
-                          <EditIcon fontSize="small" color='secondary' />
-                        </IconButton>
-                      </label>}
-                    <Button component="span" color="primary" size='small' style={{ marginTop: 10 }} onClick={getPictureCS} disabled={formData.cs ? false : true}>
-                      {transferencia.ope_tipo_letras == 'Cesión' ? 'Carta de Cesión y Gerente' : transferencia.ope_tipo_letras == 'Posesión Efectiva' ? 'Carta de Posesión Efectiva' : transferencia.ope_tipo_letras == 'Bloqueo' || transferencia.ope_tipo_letras == 'Desbloqueo' ? 'Documento de Respaldo' : transferencia.ope_tipo_letras == 'Testamento' ? 'Carta de Testamento' : transferencia.ope_tipo_letras == 'Donación' ? 'Carta de Donación' : 'Titulo Ordinario'}
-                    </Button>
-                    {formData.cs && <CheckIcon />}
-                    {formData.cs && <FiberNewOutlined color='secondary' />}
-                  </div>
-                }
-                {transferencia.ope_tipo_letras != 'Canje' && transferencia.ope_tipo_letras != 'Bloqueo' && transferencia.ope_tipo_letras != 'Desbloqueo' && transferencia.ope_tipo_letras != 'Aumento Capital' &&
-                  <div>
-                    {(estado == 'Rechazada' || estado == 'Aprobada') && !anular &&
-                      <label htmlFor="icon-button-fileCG">
-                        <Input id="icon-button-fileCG" type="file" accept="application/pdf" onChange={onChangeCG} />
-                        <IconButton color="primary" aria-label="upload picture" component="span">
-                          <EditIcon fontSize="small" color='secondary' />
-                        </IconButton>
-                      </label>}
-                    <Button component="span" color="primary" size='small' onClick={getPictureCG} disabled={formData.cg ? false : true}>
-                      {transferencia.ope_tipo_letras == 'Cesión' ? 'Cédulas' : transferencia.ope_tipo_letras == 'Testamento' ? 'Escritura de Testamento' : transferencia.ope_tipo_letras == 'Donación' ? 'Escritura de Donación de Bienes' : 'Impuesto a la Herencia'}
-
-                    </Button>
-                    {formData.cg && <CheckIcon />}
-                    {formData.cg && <FiberNewOutlined color='secondary' />}
-                  </div>
-                }
-
-                {transferencia.ope_tipo_letras != 'Canje' && transferencia.ope_tipo_letras != 'Bloqueo' && transferencia.ope_tipo_letras != 'Desbloqueo' && transferencia.ope_tipo_letras != 'Aumento Capital' &&
-                  <div>
-                    {(estado == 'Rechazada' || estado == 'Aprobada') && !anular &&
-                      <label htmlFor="icon-button-fileCI">
-                        <Input id="icon-button-fileCI" type="file" accept="application/pdf" onChange={onChangeCI} />
-                        <IconButton color="primary" aria-label="upload picture" component="span">
-                          <EditIcon fontSize="small" color='secondary' />
-                        </IconButton>
-                      </label>}
-                    <Button component="span" color="primary" size='small' onClick={getPictureCI} disabled={formData.ci ? false : true}>
-                      {transferencia.ope_tipo_letras == 'Cesión' ? 'Carta de Instrucciones' : transferencia.ope_tipo_letras == 'Testamento' ? 'Pago de Impuestos' : transferencia.ope_tipo_letras == 'Donación' ? 'Pago de Impuestos' : 'Declaración Jurada'}
-                    </Button>
-                    {formData.ci && <CheckIcon />}
-                    {formData.ci && <FiberNewOutlined color='secondary' />}
-                  </div>
-                }
-                {transferencia.ope_tipo_letras != 'Canje' && transferencia.ope_tipo_letras != 'Bloqueo' && transferencia.ope_tipo_letras != 'Desbloqueo' &&
-                  <div>
-                    {(estado == 'Rechazada' || estado == 'Aprobada') && !anular &&
-                      <label htmlFor="icon-button-fileES">
-                        <Input id="icon-button-fileES" type="file" accept="application/pdf" onChange={onChangeES} />
-                        <IconButton color="primary" aria-label="upload picture" component="span">
-                          <EditIcon fontSize="small" color='secondary' />
-                        </IconButton>
-                      </label>}
-                    <Button component="span" color="primary" size='small' onClick={getPictureES} disabled={formData.es ? false : true}>
-                      {transferencia.ope_tipo_letras == 'Aumento Capital' ? 'Escritura' : transferencia.ope_tipo_letras == 'Cesión' ? 'Escrituras' : transferencia.ope_tipo_letras == 'Testamento' ? 'Declaración Jurada' : transferencia.ope_tipo_letras == 'Donación' ? 'Declaración Jurada' : 'Escritura Posesión efectiva de Bienes'}
-                    </Button>
-                    {formData.es && <CheckIcon />}
-                    {formData.es && <FiberNewOutlined color='secondary' />}
-                  </div>
-                }
-
-                {transferencia.ope_tipo_letras != 'Cesión' && transferencia.ope_tipo_letras != 'Canje' && transferencia.ope_tipo_letras != 'Bloqueo' && transferencia.ope_tipo_letras != 'Desbloqueo' && transferencia.ope_tipo_letras != 'Aumento Capital' &&
-                  <div>
-                    {(estado == 'Rechazada' || estado == 'Aprobada') && !anular &&
-                      <label htmlFor="icon-button-fileCP">
-                        <Input id="icon-button-fileCP" type="file" accept="application/pdf" onChange={onChangeCP} />
-                        <IconButton color="primary" aria-label="upload picture" component="span">
-                          <EditIcon fontSize="small" color='secondary' />
-                        </IconButton>
-                      </label>}
-                    <Button component="span" color="primary" size='small' onClick={getPictureCP} disabled={formData.cp ? false : true}>Poder</Button>
-                    {formData.cp && <CheckIcon />}
-                    {formData.cp && <FiberNewOutlined color='secondary' />}
-                  </div>
-                }
-              </Grid>
-            </Grid>
-          </DialogContentText>
-        </DialogContent>
-        <DialogActions style={{ backgroundColor: '#f9f9f9', display: 'flex', flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between' }}>
-          <div style={{ fontWeight: 'normal', fontSize: 10, color: 'grey' }}>Solicitante: {transferencia.ope_ingresador}</div>
-          {transferencia.usuarioAprobador && <div style={{ fontWeight: 'normal', fontSize: 10, color: 'grey' }}>Aprobador: {transferencia.usuarioAprobador}    Fecha: {transferencia.fechaAprobacion} </div>}
-          {!anular && estado == 0 &&
-            <FormControlLabel control={<Switch size="small" checked={rechazo} onChange={handleChangeRechazo} />} label="Rechazar" />
-          }
-
-          <div>
-            {!anular && !rechazo && estado == 0 &&
-              <div>
-                <Button onClick={handleAprobarOperacion} color="primary" variant='contained'>
-                  Aprobar
-                </Button>
-              </div>
-            }
-
-            {rechazo && !anular && (estado == 1 || estado == 0) &&
-              <div>
-
-                <InputLabel id="rec"><small>Motivos de Rechazo</small></InputLabel>
-                <Select labelId="rec" id="rechazo-multiple" multiple onChange={handleChangeMotivosRechazo} value={motivosRechazo} style={{ height: 37, minWidth: 150, marginRight: 20, fontSize: 10 }}>
-                  {generateSelectMotivoRechazo()}
-                </Select>
-
-                <Button onClick={handleRechazarOperacion} color="secondary" variant='contained' >
-                  Rechazar
-                </Button>
-              </div>
-            }
-
-            {anular && estado == 1 &&
-              <Button onClick={handleAnularOperacion} classes={{ root: classes.botonAnular }} variant='contained'>
-                Anular
-              </Button>
-            }
-
-            {!anular && estado == 2 &&
-              <Button onClick={handleReenviarOperacion} color="primary" variant='contained'>
-                Volver a Solicitar Aprobación
-              </Button>
-            }
-
-          </div>
-        </DialogActions>
+              {op.ope_estado === 0 && (
+                <Box mt={2} display="flex" alignItems="center" style={{ gap: 8 }}>
+                  <TextField
+                    select size="small" variant="outlined" label="Motivos de rechazo" style={{ minWidth: 320 }}
+                    SelectProps={{ multiple: true, renderValue: (sel) => sel.map((v) => MOTIVOS_RECHAZO.find((m) => m.valor === v).etiqueta).join(', ') }}
+                    value={motivos} onChange={(e) => setMotivos(e.target.value)}
+                  >
+                    {MOTIVOS_RECHAZO.map((m) => <MenuItem key={m.valor} value={m.valor}>{m.etiqueta}</MenuItem>)}
+                  </TextField>
+                  <Typography variant="caption" color="textSecondary">Solo para rechazar</Typography>
+                </Box>
+              )}
+            </DialogContent>
+            <DialogActions>
+              {cargando && <CircularProgress size={24} />}
+              {op.ope_estado === 0 && <Button color="secondary" disabled={cargando || motivos.length === 0} onClick={() => setConfirmar('rechazar')}>Rechazar</Button>}
+              {op.ope_estado === 0 && <Button variant="contained" color="primary" disabled={cargando || (!detalle.principal && op.ope_tipo !== 6)} onClick={() => setConfirmar('aprobar')}>Aprobar</Button>}
+              {op.ope_estado === 1 && op.ope_tipo !== 6 && <Button variant="contained" className={classes.peligro} disabled={cargando} onClick={() => setConfirmar('anular')}>Anular</Button>}
+              {op.ope_estado === 2 && <Button variant="contained" color="primary" disabled={cargando} onClick={() => setConfirmar('reenviar')}>Volver a solicitar aprobación</Button>}
+              <Button onClick={cerrar}>Salir</Button>
+            </DialogActions>
+          </>
+        )}
       </Dialog>
-      <Snackbar open={openSnack} autoHideDuration={6000} onClose={handleCloseSnack}>
-        <MuiAlert elevation={6} variant="filled" onClose={handleCloseSnack} severity="success">
-          La operación se aprobo correctamente.
-        </MuiAlert>
+
+      <Dialog open={!!confirmar} onClose={() => setConfirmar(null)}>
+        {confirmar && (
+          <>
+            <DialogTitle>{ACCIONES[confirmar].titulo}</DialogTitle>
+            <DialogContent>
+              <Typography>{`${op.tipo} de ${enteros(op.ope_acciones)} acciones. ${ACCIONES[confirmar].texto}`}</Typography>
+            </DialogContent>
+            <DialogActions>
+              <Button onClick={() => setConfirmar(null)}>Cancelar</Button>
+              <Button variant="contained" color={confirmar === 'anular' || confirmar === 'rechazar' ? 'secondary' : 'primary'} disabled={cargando} onClick={ejecutarAccion}>
+                {ACCIONES[confirmar].boton}
+              </Button>
+            </DialogActions>
+          </>
+        )}
+      </Dialog>
+
+      <Snackbar open={!!mensaje} autoHideDuration={8000} onClose={(e, razon) => razon !== 'clickaway' && setMensaje(null)}>
+        {mensaje ? <MuiAlert elevation={6} variant="filled" severity={mensaje.tipo} onClose={() => setMensaje(null)}>{mensaje.texto}</MuiAlert> : <span />}
       </Snackbar>
     </main>
   );

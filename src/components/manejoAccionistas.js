@@ -36,7 +36,8 @@ export async function validarCampos(accionistaGlobal) {
 export function verificarCamposVacios(accionistaGlobal, claves) {
   var result = { error: false, mensaje: "" };
   for (let i = 0; i < claves.length; i++) {
-    if (!accionistaGlobal[claves[i]] && accionistaGlobal[claves[i]] == "") {
+    const valor = accionistaGlobal[claves[i]];
+    if (valor == null || String(valor).trim() === "") {
       result.error = true;
       result.mensaje = "Existen campos obligatorios sin datos.";
     }
@@ -83,7 +84,7 @@ export function devolverSoloPersonaNatural(accionista) {
     pn_segundo_nombre: accionista.pn_segundo_nombre ? accionista.pn_segundo_nombre : "",
     pn_apellido_paterno: accionista.pn_apellido_paterno ? accionista.pn_apellido_paterno : "",
     pn_apellido_materno: accionista.pn_apellido_materno ? accionista.pn_apellido_materno : "",
-    pn_estado_civil: accionista.pn_estado_civil ? parseInt(accionista.pn_estado_civil) : 0,
+    pn_estado_civil: accionista.pn_estado_civil != null && accionista.pn_estado_civil !== "" ? String(accionista.pn_estado_civil) : "0", // el campo es String
     pn_doc_identificacion: accionista.pn_doc_identificacion ? accionista.pn_doc_identificacion : "",
   };
   return personaNaturalAux;

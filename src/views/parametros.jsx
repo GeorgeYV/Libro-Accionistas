@@ -1,290 +1,167 @@
-import React, { useState, useEffect } from 'react'
-import { makeStyles, Paper, Grid, Button, TextField, CircularProgress, Snackbar, FormControl, InputLabel, Select, MenuItem, Typography } from '@material-ui/core'
-import { API, Storage } from 'aws-amplify';
-import { getParametro } from './../graphql/queries'
-import { updateParametro } from './../graphql/mutations'
+import React, { useState, useEffect } from 'react';
+import { API } from 'aws-amplify';
+import {
+  Paper, Grid, Button, TextField, CircularProgress, Snackbar, Typography, Box, InputAdornment, IconButton,
+} from '@material-ui/core';
+import { makeStyles } from '@material-ui/core/styles';
 import MuiAlert from '@material-ui/lab/Alert';
 import CloudUploadOutlinedIcon from '@material-ui/icons/CloudUploadOutlined';
-import { uuid } from 'uuidv4';
+import CheckCircleIcon from '@material-ui/icons/CheckCircle';
+import PageviewIcon from '@material-ui/icons/Pageview';
+import SaveIcon from '@material-ui/icons/Save';
+import { getParametro } from '../graphql/queries';
+import { updateParametro } from '../graphql/mutations';
+import { subirArchivo, abrirArchivo } from '../services/archivos';
+import ValidacionTitulos from '../components/validacionTitulos';
 
 const useStyles = makeStyles((theme) => ({
-    paper: {
-        padding: theme.spacing(2),
-        textAlign: 'left',
-        color: theme.palette.text.secondary,
-        height: 'calc(100%)',
-    },
-    appBarSpacer: {
-        ...theme.mixins.toolbar,
-    },
-    content: {
-        flexGrow: 1,
-        padding: theme.spacing(2),
-    },
+  appBarSpacer: { ...theme.mixins.toolbar },
+  content: { flexGrow: 1, padding: theme.spacing(2) },
+  tarjeta: { padding: theme.spacing(2), height: '100%' },
 }));
-function Alert(props) {
-    return <MuiAlert elevation={6} variant="filled" {...props} />;
-}
 
+const enteros = (n) => new Intl.NumberFormat('en-US').format(n || 0);
+const decimales = (n) => new Intl.NumberFormat('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 }).format(n || 0);
+const MODELOS = [
+  ['modeloCartaCesion', 'Carta de cesión'],
+  ['modeloCartaGerente', 'Carta de gerente'],
+  ['modeloCartaInstrucciones', 'Carta de instrucciones'],
+  ['modeloSolicitudDividendos', 'Solicitud de dividendos'],
+];
+const EDITABLES = ['valorNominal', 'baseImponible', ...MODELOS.map(([campo]) => campo)];
+const ACEPTA = '.doc,.docx,.xml,application/msword,application/vnd.openxmlformats-officedocument.wordprocessingml.document';
+
+// Parámetros generales. El total emitido es de solo lectura: lo actualiza el aumento de capital al aprobarse,
+// para que coincida siempre con la numeración de los títulos.
 export default function Parametros() {
+  const classes = useStyles();
+  const [guardado, setGuardado] = useState(null); // valores en la base
+  const [form, setForm] = useState({});
+  const [cargando, setCargando] = useState(true);
+  const [mensaje, setMensaje] = useState(null); // { tipo, texto }
 
-    const [cantidadEmitido, setCantidadEmitido] = useState(0);
-    const [valorNominal, setValorNominal] = useState(0);
-    const [baseImponible, setbaseImponible] = useState(0);
-    const [retencionNoResidente, setRetencionNoResidente] = useState(0);
-
-    const [cartaCesion, setCartaCesion] = useState('');
-    const [cartaGerente, setCartaGerente] = useState('');
-    const [cartaInstrucciones, setCartaInstrucciones] = useState('');
-    const [solicitudDividendos, setSolicitudDividendos] = useState('');
-
-    const [FB1, setFB1] = useState(0);
-    const [FB2, setFB2] = useState(0);
-    const [FB3, setFB3] = useState(0);
-    const [FB4, setFB4] = useState(0);
-    const [FB5, setFB5] = useState(0);
-    const [FB6, setFB6] = useState(0);
-
-    const [FE1, setFE1] = useState(0);
-    const [FE2, setFE2] = useState(0);
-    const [FE3, setFE3] = useState(0);
-    const [FE4, setFE4] = useState(0);
-    const [FE5, setFE5] = useState(0);
-    const [FE6, setFE6] = useState(0);
-
-    const [RFB1, setRFB1] = useState(0);
-    const [RFB2, setRFB2] = useState(0);
-    const [RFB3, setRFB3] = useState(0);
-    const [RFB4, setRFB4] = useState(0);
-    const [RFB5, setRFB5] = useState(0);
-    const [RFB6, setRFB6] = useState(0);
-
-    const [RFE1, setRFE1] = useState(0);
-    const [RFE2, setRFE2] = useState(0);
-    const [RFE3, setRFE3] = useState(0);
-    const [RFE4, setRFE4] = useState(0);
-    const [RFE5, setRFE5] = useState(0);
-    const [RFE6, setRFE6] = useState(0);
-
-    const [retencionMinima, setRetencionMinima] = useState(0);
-    const [retencionMaxima, setRetencionMaxima] = useState(0);
-
-    const [Retencion_PN_Loc, setRetencion_PN_Loc] = useState(0);
-    const [Retencion_PN_NPF, setRetencion_PN_NPF] = useState(0);
-    const [Retencion_PN_PF, setRetencion_PN_PF] = useState(0);
-    const [Retencion_PJ_Loc_Loc, setRetencion_PJ_Loc_Loc] = useState(0);
-    const [Retencion_PJ_Loc_NPF, setRetencion_PJ_Loc_NPF] = useState(0);
-    const [Retencion_PJ_Loc_PF, setRetencion_PJ_Loc_PF] = useState(0);
-    const [Retencion_PJ_PF_Loc, setRetencion_PJ_PF_Loc] = useState(0);
-    const [Retencion_PJ_PF_NPF, setRetencion_PJ_PF_NPF] = useState(0);
-    const [Retencion_PJ_PF_PF, setRetencion_PJ_PF_PF] = useState(0);
-    const [Retencion_PJ_NPF_Loc, setRetencion_PJ_NPF_Loc] = useState(0);
-    const [Retencion_PJ_NPF_NPF, setRetencion_PJ_NPF_NPF] = useState(0);
-    const [Retencion_PJ_NPF_PF, setRetencion_PJ_NPF_PF] = useState(0);
-
-
-    const handleCantidadEmitidoChange = (event) => {
-
-        setCantidadEmitido(event.target.value.replace(/[^0-9]/g, ''));
-
-    };
-
-    const handleValorNominalChange = (event) => {
-
-        setValorNominal(event.target.value.replace(/[^0-9.]/g, ''));
-
-    };
-
-    const handleBaseImponibleChange = (event) => {
-
-        setbaseImponible(event.target.value.replace(/[^0-9.]/g, ''));
-
-    };
-
-    const handleRetencionNoResidenteChange = (event) => {
-
-        setRetencionNoResidente(event.target.value.replace(/[^0-9.]/g, ''));
-
-    };
-
-
-    const classes = useStyles();
-    const [circular, setCircular] = useState(false);
-    const [openSnack, setOpenSnack] = useState(false);
-
-    useEffect(() => {
-        fetchParametros();
-    }, []);
-
-
-    async function fetchParametros() {
-
-        const apiData = await API.graphql({ query: getParametro, variables: { id: '1' } });
-
-        const parametrosFromAPI = apiData.data.getParametro;
-
-        console.log('parametrosFromAPI', parametrosFromAPI)
-        setCantidadEmitido(parametrosFromAPI.cantidadEmitida);
-        setValorNominal(parametrosFromAPI.valorNominal);
-        setbaseImponible(parametrosFromAPI.baseImponible);
-        setRetencionNoResidente(parametrosFromAPI.noResidente);
-
-        setCartaCesion(parametrosFromAPI.modeloCartaCesion);
-        setCartaGerente(parametrosFromAPI.modeloCartaGerente);
-        setCartaInstrucciones(parametrosFromAPI.modeloCartaInstrucciones);
-        setSolicitudDividendos(parametrosFromAPI.modeloSolicitudDividendos);
-
+  async function ejecutar(fn, exito) {
+    setCargando(true);
+    try {
+      await fn();
+      if (exito) setMensaje({ tipo: 'success', texto: exito });
+    } catch (err) {
+      console.log('Error en parámetros:', err);
+      setMensaje({ tipo: 'error', texto: err.message || (err.errors && err.errors[0] && err.errors[0].message) || 'No se pudieron guardar los parámetros.' });
     }
+    setCargando(false);
+  }
 
-    const addCantidadEmitida = async () => {
-        try {
+  useEffect(() => {
+    ejecutar(async () => {
+      const p = (await API.graphql({ query: getParametro, variables: { id: '1' } })).data.getParametro;
+      setGuardado(p);
+      setForm(Object.fromEntries(EDITABLES.map((c) => [c, p[c] == null ? '' : String(p[c])])));
+    });
+  }, []); // eslint-disable-line react-hooks/exhaustive-deps
 
-            if (!cantidadEmitido) return
+  const numero = (campo) => (e) => setForm({ ...form, [campo]: e.target.value.replace(/[^0-9.]/g, '') });
+  const subir = (campo) => (e) => {
+    const archivo = e.target.files[0];
+    e.target.value = '';
+    // Se guarda el nombre del archivo (antes se guardaba un objeto y fallaba todo el guardado).
+    if (archivo) ejecutar(async () => { const clave = await subirArchivo(archivo); setForm((f) => ({ ...f, [campo]: clave })); });
+  };
 
-            setCircular(true);
+  const valorNominal = parseFloat(form.valorNominal);
+  const baseImponible = parseFloat(form.baseImponible);
+  const errorValor = form.valorNominal !== undefined && !(valorNominal > 0) ? 'Debe ser mayor a 0' : '';
+  const errorBase = form.baseImponible !== undefined && form.baseImponible !== '' && !(baseImponible >= 0) ? 'Valor inválido' : '';
+  const cambios = guardado ? EDITABLES.filter((c) => String(guardado[c] == null ? '' : guardado[c]) !== form[c]) : [];
 
-            const operID = await API.graphql({
-                query: updateParametro, variables: {
-                    input: {
-                        id: '1', cantidadEmitida: cantidadEmitido, 
-                        valorNominal: valorNominal, 
-                        baseImponible: baseImponible, 
-                        
+  const guardar = () => ejecutar(async () => {
+    if (errorValor || errorBase) throw new Error('Revise los valores ingresados.');
+    const input = { id: '1' };
+    cambios.forEach((c) => {
+      input[c] = c === 'valorNominal' ? valorNominal : c === 'baseImponible' ? (form[c] === '' ? null : baseImponible) : form[c];
+    });
+    await API.graphql({ query: updateParametro, variables: { input } });
+    setGuardado((g) => ({ ...g, ...input }));
+  }, 'Parámetros guardados correctamente.');
 
-                        modeloCartaCesion: cartaCesion,
-                        modeloCartaGerente: cartaGerente,
-                        modeloCartaInstrucciones: cartaInstrucciones,
-                        modeloSolicitudDividendos: solicitudDividendos,
-                    }
-                }
-            });
+  return (
+    <main className={classes.content}>
+      <div className={classes.appBarSpacer} />
+      <Box display="flex" alignItems="center" justifyContent="space-between" mb={2}>
+        <Typography variant="h6">Parámetros</Typography>
+        <Box display="flex" alignItems="center" style={{ gap: 8 }}>
+          {cargando && <CircularProgress size={24} />}
+          <Button variant="contained" color="primary" startIcon={<SaveIcon />} onClick={guardar} disabled={cargando || cambios.length === 0 || !!errorValor || !!errorBase}>
+            {cambios.length ? `Guardar cambios (${cambios.length})` : 'Sin cambios'}
+          </Button>
+        </Box>
+      </Box>
 
-            console.log('leer carta cesion', cartaCesion)
-            setCircular(false);
-            setOpenSnack(true)
-
-        } catch (err) {
-            console.log('error creating transaction:', err)
-        }
-    }
-
-    const handleCloseSnack = (event, reason) => {
-        if (reason === 'clickaway') {
-            return;
-        }
-        setOpenSnack(false);
-    };
-
-
-    async function onChangeCartaCesion(e) {
-        if (!e.target.files[0]) {
-            console.log('entro al cancelar')
-            return
-        }
-        const file = e.target.files[0];
-        const filename = uuid() + file.name;
-        setCartaCesion({ filename });
-        console.log('entro al carta cesion', cartaCesion)
-        await Storage.put(filename, file);
-    }
-
-    async function onChangeCartaGerente(e) {
-        if (!e.target.files[0]) {
-            console.log('entro al cancelar')
-            return
-        }
-        const file = e.target.files[0];
-        const filename = uuid() + file.name;
-        setCartaGerente({ filename });
-        await Storage.put(filename, file);
-    }
-
-    async function onChangeCartaInstrucciones(e) {
-        if (!e.target.files[0]) {
-            console.log('entro al cancelar')
-            return
-        }
-        const file = e.target.files[0];
-        const filename = uuid() + file.name;
-        setCartaInstrucciones({ filename });
-        await Storage.put(filename, file);
-    }
-
-    async function onChangeSolicitudDividendos(e) {
-        if (!e.target.files[0]) {
-            console.log('entro al cancelar')
-            return
-        }
-        const file = e.target.files[0];
-        const filename = uuid() + file.name;
-        setSolicitudDividendos({ filename });
-        await Storage.put(filename, file);
-    }
-
-    return (
-        <main className={classes.content}>
-            <div className={classes.appBarSpacer} />
-            <Paper variant="outlined" className={classes.paper}>
-                <Grid container>
-                    <Grid item xs={12} style={{ display: 'flex', flexDirection: 'row', alignItems: 'flex-start', justifyContent: 'normal', }}>
-                        <TextField
-                            id="outlined-required1"
-                            label="Total Emitido"
-                            value={cantidadEmitido}
-                            onChange={handleCantidadEmitidoChange}
-                            style={{ marginRight: 20 }}
-                        />
-                        <TextField
-                            id="outlined-required2"
-                            label="Valor Nominal"
-                            value={valorNominal}
-                            onChange={handleValorNominalChange}
-                            style={{ marginRight: 20 }}
-                        />
-                        <Button onClick={addCantidadEmitida} size='small' variant='contained' color='primary' style={{ marginLeft: 20 }}>Grabar</Button>
-                    </Grid>
-
-
-                    <Grid item xs={12} style={{ display: 'flex', flexDirection: 'row', alignItems: 'flex-start', justifyContent: 'normal', marginTop: '50px' }}>
-                        <TextField
-                            id="outlined-required3"
-                            label="Salario Básico Unificado"
-                            value={baseImponible}
-                            onChange={handleBaseImponibleChange}
-                            style={{ marginRight: 20 }}
-                            type="number"
-                        />
-                    </Grid>
-
-                    <Grid item xs={12} style={{ display: 'flex', flexDirection: 'row', alignItems: 'flex-start', justifyContent: 'normal', marginTop: '50px' }}>
-                        <Typography variant="body2">Modelos de Cartas</Typography>
-                        <label htmlFor="upload-photo101">
-                            <input style={{ display: 'none' }} id="upload-photo101" name="upload-photo101" type="file" accept='.doc,.docx,.xml,application/msword,application/vnd.openxmlformats-officedocument.wordprocessingml.document' onChange={onChangeCartaCesion} />
-                            <Button startIcon={<CloudUploadOutlinedIcon />} variant='outlined' component="span" color="primary" size='small' style={{ textTransform: 'none', marginLeft: 10 }}>Carta de Cesión</Button>
-                        </label>
-                        <label htmlFor="upload-photo102">
-                            <input style={{ display: 'none' }} id="upload-photo102" name="upload-photo102" type="file" accept='.doc,.docx,.xml,application/msword,application/vnd.openxmlformats-officedocument.wordprocessingml.document' onChange={onChangeCartaGerente} />
-                            <Button startIcon={<CloudUploadOutlinedIcon />} variant='outlined' component="span" color="primary" size='small' style={{ textTransform: 'none', marginLeft: 10 }}>Carta de Gerente</Button>
-                        </label>
-                        <label htmlFor="upload-photo103">
-                            <input style={{ display: 'none' }} id="upload-photo103" name="upload-photo103" type="file" accept='.doc,.docx,.xml,application/msword,application/vnd.openxmlformats-officedocument.wordprocessingml.document' onChange={onChangeCartaInstrucciones} />
-                            <Button startIcon={<CloudUploadOutlinedIcon />} variant='outlined' component="span" color="primary" size='small' style={{ textTransform: 'none', marginLeft: 10 }}>Carta de Instrucciones</Button>
-                        </label>
-                        <label htmlFor="upload-photo104">
-                            <input style={{ display: 'none' }} id="upload-photo104" name="upload-photo104" type="file" accept='.doc,.docx,.xml,application/msword,application/vnd.openxmlformats-officedocument.wordprocessingml.document' onChange={onChangeSolicitudDividendos} />
-                            <Button startIcon={<CloudUploadOutlinedIcon />} variant='outlined' component="span" color="primary" size='small' style={{ textTransform: 'none', marginLeft: 10 }}>Solicitud de dividendos</Button>
-                        </label>
-                    </Grid>
-
-                    {circular && <CircularProgress />}
-
+      {guardado && (
+        <Grid container spacing={2}>
+          <Grid item xs={12} md={6}>
+            <Paper variant="outlined" className={classes.tarjeta}>
+              <Typography variant="subtitle1" gutterBottom>Capital</Typography>
+              <Grid container spacing={2}>
+                <Grid item xs={12} sm={6}>
+                  <TextField fullWidth size="small" variant="outlined" label="Total emitido (acciones)" value={enteros(guardado.cantidadEmitida)} disabled
+                    helperText="Se actualiza al aprobar un aumento de capital" />
                 </Grid>
-                <Snackbar open={openSnack} autoHideDuration={6000} onClose={handleCloseSnack}>
-                    <Alert onClose={handleCloseSnack} severity="success">
-                        Se registró correctamente.
-                    </Alert>
-                </Snackbar>
+                <Grid item xs={12} sm={6}>
+                  <TextField fullWidth size="small" variant="outlined" label="Valor nominal" value={form.valorNominal} onChange={numero('valorNominal')}
+                    error={!!errorValor} helperText={errorValor || ' '} InputProps={{ startAdornment: <InputAdornment position="start">USD</InputAdornment> }} />
+                </Grid>
+                <Grid item xs={12}>
+                  <TextField fullWidth size="small" variant="outlined" label="Capital suscrito y pagado" disabled
+                    value={decimales((guardado.cantidadEmitida || 0) * (valorNominal || 0))}
+                    InputProps={{ startAdornment: <InputAdornment position="start">USD</InputAdornment> }} />
+                </Grid>
+              </Grid>
             </Paper>
-        </main>
-    );
+          </Grid>
+
+          <Grid item xs={12} md={6}>
+            <Paper variant="outlined" className={classes.tarjeta}>
+              <Typography variant="subtitle1" gutterBottom>Retenciones</Typography>
+              <TextField fullWidth size="small" variant="outlined" label="Salario básico unificado (SBU)" value={form.baseImponible} onChange={numero('baseImponible')}
+                error={!!errorBase} helperText={errorBase || 'Se usa en la retención de dividendos de personas naturales residentes (reducción de 3 SBU).'}
+                InputProps={{ startAdornment: <InputAdornment position="start">USD</InputAdornment> }} />
+            </Paper>
+          </Grid>
+
+          <Grid item xs={12} md={6}>
+            <Paper variant="outlined" className={classes.tarjeta}>
+              <Typography variant="subtitle1" gutterBottom>Modelos de cartas</Typography>
+              <Typography variant="body2" color="textSecondary" gutterBottom>Plantillas Word que los accionistas descargan desde su portal.</Typography>
+              {MODELOS.map(([campo, etiqueta]) => (
+                <Box key={campo} display="flex" alignItems="center" justifyContent="space-between" py={0.5}>
+                  <Box display="flex" alignItems="center" style={{ gap: 8 }}>
+                    <CheckCircleIcon fontSize="small" color={form[campo] ? 'primary' : 'disabled'} />
+                    <Typography variant="body2">{etiqueta}</Typography>
+                  </Box>
+                  <Box display="flex" alignItems="center">
+                    {form[campo] && <IconButton size="small" title="Ver" onClick={() => ejecutar(() => abrirArchivo(form[campo]))}><PageviewIcon /></IconButton>}
+                    <Button component="label" size="small" color="primary" startIcon={<CloudUploadOutlinedIcon />}>
+                      {form[campo] ? 'Reemplazar' : 'Subir'}
+                      <input hidden type="file" accept={ACEPTA} onChange={subir(campo)} />
+                    </Button>
+                  </Box>
+                </Box>
+              ))}
+            </Paper>
+          </Grid>
+
+          <Grid item xs={12} md={6}>
+            <Paper variant="outlined" className={classes.tarjeta}>
+              <ValidacionTitulos />
+            </Paper>
+          </Grid>
+        </Grid>
+      )}
+
+      <Snackbar open={!!mensaje} autoHideDuration={6000} onClose={(e, razon) => razon !== 'clickaway' && setMensaje(null)}>
+        {mensaje ? <MuiAlert elevation={6} variant="filled" severity={mensaje.tipo} onClose={() => setMensaje(null)}>{mensaje.texto}</MuiAlert> : <span />}
+      </Snackbar>
+    </main>
+  );
 }

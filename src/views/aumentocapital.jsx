@@ -1,322 +1,209 @@
 import React, { useState, useEffect } from 'react';
+import { API, Auth } from 'aws-amplify';
 import {
-  makeStyles, Paper, Divider, Grid, Typography, TextField, Button, withStyles, ListItem, ListItemText, ListSubheader, ListItemIcon,
-  List, IconButton, Dialog, DialogActions, DialogContent, DialogContentText, DialogTitle, Checkbox, Snackbar, CircularProgress, Chip
+  Paper, Grid, Typography, TextField, Button, Snackbar, CircularProgress, Avatar, Box, Divider, InputAdornment,
+  Stepper, Step, StepLabel,
 } from '@material-ui/core';
-
-
-
+import { makeStyles } from '@material-ui/core/styles';
 import Autocomplete from '@material-ui/lab/Autocomplete';
-import { API, Storage, graphqlOperation, Auth } from 'aws-amplify';
-import { listAccionistas, getParametro, getTitulo } from './../graphql/queries';
-import { createAccionistaOperacion, createAumentoCapital, createOperacion, createTitulo, createTituloPorOperacion, updateAccionista, updateParametro, updateTitulo } from './../graphql/mutations';
-
-import SaveIcon from '@material-ui/icons/Save';
-import CheckIcon from '@material-ui/icons/Check';
 import MuiAlert from '@material-ui/lab/Alert';
+import TrendingUpIcon from '@material-ui/icons/TrendingUp';
 import CloudUploadOutlinedIcon from '@material-ui/icons/CloudUploadOutlined';
+import CheckCircleIcon from '@material-ui/icons/CheckCircle';
+import PageviewIcon from '@material-ui/icons/Pageview';
 import DeleteOutlineIcon from '@material-ui/icons/DeleteOutline';
-
-import VisibilityIcon from '@material-ui/icons/Visibility';
-
-import { uuid } from 'uuidv4';
-import { Label } from '@material-ui/icons';
-
-function Alert(props) {
-  return <MuiAlert elevation={6} variant="filled" {...props} />;
-}
-
-const BlaclTextTypography = withStyles({
-  root: {
-    color: "#000000",
-  }
-})(Typography);
+import SendIcon from '@material-ui/icons/Send';
+import { listAccionistas, getParametro } from '../graphql/queries';
+import { listarTodos } from '../services/listarTodos';
+import { solicitarAumentoCapital } from '../services/operaciones';
+import { subirArchivo, abrirArchivo } from '../services/archivos';
 
 const useStyles = makeStyles((theme) => ({
-  paper: {
-    padding: theme.spacing(2),
-    textAlign: 'left',
-    color: theme.palette.text.secondary,
-    //height: '83vh',
-    height: 'calc(100%)',
-  },
-  appBarSpacer: {
-    ...theme.mixins.toolbar,
-  },
-  content: {
-    flexGrow: 1,
-    padding: theme.spacing(2),
-  },
-  button: {
-    margin: theme.spacing(1),
-    marginTop: 35,
-  },
-  titulos: {
-    flexDirection: 'row',
-
-  },
-
+  appBarSpacer: { ...theme.mixins.toolbar },
+  content: { flexGrow: 1, padding: theme.spacing(2) },
+  encabezado: { display: 'flex', alignItems: 'center', gap: theme.spacing(1.5), marginBottom: theme.spacing(2) },
+  avatar: { backgroundColor: theme.palette.primary.main },
+  tarjeta: { padding: theme.spacing(2), height: '100%' },
 }));
 
+const enteros = (n) => new Intl.NumberFormat('en-US').format(n || 0);
+const decimales = (n, d = 2) => new Intl.NumberFormat('en-US', { minimumFractionDigits: d, maximumFractionDigits: d }).format(n || 0);
+const ESTADOS = { 1: 'Activo', 2: 'Inactivo' };
 
-const today = new Date();
-const fecha = today.getDate() + '-' + (today.getMonth() + 1) + '-' + today.getFullYear();
+function Dato({ titulo, valor }) {
+  return (
+    <Grid item xs={6}>
+      <Typography variant="caption" color="textSecondary">{titulo}</Typography>
+      <Typography variant="body1">{valor}</Typography>
+    </Grid>
+  );
+}
 
-
-
+// Solicita un aumento de capital: nuevas acciones para un accionista activo o inactivo.
+// Queda pendiente; al aprobarse en el blotter se crea el título a continuación del último emitido y el accionista queda activo.
 export default function AumentoCapital() {
-  useEffect(() => {
-    fetchAccionistas();
-    fetchParametros();
-    let user = getUser();
-    setUserName(user);
-  }, []);
-  function getUser() {
-    let user
-    if (Auth.user != null) user = Auth.user.username;
-    return user;
-  }
-  const [userName, setUserName] = useState(Auth.user.username);
-  var [tituloGlobal, setTituloGlobal] = useState({
-    tit_accionista_id: "",
-    tit_acciones: 0,
-    tit_estado: 0,
-    tit_desde: 0,
-    tit_hasta: 0,
-    tit_padre: "",
-    tit_nivel: 0
-  });
-  var [operacionGlobal, setOperacionGlobal] = useState({
-    ope_fecha: fecha,
-    ope_tipo: 0,
-    ope_acciones: 0,
-    ope_estado: 0,
-    ope_ingresador: "Admin",
-    ope_aprobador: "",
-    ope_fecha_aprobacion: "",
-    ope_motivo_rechazo: -1,
-    ope_observacion: "",
-    ope_documento: ""
-  });
-  var [aumentoCapitalGlobal, setAumentoCapitalGlobal] = useState({
-    id: "",
-    aum_cap_valor_nominal: 0,
-    aum_cap_capital: 0
-  });
-  var [accionistaGlobal, setAccionistaGlobal] = useState({ acc_identificacion: '' });
   const classes = useStyles();
+  const [accionistas, setAccionistas] = useState([]);
+  const [parametro, setParametro] = useState({ cantidadEmitida: 0, valorNominal: 0 });
+  const [accionista, setAccionista] = useState(null);
+  const [cantidad, setCantidad] = useState('');
+  const [documento, setDocumento] = useState('');
+  const [cargando, setCargando] = useState(true);
+  const [mensaje, setMensaje] = useState(null); // { tipo, texto }
 
-  const [formData, setFormData] = useState({
-    fecha: fecha, operacion: 'Aumento Capital',
-    idCedente: '', cedente: '', idCesionario: '', cesionario: '',
-    titulo: '', acciones: 0,
-    estado: 'Pendiente', usuarioIngreso: '', usuarioAprobador: '',
-    cs: '', cg: '', ci: '', es: '', cp: '',
-    valorNominal: 0, capital: 0, fechaValor: ''
-  });
-  const [accionistas, setAccionistas] = useState([])
-  const [openSnack, setOpenSnack] = useState(false);
-  const [openSnackDanger, setOpenSnackDanger] = useState(false);
-
-  const addOperacion = async () => {
+  async function ejecutar(fn) {
+    setCargando(true);
     try {
-      if (tituloGlobal.tit_accionista_id == "" || tituloGlobal.tit_acciones == 0) {
-        setOpenSnackDanger(true);
-        return;
-      }
-      operacionGlobal.ope_acciones = tituloGlobal.tit_acciones;
-      operacionGlobal.ope_documento = formData.es;
-      operacionGlobal.ope_ingresador = userName;
-      var operacionIdNew = await API.graphql(graphqlOperation(createOperacion, { input: operacionGlobal }));
-      aumentoCapitalGlobal.id = operacionIdNew.data.createOperacion.id;
-      await API.graphql(graphqlOperation(createAumentoCapital, { input: aumentoCapitalGlobal }));
-      const accionistaOperacion = {
-        acc_ope_operacion_id: operacionIdNew.data.createOperacion.id,
-        acc_ope_accionista_id: accionistaGlobal.id,
-        acc_ope_detalle: "Aumento Capital"
-      };
-      await API.graphql(graphqlOperation(createAccionistaOperacion, { input: accionistaOperacion }));
-      tituloGlobal.tit_accionista_id = "";
-      tituloGlobal.tit_acciones = 0;
-      aumentoCapitalGlobal.aum_cap_capital = 0;
-      setAccionistaGlobal({ acc_identificacion: '' });
-      setFormData({es: ''});
-      console.log("accionista:", accionistaGlobal);
-      setOpenSnack(true);
+      await fn();
     } catch (err) {
-      console.log('error creating transaction:', err);
-      setOpenSnackDanger(true);
+      console.log('Error en aumento de capital:', err);
+      setMensaje({ tipo: 'error', texto: err.message || 'Ocurrió un error al registrar la operación.' });
     }
+    setCargando(false);
   }
 
-  async function fetchAccionistas() {
-    const filter = {
-      or: [
-        {acc_estado: {
-          eq: 1
-        }},
-        {acc_estado: {
-          eq: 2
-        }}
-      ]
-    };
-    const apiData = await API.graphql({ query: listAccionistas, variables: { filter: filter, limit: 1000 } });
-    const accionistasFromAPI = apiData.data.listAccionistas.items;
-    setAccionistas(accionistasFromAPI);
-  }
+  useEffect(() => {
+    ejecutar(async () => {
+      const [lista, p] = await Promise.all([
+        listarTodos(listAccionistas, 'listAccionistas', { filter: { or: [{ acc_estado: { eq: 1 } }, { acc_estado: { eq: 2 } }] } }),
+        API.graphql({ query: getParametro, variables: { id: '1' } }),
+      ]);
+      setAccionistas(lista.sort((a, b) => (a.acc_nombre_completo || '').localeCompare(b.acc_nombre_completo || '')));
+      setParametro(p.data.getParametro);
+    });
+  }, []); // eslint-disable-line react-hooks/exhaustive-deps
 
-  async function fetchParametros() {
-    var apiData = await API.graphql({ query: getParametro, variables: { id: '1' } });
-    var parametrosFromAPI = apiData.data.getParametro;
-    setAumentoCapitalGlobal({
-      ...aumentoCapitalGlobal,
-      'aum_cap_valor_nominal': parseFloat(parametrosFromAPI.valorNominal)
-    });
-  }
+  const acciones = parseInt(cantidad, 10) || 0;
+  const capital = acciones * (parametro.valorNominal || 0);
+  const emitidoNuevo = (parametro.cantidadEmitida || 0) + acciones;
+  const accionesBeneficiario = (accionista ? accionista.acc_cantidad_acciones || 0 : 0) + acciones;
+  const paso = !accionista ? 0 : !acciones ? 1 : !documento ? 2 : 3;
 
-  const handleClickCesionario = (option, value) => {
-    if (value) {
-      setAccionistaGlobal(value);
-      setTituloGlobal({ ...tituloGlobal, 'tit_accionista_id': value.id })
-    }
-    else {
-      setAccionistaGlobal({ acc_identificacion: '' });
-      setTituloGlobal({ ...tituloGlobal, 'tit_accionista_id': '' })
-    }
-  }
-  const handleCloseSnack = (event, reason) => {
-    if (reason === 'clickaway') {
-      return;
-    }
-    setOpenSnack(false);
+  const subir = (e) => {
+    const archivo = e.target.files[0];
+    e.target.value = '';
+    if (archivo) ejecutar(async () => setDocumento(await subirArchivo(archivo)));
   };
-  const handleCloseSnackDanger = (event, reason) => {
-    if (reason === 'clickaway') {
-      return;
-    }
-    setOpenSnackDanger(false);
-  };
-  async function onChangeES(e) {
-    if (!e.target.files[0]) return
-    const file = e.target.files[0];
-    const filename = uuid() + file.name
-    setFormData({ ...formData, es: filename });
-    await Storage.put(filename, file);
-  }
-  const getPictureES = e => {
-    e.stopPropagation();
-    Storage.get(formData.es)
-      .then(url => {
-        var myRequest = new Request(url);
-        fetch(myRequest).then(function (response) {
-          if (response.status === 200) {
-            //setImageCS(url);
-            window.open(url)
-          }
-        });
-      })
-      .catch(err => console.log(err));
-  };
-  const handleCantidadEmitidoChange = (event) => {
-    setAumentoCapitalGlobal({
-      ...aumentoCapitalGlobal,
-      'aum_cap_capital': parseFloat((event.target.value.replace(/[^0-9]/g, '') * aumentoCapitalGlobal.aum_cap_valor_nominal)).toFixed(2)
+
+  const solicitar = () => ejecutar(async () => {
+    if (!accionista) throw new Error('Seleccione el beneficiario.');
+    await solicitarAumentoCapital({
+      accionista, acciones, valorNominal: parametro.valorNominal, documento, usuario: Auth.user ? Auth.user.username : '',
     });
-    setTituloGlobal({
-      ...tituloGlobal,
-      'tit_acciones': parseInt(event.target.value.replace(/[^0-9]/g, ''))
-    });
-  };
+    setAccionista(null);
+    setCantidad('');
+    setDocumento('');
+    setMensaje({ tipo: 'success', texto: 'Se registró la solicitud de aumento de capital. Queda pendiente de aprobación.' });
+  });
+
   return (
     <main className={classes.content}>
       <div className={classes.appBarSpacer} />
+      <div className={classes.encabezado}>
+        <Avatar className={classes.avatar}><TrendingUpIcon /></Avatar>
+        <div>
+          <Typography variant="h6">Aumento de capital</Typography>
+          <Typography variant="body2" color="textSecondary">
+            Las acciones nuevas se numeran a continuación de la última emitida y se asignan al aprobarse la operación.
+          </Typography>
+        </div>
+      </div>
 
-      <Paper variant="outlined" className={classes.paper}>
-
-        <Grid container>
-          <Grid item xs={3} >
-            <BlaclTextTypography variant='h6'>
-              Aumento de Capital
-            </BlaclTextTypography>
-            <Autocomplete
-              value={accionistaGlobal}
-              size='small'
-              id="combo-box-cecionario"
-              options={accionistas}
-              getOptionLabel={(option) => option.acc_nombre_completo}
-              style={{ width: 'calc(100%)' }}
-              renderInput={(params) => <TextField {...params} label="Beneficiario" margin="normal" variant='outlined' />}
-              onChange={(option, value) => handleClickCesionario(option, value)}
-            />
-            <TextField
-              id="outlined-required1"
-              label="Cantidad Emitida"
-              value={tituloGlobal.tit_acciones}
-              onChange={handleCantidadEmitidoChange}
-              style={{ marginTop: 20 }}
-            />
-            <TextField
-              id="outlined-required2"
-              label="Valor Nominal"
-              value={aumentoCapitalGlobal.aum_cap_valor_nominal}
-              style={{ marginTop: 20 }}
-              disabled
-            />
-            <TextField
-              id="outlined-required1"
-              label="Capital"
-              value={aumentoCapitalGlobal.aum_cap_capital}
-              style={{ marginTop: 20 }}
-              disabled
-            />
-          </Grid>
-          <Grid item xs={1} >
-          </Grid>
-          <Grid item xs={4}>
-          </Grid>
-          <Grid item xs={1} >
-          </Grid>
-
-          <Grid item xs={3} container direction='column' justifyContent='flex-start' style={{ backgroundColor: '#f9f9f9', padding: 20, borderRadius: 10, }}>
-            <BlaclTextTypography variant='h6' >
-              Documentos Requeridos
-            </BlaclTextTypography>
-
-            <label htmlFor="upload-photo4" style={{ marginTop: '10px', display: 'flex', flexDirection: 'row', alignItems: 'center' }}>
-              <input style={{ display: 'none' }} id="upload-photo4" name="upload-photo4" type="file" accept="application/pdf" onChange={onChangeES} />
-              <Button startIcon={<CloudUploadOutlinedIcon />} variant='outlined' component="span" color="primary" size='small' style={{ textTransform: 'none', }}>Escrituras</Button>
-              {formData.es.length > 0 && <div style={{ display: 'flex', flexDirection: 'row', alignItems: 'center' }}>  <IconButton onClick={() => setFormData({ ...formData, 'es': '' })}><DeleteOutlineIcon color='disabled' /></IconButton> <IconButton onClick={getPictureES} ><VisibilityIcon color='primary' /></IconButton> </div>}
-            </label>
-          </Grid>
-          <Grid item xs={12} style={{ paddingTop: 20 }} >
-            <Divider />
-          </Grid>
-          <Grid item xs={12} container direction='row' justifyContent='flex-end'>
-
-            <Button
-              variant="contained"
-              color="primary"
-              className={classes.button}
-              startIcon={<SaveIcon />}
-              size='small'
-              onClick={addOperacion}
-              disabled={tituloGlobal.accionistaID != '' && tituloGlobal.tit_acciones == 0}
-            >
-              Solicitar Aprobación
-            </Button>
-          </Grid>
-        </Grid>
-        <Snackbar open={openSnack} autoHideDuration={6000} onClose={handleCloseSnack}>
-          <Alert onClose={handleCloseSnack} severity="success">
-            Se registró exitosamente la solicitud de Aumento de Capital
-          </Alert>
-        </Snackbar>
-        <Snackbar open={openSnackDanger} autoHideDuration={6000} onClose={handleCloseSnackDanger}>
-          <Alert onClose={handleCloseSnackDanger} severity="error">
-            Registre todos los campos requeridos!
-          </Alert>
-        </Snackbar>
+      <Paper variant="outlined" style={{ marginBottom: 16 }}>
+        <Stepper activeStep={paso}>
+          <Step><StepLabel>Beneficiario</StepLabel></Step>
+          <Step><StepLabel>Acciones a emitir</StepLabel></Step>
+          <Step><StepLabel optional={<Typography variant="caption">Opcional</Typography>}>Escrituras</StepLabel></Step>
+          <Step><StepLabel>Solicitar aprobación</StepLabel></Step>
+        </Stepper>
       </Paper>
+
+      <Grid container spacing={2}>
+        <Grid item xs={12} md={4}>
+          <Paper variant="outlined" className={classes.tarjeta}>
+            <Typography variant="subtitle1" gutterBottom>Beneficiario</Typography>
+            <Autocomplete
+              size="small"
+              options={accionistas}
+              value={accionista}
+              onChange={(e, v) => setAccionista(v)}
+              getOptionLabel={(o) => o.acc_nombre_completo || ''}
+              getOptionSelected={(o, v) => o.id === v.id}
+              noOptionsText="No hay accionistas activos o inactivos"
+              renderOption={(o) => (
+                <Box>
+                  <Typography variant="body2">{o.acc_nombre_completo}</Typography>
+                  <Typography variant="caption" color="textSecondary">{`${o.acc_identificacion} — ${ESTADOS[o.acc_estado]} — ${enteros(o.acc_cantidad_acciones)} acciones`}</Typography>
+                </Box>
+              )}
+              renderInput={(params) => <TextField {...params} label="Buscar accionista activo o inactivo" variant="outlined" />}
+            />
+            {accionista && (
+              <Grid container spacing={1} style={{ marginTop: 8 }}>
+                <Dato titulo="Identificación" valor={accionista.acc_identificacion} />
+                <Dato titulo="Estado" valor={ESTADOS[accionista.acc_estado]} />
+                <Dato titulo="Acciones actuales" valor={enteros(accionista.acc_cantidad_acciones)} />
+                <Dato titulo="Participación actual" valor={`${decimales((accionista.acc_participacion || 0) * 100, 6)}%`} />
+              </Grid>
+            )}
+            {accionista && accionista.acc_estado === 2 && (
+              <MuiAlert severity="info" style={{ marginTop: 8 }}>El accionista inactivo quedará activo al aprobarse el aumento.</MuiAlert>
+            )}
+          </Paper>
+        </Grid>
+
+        <Grid item xs={12} md={4}>
+          <Paper variant="outlined" className={classes.tarjeta}>
+            <Typography variant="subtitle1" gutterBottom>Emisión</Typography>
+            <TextField
+              fullWidth size="small" variant="outlined" label="Acciones a emitir" value={cantidad}
+              onChange={(e) => setCantidad(e.target.value.replace(/[^0-9]/g, ''))}
+              inputProps={{ inputMode: 'numeric' }}
+            />
+            <TextField
+              fullWidth size="small" variant="outlined" label="Valor nominal" value={decimales(parametro.valorNominal, 2)} disabled style={{ marginTop: 16 }}
+              InputProps={{ startAdornment: <InputAdornment position="start">USD</InputAdornment> }}
+            />
+            <TextField
+              fullWidth size="small" variant="outlined" label="Capital" value={decimales(capital, 2)} disabled style={{ marginTop: 16 }}
+              InputProps={{ startAdornment: <InputAdornment position="start">USD</InputAdornment> }}
+            />
+            <Divider style={{ margin: '16px 0' }} />
+            <Grid container spacing={1}>
+              <Dato titulo="Emitido actual" valor={enteros(parametro.cantidadEmitida)} />
+              <Dato titulo="Emitido después" valor={enteros(emitidoNuevo)} />
+              {acciones > 0 && <Dato titulo="Rango estimado" valor={`${enteros((parametro.cantidadEmitida || 0) + 1)} – ${enteros(emitidoNuevo)}`} />}
+              {accionista && acciones > 0 && <Dato titulo="Participación después" valor={`${decimales(accionesBeneficiario * 100 / emitidoNuevo, 6)}%`} />}
+            </Grid>
+          </Paper>
+        </Grid>
+
+        <Grid item xs={12} md={4}>
+          <Paper variant="outlined" className={classes.tarjeta}>
+            <Typography variant="subtitle1" gutterBottom>Escrituras</Typography>
+            <Box display="flex" alignItems="center" flexWrap="wrap" style={{ gap: 8 }}>
+              <Button component="label" variant="outlined" color="primary" startIcon={documento ? <CheckCircleIcon /> : <CloudUploadOutlinedIcon />} style={{ textTransform: 'none' }}>
+                {documento ? 'Reemplazar escrituras' : 'Subir escrituras (PDF)'}
+                <input hidden type="file" accept="application/pdf" onChange={subir} />
+              </Button>
+              {documento && <Button size="small" color="primary" startIcon={<PageviewIcon />} onClick={() => ejecutar(() => abrirArchivo(documento))}>Ver</Button>}
+              {documento && <Button size="small" startIcon={<DeleteOutlineIcon />} onClick={() => setDocumento('')}>Quitar</Button>}
+            </Box>
+            {!documento && <Typography variant="body2" color="textSecondary" style={{ marginTop: 12 }}>El aprobador revisa las escrituras en el blotter.</Typography>}
+          </Paper>
+        </Grid>
+      </Grid>
+
+      <Box display="flex" justifyContent="flex-end" alignItems="center" mt={2} style={{ gap: 8 }}>
+        {cargando && <CircularProgress size={24} />}
+        <Button variant="contained" color="primary" startIcon={<SendIcon />} onClick={solicitar} disabled={cargando || !accionista || acciones <= 0}>
+          Solicitar aprobación
+        </Button>
+      </Box>
+
+      <Snackbar open={!!mensaje} autoHideDuration={6000} onClose={(e, razon) => razon !== 'clickaway' && setMensaje(null)}>
+        {mensaje ? <MuiAlert elevation={6} variant="filled" severity={mensaje.tipo} onClose={() => setMensaje(null)}>{mensaje.texto}</MuiAlert> : <span />}
+      </Snackbar>
     </main>
   );
 }

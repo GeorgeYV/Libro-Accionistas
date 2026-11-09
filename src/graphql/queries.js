@@ -338,6 +338,14 @@ export const getDividendosTitulos = /* GraphQL */ `
       div_tit_ddiv_id
       div_tit_titulo_id
       div_tit_accionista_id
+      div_tit_periodo
+      div_tit_desde
+      div_tit_hasta
+      div_tit_acciones
+      div_tit_porcentaje
+      div_tit_estado
+      div_tit_aprobador
+      div_tit_fecha_aprobacion
       createdAt
       updatedAt
       __typename
@@ -366,6 +374,57 @@ export const listDividendosTitulos = /* GraphQL */ `
         div_tit_ddiv_id
         div_tit_titulo_id
         div_tit_accionista_id
+        div_tit_periodo
+        div_tit_desde
+        div_tit_hasta
+        div_tit_acciones
+        div_tit_porcentaje
+        div_tit_estado
+        div_tit_aprobador
+        div_tit_fecha_aprobacion
+        createdAt
+        updatedAt
+        __typename
+      }
+      nextToken
+      __typename
+    }
+  }
+`;
+export const dividendosTitulosByAccionista = /* GraphQL */ `
+  query DividendosTitulosByAccionista(
+    $div_tit_accionista_id: String
+    $sortDirection: ModelSortDirection
+    $filter: ModelDividendosTitulosFilterInput
+    $limit: Int
+    $nextToken: String
+  ) {
+    dividendosTitulosByAccionista(
+      div_tit_accionista_id: $div_tit_accionista_id
+      sortDirection: $sortDirection
+      filter: $filter
+      limit: $limit
+      nextToken: $nextToken
+    ) {
+      items {
+        id
+        div_tit_participacion
+        div_tit_dividendo
+        div_tit_retencion
+        div_tit_base_imponible
+        div_tit_fecha_pago
+        div_tit_documento
+        div_tit_ddiv_id
+        div_tit_titulo_id
+        div_tit_accionista_id
+        div_tit_periodo
+        div_tit_desde
+        div_tit_hasta
+        div_tit_acciones
+        div_tit_porcentaje
+        div_tit_estado
+        div_tit_aprobador
+        div_tit_fecha_aprobacion
         createdAt
         updatedAt
         __typename
@@ -387,6 +446,11 @@ export const getDetalleDividendo = /* GraphQL */ `
       ddiv_dividendo
       ddiv_porcentaje
       ddiv_dividendo_id
+      ddiv_asamblea_id
+      ddiv_fecha_corte
+      ddiv_valor_accion
+      ddiv_acciones
+      ddiv_monto
       createdAt
       updatedAt
       __typename
@@ -414,6 +478,11 @@ export const listDetalleDividendos = /* GraphQL */ `
         ddiv_dividendo
         ddiv_porcentaje
         ddiv_dividendo_id
+        ddiv_asamblea_id
+        ddiv_fecha_corte
+        ddiv_valor_accion
+        ddiv_acciones
+        ddiv_monto
         createdAt
         updatedAt
         __typename
@@ -431,6 +500,7 @@ export const getDividendoNuevo = /* GraphQL */ `
       div_concepto
       div_dividendo
       div_repartido
+      div_acciones_base
       createdAt
       updatedAt
       __typename
@@ -450,6 +520,7 @@ export const listDividendoNuevos = /* GraphQL */ `
         div_concepto
         div_dividendo
         div_repartido
+        div_acciones_base
         createdAt
         updatedAt
         __typename
@@ -733,6 +804,7 @@ export const getParametro = /* GraphQL */ `
       modeloCartaCesion
       modeloCartaGerente
       modeloCartaInstrucciones
+      modeloSolicitudDividendos
       titulos_totales
       createdAt
       updatedAt
@@ -795,6 +867,7 @@ export const listParametros = /* GraphQL */ `
         modeloCartaCesion
         modeloCartaGerente
         modeloCartaInstrucciones
+        modeloSolicitudDividendos
         titulos_totales
         createdAt
         updatedAt
@@ -1016,6 +1089,7 @@ export const getAsamblea = /* GraphQL */ `
       habilitanteTema14
       habilitanteTema15
       rutaGrabacion
+      temaDividendo
       createdAt
       updatedAt
       __typename
@@ -1112,6 +1186,85 @@ export const listAsambleas = /* GraphQL */ `
         habilitanteTema14
         habilitanteTema15
         rutaGrabacion
+        temaDividendo
+        createdAt
+        updatedAt
+        __typename
+      }
+      nextToken
+      __typename
+    }
+  }
+`;
+export const getTituloxJunta = /* GraphQL */ `
+  query GetTituloxJunta($id: ID!) {
+    getTituloxJunta(id: $id) {
+      id
+      asambleaID
+      accionistaID
+      tituloID
+      desde
+      hasta
+      acciones
+      tituloEstado
+      accionistaEstado
+      createdAt
+      updatedAt
+      __typename
+    }
+  }
+`;
+export const listTituloxJuntas = /* GraphQL */ `
+  query ListTituloxJuntas(
+    $filter: ModelTituloxJuntaFilterInput
+    $limit: Int
+    $nextToken: String
+  ) {
+    listTituloxJuntas(filter: $filter, limit: $limit, nextToken: $nextToken) {
+      items {
+        id
+        asambleaID
+        accionistaID
+        tituloID
+        desde
+        hasta
+        acciones
+        tituloEstado
+        accionistaEstado
+        createdAt
+        updatedAt
+        __typename
+      }
+      nextToken
+      __typename
+    }
+  }
+`;
+export const titulosxJuntaByAsamblea = /* GraphQL */ `
+  query TitulosxJuntaByAsamblea(
+    $asambleaID: ID
+    $sortDirection: ModelSortDirection
+    $filter: ModelTituloxJuntaFilterInput
+    $limit: Int
+    $nextToken: String
+  ) {
+    titulosxJuntaByAsamblea(
+      asambleaID: $asambleaID
+      sortDirection: $sortDirection
+      filter: $filter
+      limit: $limit
+      nextToken: $nextToken
+    ) {
+      items {
+        id
+        asambleaID
+        accionistaID
+        tituloID
+        desde
+        hasta
+        acciones
+        tituloEstado
+        accionistaEstado
         createdAt
         updatedAt
         __typename
@@ -1164,6 +1317,58 @@ export const listAccionistasxJuntas = /* GraphQL */ `
     $nextToken: String
   ) {
     listAccionistasxJuntas(
+      filter: $filter
+      limit: $limit
+      nextToken: $nextToken
+    ) {
+      items {
+        id
+        asambleaID
+        accionistaID
+        identificacion
+        nombre
+        acciones
+        estado
+        presente
+        horaLlegada
+        representanteNombre
+        representanteDocumento
+        representanteDI
+        votacion1
+        votacion2
+        votacion3
+        votacion4
+        votacion5
+        votacion6
+        votacion7
+        votacion8
+        votacion9
+        votacion10
+        votacion11
+        votacion12
+        votacion13
+        votacion14
+        votacion15
+        createdAt
+        updatedAt
+        __typename
+      }
+      nextToken
+      __typename
+    }
+  }
+`;
+export const accionistasxJuntaByAsamblea = /* GraphQL */ `
+  query AccionistasxJuntaByAsamblea(
+    $asambleaID: ID
+    $sortDirection: ModelSortDirection
+    $filter: ModelAccionistasxJuntaFilterInput
+    $limit: Int
+    $nextToken: String
+  ) {
+    accionistasxJuntaByAsamblea(
+      asambleaID: $asambleaID
+      sortDirection: $sortDirection
       filter: $filter
       limit: $limit
       nextToken: $nextToken
