@@ -1,5 +1,4 @@
-import { API, Storage } from 'aws-amplify';
-import { uuid } from 'uuidv4';
+import { API } from 'aws-amplify';
 import {
   listAsambleas, listAccionistas, listDividendoNuevos, listDetalleDividendos, listDividendosTitulos, getDetalleDividendo, getParametro, listTitulos,
 } from '../graphql/queries';
@@ -8,6 +7,9 @@ import {
   createDividendosTitulos, updateDividendosTitulos, updateAsamblea,
 } from '../graphql/mutations';
 import { listarTodos } from './listarTodos';
+import { paraisosFiscales } from './paises';
+import { conParaisoFiscal } from '../utils/retencion';
+import { subirArchivo } from './archivos';
 import { cargarRegistros } from './asambleas';
 import { obtenerFotoTitulos, enLotes } from './fotoTitulos';
 import { resultadoVotacion, redondear2, coberturaPeriodo, reasignarPendientes, dividendosDeAccionista } from '../utils/dividendos';
@@ -49,6 +51,7 @@ export async function listarRepartos() {
         div_periodo: div.div_periodo,
         div_concepto: (div.div_concepto || '').split('&&')[0],
         div_dividendo: div.div_dividendo,
+        div_acciones_base: div.div_acciones_base,
         monto,
         saldo: redondear2(monto - (d.ddiv_dividendo || 0)),
       };
@@ -56,9 +59,10 @@ export async function listarRepartos() {
     .sort((a, b) => (b.div_periodo - a.div_periodo) || (b.ddiv_secuencial - a.ddiv_secuencial));
 }
 
+// Accionistas por id, con la marca de paraíso fiscal de su país de residencia (para la retención).
 export async function mapaAccionistas() {
-  const accionistas = await listarTodos(listAccionistas, 'listAccionistas');
-  return new Map(accionistas.map((a) => [a.id, a]));
+  const [accionistas, paraisos] = await Promise.all([listarTodos(listAccionistas, 'listAccionistas'), paraisosFiscales()]);
+  return new Map(accionistas.map((a) => [a.id, conParaisoFiscal(a, paraisos)]));
 }
 
 // Detalle de un reparto agrupado por accionista.
@@ -84,7 +88,7 @@ export async function detalleReparto(reparto, accionistas) {
       id,
       identificacion: acc.acc_identificacion || id,
       nombre: acc.acc_nombre_completo || '',
-      persona: acc.acc_tipo_identificacion === 0 ? 'Natural' : 'Jurídica',
+      persona: acc.acc_tipo_persona === 1 ? 'Jurídica' : 'Natural',
       residencia: acc.acc_residencia || '',
       // Repartos antiguos no guardaban acciones por tramo: se muestra la tenencia actual.
       acciones: conAcciones ? susTramos.reduce((s, t) => s + t.div_tit_acciones, 0) : (acc.acc_cantidad_acciones || 0),
@@ -117,11 +121,8 @@ async function sumarPagado(repartoId, monto) {
   return pagado;
 }
 
-async function subirComprobante(archivo) {
-  const documento = uuid() + archivo.name;
-  await Storage.put(documento, archivo);
-  return documento;
-}
+// Comprobante de pago: solo PDF (misma validación que el resto de documentos).
+const subirComprobante = (archivo) => subirArchivo(archivo);
 
 // Registra el pago de un accionista: sube el comprobante y marca sus tramos PENDIENTES del reparto como pagados.
 export async function pagarAccionista(reparto, fila, archivo, fecha) {
@@ -156,9 +157,7 @@ export async function pagarTodoAccionista(filas, archivo, fecha) {
   return { documento, pagados };
 }
 
-export async function urlDocumento(documento) {
-  return Storage.get(documento);
-}
+
 
 // ---- Generación de repartos desde asamblea ----------------------------------------------------
 
@@ -252,6 +251,7 @@ export async function guardarReparto(datos) {
         ddiv_dividendo_id: dividendo.id,
         ddiv_asamblea_id: asamblea.id,
         ddiv_fecha_corte: asamblea.fecha,
+        ddiv_reglas_retencion: JSON.stringify(calculo.reglas),
         ddiv_valor_accion: calculo.valorAccion,
         ddiv_acciones: calculo.accionesReparto,
         ddiv_monto: calculo.montoReparto,
@@ -343,6 +343,7 @@ export async function actualizarDividendosPorTransferencia(transferencias) {
 
   const { actualizar, crear, nuevosPorDetalle } = reasignarPendientes({
     tramos, transferencias: validas, accionistas, secuencialDetalle, sbu: parametro.data.getParametro.baseImponible || 0,
+    reglas: parametro.data.getParametro.reglasRetencion,
   });
 
   // 3. Aplicar.

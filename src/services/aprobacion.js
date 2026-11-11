@@ -3,7 +3,7 @@
 // secundario (dividendos) no se pudo actualizar.
 import { API } from 'aws-amplify';
 import {
-  listOperacions, listTituloPorOperacions, listAccionistaOperacions, listAccionistas, getAccionista, getTitulo, getParametro,
+  listOperacions, listTituloPorOperacions, listAccionistaOperacions, listAccionistas, getAccionista, getTitulo, getParametro, listTitulos,
 } from '../graphql/queries';
 import {
   updateOperacion, updateTitulo, createTitulo, deleteTitulo, updateAccionista, createAccionista, createPersonaNatural,
@@ -11,9 +11,12 @@ import {
 } from '../graphql/mutations';
 import { listarTodos } from './listarTodos';
 import { enLotes } from './fotoTitulos';
-import { listarHerederosDe, fechaOperacion } from './operaciones';
+import { listarHerederosDe, fechaOperacion, exigirHerederosValidos } from './operaciones';
 import { ajustarBasePeriodos, actualizarDividendosPorTransferencia } from './repartoDividendos';
+import { invalidarCertificados } from './certificados';
+import { accionistasAfectados } from '../utils/certificados';
 import { dividirRango, unirRango, repartirRango, ID_TITULO_RAIZ } from '../utils/rangos';
+import { estadoSegunAcciones, ESTADO } from '../utils/operaciones';
 
 export const TIPOS_OPERACION = {
   0: 'Aumento de Capital', 1: 'Bloqueo', 2: 'Canje', 3: 'Cesión', 4: 'Desbloqueo', 5: 'Donación', 6: 'Posesión Efectiva', 7: 'Testamento',
@@ -89,9 +92,13 @@ async function titulosActuales(titulos) {
 const actualizarAccionista = (input) => API.graphql({ query: updateAccionista, variables: { input } });
 const actualizarTitulo = (input) => API.graphql({ query: updateTitulo, variables: { input } });
 
+// Cambia las acciones y ajusta el estado: sin acciones queda inactivo; si vuelve a tener, activo (ver estadoSegunAcciones).
 async function actualizarAcciones(accionista, delta, emitido) {
   const acciones = (accionista.acc_cantidad_acciones || 0) + delta;
-  await actualizarAccionista({ id: accionista.id, acc_cantidad_acciones: acciones, acc_participacion: acciones / emitido });
+  await actualizarAccionista({
+    id: accionista.id, acc_cantidad_acciones: acciones, acc_participacion: acciones / emitido,
+    acc_estado: estadoSegunAcciones(accionista.acc_estado, acciones),
+  });
 }
 
 // Recalcula la participación de TODOS los accionistas (antes solo se actualizaban los primeros 100).
@@ -108,6 +115,16 @@ async function moverDividendos(transferencias) {
   } catch (err) {
     console.log('Error actualizando dividendos pendientes:', err);
     return 'La operación se aplicó, pero no se pudieron actualizar los dividendos pendientes. Revise el detalle de dividendos.';
+  }
+}
+// Los certificados emitidos dejan de ser válidos cuando cambian las acciones o el estado del accionista.
+async function quitarVigencia(op, detalle, accion, aviso) {
+  try {
+    await invalidarCertificados(accionistasAfectados(detalle), `${accion} de ${TIPOS_OPERACION[op.ope_tipo]}`);
+    return aviso;
+  } catch (err) {
+    console.log('Error al quitar vigencia a certificados:', err);
+    return [aviso, 'No se pudo quitar la vigencia a los certificados emitidos de los accionistas involucrados.'].filter(Boolean).join(' ');
   }
 }
 const transferenciasDe = (lista, de, a) => lista.map((t) => ({ desde: t.tit_desde, hasta: t.tit_hasta, de, a, tituloID: t.id }));
@@ -136,7 +153,8 @@ async function aprobarAumento(op, { principal }, usuario) {
   const emitido = nuevo.tit_hasta;
   await actualizarTitulo({ id: ID_TITULO_RAIZ, tit_hasta: emitido });
   await API.graphql({ query: updateParametro, variables: { input: { id: '1', cantidadEmitida: emitido } } });
-  await actualizarAccionista({ id: principal.id, acc_estado: 1, acc_cantidad_acciones: (principal.acc_cantidad_acciones || 0) + op.ope_acciones });
+  const accionesFinales = (principal.acc_cantidad_acciones || 0) + op.ope_acciones;
+  await actualizarAccionista({ id: principal.id, acc_estado: estadoSegunAcciones(principal.acc_estado, accionesFinales), acc_cantidad_acciones: accionesFinales });
   await recalcularParticipaciones(emitido);
   try {
     // Los períodos de dividendos en curso pasan a incluir las acciones nuevas en su 100%.
@@ -188,6 +206,9 @@ async function aprobarPosesion(op, { principal, titulos, herederos }, usuario) {
   const conAcciones = herederos.filter((h) => h.her_cant_acciones > 0);
   exigir(conAcciones.length > 0, 'Los herederos no tienen acciones asignadas.');
   const tramos = repartirRango(titulo, conAcciones.map((h) => h.her_cant_acciones));
+  // Se revalida al aprobar: la ficha del heredero pudo cambiar mientras la operación estaba pendiente.
+  const revision = await exigirHerederosValidos(conAcciones, principal.id);
+  const fichaIncompleta = new Set(revision.filter((r) => r.fichaIncompleta).map((r) => r.heredero.her_identificacion));
   const emitido = await cantidadEmitida();
 
   await cambiarEstado(op, 1, usuario);
@@ -199,6 +220,8 @@ async function aprobarPosesion(op, { principal, titulos, herederos }, usuario) {
     const existente = (await API.graphql({ query: getAccionista, variables: { id: h.her_identificacion } })).data.getAccionista;
     if (existente) {
       await actualizarAcciones(existente, h.her_cant_acciones, emitido);
+      // Aceptado sin ficha completa: queda como heredero hasta completarla (no pasa a activo).
+      if (fichaIncompleta.has(existente.id)) await actualizarAccionista({ id: existente.id, acc_estado: ESTADO.HEREDERO });
     } else {
       const juridica = h.her_identificacion.length > 10;
       await API.graphql({
@@ -207,7 +230,8 @@ async function aprobarPosesion(op, { principal, titulos, herederos }, usuario) {
           input: {
             id: h.her_identificacion, acc_identificacion: h.her_identificacion, acc_nombre_completo: h.her_nombre,
             acc_cantidad_acciones: h.her_cant_acciones, acc_participacion: h.her_cant_acciones / emitido,
-            acc_tipo_identificacion: juridica ? 1 : 0, acc_tipo_persona: juridica ? 1 : 0, acc_estado: 3,
+            // Heredero: su ficha está incompleta; pasa a activo al completarla en el formulario.
+            acc_tipo_identificacion: juridica ? 1 : 0, acc_tipo_persona: juridica ? 1 : 0, acc_estado: ESTADO.HEREDERO,
           },
         },
       });
@@ -246,7 +270,7 @@ export async function aprobar(op, detalle, usuario) {
       exigir(TRANSFERENCIAS.includes(op.ope_tipo), 'Tipo de operación desconocido.');
       aviso = await aprobarTransferencia(op, detalle, usuario);
   }
-  return { aviso };
+  return { aviso: await quitarVigencia(op, detalle, 'Aprobación', aviso) };
 }
 
 // ---- Anulación ---------------------------------------------------------------------------------
@@ -266,7 +290,8 @@ async function anularAumento(op, { principal }, usuario) {
   const emitido = raiz.tit_hasta - op.ope_acciones;
   await actualizarTitulo({ id: ID_TITULO_RAIZ, tit_hasta: emitido });
   await API.graphql({ query: updateParametro, variables: { input: { id: '1', cantidadEmitida: emitido } } });
-  await actualizarAccionista({ id: principal.id, acc_estado: 1, acc_cantidad_acciones: (principal.acc_cantidad_acciones || 0) - op.ope_acciones });
+  const accionesFinales = (principal.acc_cantidad_acciones || 0) - op.ope_acciones;
+  await actualizarAccionista({ id: principal.id, acc_estado: estadoSegunAcciones(principal.acc_estado, accionesFinales), acc_cantidad_acciones: accionesFinales });
   await API.graphql({ query: deleteTitulo, variables: { input: { id: creado.id } } });
   await recalcularParticipaciones(emitido);
 }
@@ -301,6 +326,45 @@ async function anularTransferencia(op, { principal, cesionario, titulos }, usuar
   return moverDividendos(transferenciasDe(actuales, cesionario.id, principal.id));
 }
 
+// Revierte la posesión efectiva: vuelve a unir el título repartido entre los herederos y lo devuelve al causante.
+// Al aprobar, el último heredero quedó con el título original (tramo final) y los demás con títulos hijos del mismo.
+async function anularPosesion(op, { principal, titulos }, usuario) {
+  exigir(principal, 'No se encontró el causante de la operación.');
+  exigir(titulos.length === 1, 'La posesión efectiva no tiene exactamente un título asociado; no se puede anular automáticamente.');
+  const original = await leerTitulo(titulos[0].tit_ope_titulo_id);
+  exigir(original, 'El título de la operación ya no existe; no se puede anular automáticamente.');
+  // Rango original: termina donde termina hoy el título original y mide lo que tenía la operación.
+  const hasta = original.tit_hasta;
+  const desde = hasta - op.ope_acciones + 1;
+  const hijos = (await listarTodos(listTitulos, 'listTitulos', { filter: { tit_padre: { eq: original.id } } }))
+    .filter((t) => t.tit_desde >= desde && t.tit_hasta <= hasta);
+  const piezas = [...hijos, original].sort((a, b) => a.tit_desde - b.tit_desde);
+  let siguiente = desde;
+  piezas.forEach((t) => {
+    exigir(t.tit_desde === siguiente && t.tit_hasta - t.tit_desde + 1 === t.tit_acciones,
+      'Los títulos de los herederos ya fueron divididos o transferidos; no se puede anular automáticamente.');
+    siguiente = t.tit_hasta + 1;
+  });
+  exigir(siguiente === hasta + 1, 'Los títulos de los herederos no cubren la posesión efectiva; no se puede anular automáticamente.');
+  exigir(piezas.every((t) => t.tit_estado !== 0), 'Algún título de los herederos está bloqueado; desbloquéelo antes de anular.');
+  exigir(piezas.every((t) => t.tit_accionista_id !== principal.id), 'El título ya pertenece al causante; no se puede anular automáticamente.');
+
+  // Acciones a devolver por heredero (según sus títulos actuales, no según la ficha de herederos).
+  const porHeredero = new Map();
+  piezas.forEach((t) => porHeredero.set(t.tit_accionista_id, (porHeredero.get(t.tit_accionista_id) || 0) + t.tit_acciones));
+  const herederos = await Promise.all([...porHeredero.keys()].map(async (id) => (await API.graphql({ query: getAccionista, variables: { id } })).data.getAccionista));
+  herederos.forEach((h, i) => exigir(h && (h.acc_cantidad_acciones || 0) >= porHeredero.get(h.id),
+    `El heredero ${[...porHeredero.keys()][i]} ya no tiene las acciones recibidas; no se puede anular automáticamente.`));
+  const emitido = await cantidadEmitida();
+
+  await cambiarEstado(op, 3, usuario);
+  await actualizarAcciones(principal, op.ope_acciones, emitido);
+  for (const h of herederos) await actualizarAcciones(h, -porHeredero.get(h.id), emitido);
+  await enLotes(hijos, 25, (t) => API.graphql({ query: deleteTitulo, variables: { input: { id: t.id } } }));
+  await actualizarTitulo({ id: original.id, tit_desde: desde, tit_hasta: hasta, tit_acciones: op.ope_acciones, tit_accionista_id: principal.id });
+  return moverDividendos(piezas.map((t) => ({ desde: t.tit_desde, hasta: t.tit_hasta, de: t.tit_accionista_id, a: principal.id, tituloID: original.id })));
+}
+
 export async function anular(op, detalle, usuario) {
   exigir(op.ope_estado === 1, 'Solo se pueden anular operaciones aprobadas.');
   exigir(detalle.principal, 'No se encontró el accionista de la operación.');
@@ -321,11 +385,12 @@ export async function anular(op, detalle, usuario) {
       await cambiarEstado(op, 3, usuario);
       await actualizarAccionista({ id: detalle.principal.id, acc_tipo_acciones: 0 });
       break;
+    case 6: aviso = await anularPosesion(op, detalle, usuario); break;
     default:
       exigir(TRANSFERENCIAS.includes(op.ope_tipo), 'Este tipo de operación no se puede anular automáticamente.');
       aviso = await anularTransferencia(op, detalle, usuario);
   }
-  return { aviso };
+  return { aviso: await quitarVigencia(op, detalle, 'Anulación', aviso) };
 }
 
 // ---- Rechazo, reenvío y documentos -------------------------------------------------------------

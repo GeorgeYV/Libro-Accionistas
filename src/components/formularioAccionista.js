@@ -1,11 +1,12 @@
 // Piezas compartidas por los formularios de persona natural y persona jurídica.
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { useLocation, useHistory } from 'react-router-dom';
 import {
-  Paper, TextField, Button, Typography, MenuItem, Grid, IconButton, Snackbar, Box, CircularProgress,
+  Paper, TextField, Button, Typography, MenuItem, Grid, IconButton, Snackbar, Box,
 } from '@material-ui/core';
 import { makeStyles } from '@material-ui/core/styles';
 import MuiAlert from '@material-ui/lab/Alert';
+import { Autocomplete } from '@material-ui/lab';
 import AddIcon from '@material-ui/icons/Add';
 import DeleteIcon from '@material-ui/icons/DeleteOutline';
 import CheckCircleIcon from '@material-ui/icons/CheckCircle';
@@ -15,8 +16,9 @@ import ArrowBackIcon from '@material-ui/icons/ArrowBack';
 import { subirArchivo, abrirArchivo } from '../services/archivos';
 import { verificarCamposVacios } from './manejoAccionistas';
 import { filasContacto, unirContacto, separar, conValorActual } from '../utils/accionistas';
+import Cargando from './cargando';
+import { nombresPaises, PAISES_RESPALDO } from '../services/paises';
 
-export const PAISES = ['Ecuador', 'Perú', 'Estados Unidos']; // mismo formato que los datos (y que la regla de retención)
 export const TIPOS_CUENTA = ['Cta Aho', 'Cta Cte'];
 export const TIPOS_ACCIONES = [{ valor: 0, etiqueta: 'Ordinaria' }, { valor: 1, etiqueta: 'Desmaterializada' }];
 export const TIPOS_IDENTIFICACION_PERSONA = [{ valor: 0, etiqueta: 'Cédula' }, { valor: 2, etiqueta: 'Pasaporte' }];
@@ -71,6 +73,14 @@ export function useFormularioAccionista({ vacio, obligatorios }) {
   const [enviado, setEnviado] = useState(false);
   const [cargando, setCargando] = useState(false);
   const [mensaje, setMensaje] = useState(null); // { tipo, texto, volver }
+  const [paises, setPaises] = useState(PAISES_RESPALDO);
+
+  // Catálogo de países (una carga por sesión); si falla, queda la lista anterior.
+  useEffect(() => {
+    let vigente = true;
+    nombresPaises().then((lista) => { if (vigente) setPaises(lista); });
+    return () => { vigente = false; };
+  }, []);
 
   async function ejecutar(fn) {
     setCargando(true);
@@ -109,6 +119,20 @@ export function useFormularioAccionista({ vacio, obligatorios }) {
       </Grid>
     );
   };
+
+  // Selector de país con búsqueda. Guarda el nombre del país; un valor antiguo fuera del catálogo se conserva.
+  const pais = (nombre, etiqueta, props = {}) => (
+    <Grid item xs={12} sm={props.sm || 6}>
+      <Autocomplete
+        size="small" options={conValorActual(paises, form[nombre])} value={form[nombre] || null} noOptionsText="Sin coincidencias"
+        onChange={(e, v) => setForm((f) => ({ ...f, [nombre]: v || '' }))}
+        renderInput={(params) => (
+          <TextField {...params} variant="outlined" label={etiqueta} required={obligatorios.includes(nombre)}
+            error={faltante(nombre)} helperText={faltante(nombre) ? 'Obligatorio' : props.ayuda} />
+        )}
+      />
+    </Grid>
+  );
 
   const subir = (nombre) => (e) => {
     const archivo = e.target.files[0];
@@ -150,7 +174,7 @@ export function useFormularioAccionista({ vacio, obligatorios }) {
 
   return {
     history, precargado, edicion, form, setForm, telefonos, setTelefonos, correos, setCorreos, cargando, mensaje,
-    ejecutar, campo, seleccion, subir, ver, limpiar, datosValidos, exito, cerrarMensaje,
+    ejecutar, campo, seleccion, pais, subir, ver, limpiar, datosValidos, exito, cerrarMensaje,
   };
 }
 
@@ -182,7 +206,7 @@ export function PaginaFormulario({ f, titulo, onGuardar, children }) {
       </div>
       <Grid container spacing={2}>{children}</Grid>
       <div className={classes.acciones}>
-        {f.cargando && <CircularProgress size={24} />}
+        <Cargando abierto={f.cargando} />
         {!f.edicion && <Button color="primary" onClick={f.limpiar} disabled={f.cargando}>Limpiar</Button>}
         <Button variant="contained" color="primary" onClick={onGuardar} disabled={f.cargando}>
           {f.edicion ? 'Actualizar accionista' : 'Registrar accionista'}
@@ -198,7 +222,7 @@ export function PaginaFormulario({ f, titulo, onGuardar, children }) {
 export function SeccionDireccion({ f }) {
   return (
     <Seccion titulo="Dirección">
-      {f.seleccion('acc_pais', 'País de residencia', PAISES)}
+      {f.pais('acc_pais', 'País de residencia')}
       {f.campo('acc_provincia', 'Provincia')}
       {f.campo('acc_ciudad', 'Ciudad')}
       {f.campo('acc_direccion', 'Dirección')}

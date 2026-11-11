@@ -2,7 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { TextField, Grid, Switch, FormControlLabel, Typography } from '@material-ui/core';
 import {
   useFormularioAccionista, PaginaFormulario, Seccion, SeccionDireccion, SeccionBanco, SeccionContacto, SeccionDocumentos,
-  ListaDinamica, cambiarLista, quitarDeLista, camposBaseAccionista, PAISES, TIPOS_ACCIONES, TIPOS_IDENTIFICACION_PERSONA,
+  ListaDinamica, cambiarLista, quitarDeLista, camposBaseAccionista, TIPOS_ACCIONES, TIPOS_IDENTIFICACION_PERSONA,
 } from '../components/formularioAccionista';
 import { cargarRelacionados, guardarPersonaNatural, tieneConyuge } from '../services/personaNatural';
 import { ESTADOS_CIVILES } from '../utils/accionistas';
@@ -66,7 +66,7 @@ export default function PersonaNatural() {
           {f.seleccion('acc_tipo_identificacion', 'Tipo de identificación', TIPOS_IDENTIFICACION_PERSONA, { sm: 3 })}
           {/* La identificación es el id del accionista: no se cambia al editar. */}
           {f.campo('acc_identificacion', 'Identificación', { sm: 3, disabled: f.edicion, ayuda: f.edicion ? 'No editable' : undefined })}
-          {f.seleccion('acc_nacionalidad', 'Nacionalidad', PAISES, { sm: 3 })}
+          {f.pais('acc_nacionalidad', 'Nacionalidad', { sm: 3 })}
           {f.campo('pn_primer_nombre', 'Primer nombre', { sm: 3 })}
           {f.campo('pn_segundo_nombre', 'Segundo nombre', { sm: 3 })}
           {f.campo('pn_apellido_paterno', 'Apellido paterno', { sm: 3 })}
@@ -82,7 +82,7 @@ export default function PersonaNatural() {
             {f.seleccion('con_tipo_identificacion', 'Tipo de identificación', TIPOS_IDENTIFICACION_PERSONA)}
             {f.campo('con_identificacion', 'Identificación')}
             {f.campo('con_nombre', 'Nombre')}
-            {f.seleccion('con_nacionalidad', 'Nacionalidad', PAISES)}
+            {f.pais('con_nacionalidad', 'Nacionalidad')}
           </Seccion>
         </Grid>
       )}

@@ -78,15 +78,19 @@ Prefijos de campos por entidad: `acc_` Accionista, `tit_` Titulo, `ope_` Operaci
 - **Accionista** (`id` = número de identificación). `acc_tipo_persona`: 0 natural, 1 jurídica (datos extra en
   `PersonaNatural`/`PersonaJuridica`/`Conyuge` con el mismo `id`). `acc_cantidad_acciones`, `acc_participacion`
   (= acciones / `cantidadEmitida`). `acc_tipo_acciones`: 0 ordinarias sin canjear, 1 canjeadas.
-  `acc_estado`: 1 activo, 3 bloqueado.
+  `acc_estado`: 0 heredero (creado por posesión efectiva, ficha incompleta), 1 activo, 2 inactivo (sin acciones),
+  3 bloqueado. Las operaciones ajustan el estado con `estadoSegunAcciones` (`utils/operaciones.js`): sin acciones →
+  inactivo; inactivo que recibe acciones → activo. Un heredero pasa a activo al guardar su ficha (`estadoAlGuardarFicha`).
+  Posesión efectiva: un heredero que ya es accionista debe tener ficha completa (`problemasHeredero`), salvo que siga
+  como heredero o esté inactivo sin acciones: entonces recibe en estado Heredero. Se valida al ingresar, al enviar y al aprobar.
 - **Titulo**: bloque contiguo de acciones `tit_desde`..`tit_hasta` (`tit_acciones`) de un accionista.
   Árbol jerárquico vía `tit_padre` / `tit_nivel`. El título raíz tiene id fijo **`IDTituloPadreDeTodos`** y su
   `tit_hasta` = total emitido. `tit_estado`: 1 activo, 0 bloqueado.
 - **Operacion** + tablas puente `AccionistaOperacion` (quién participa, `acc_ope_detalle`) y `TituloPorOperacion`
   (qué títulos y cuántas acciones).
-- **Parametro** (id `'1'`): `cantidadEmitida`, moneda, etc. `ParametroArchive`, `AccionistaArchive`, `TituloArchive`: históricos.
+- **Parametro** (id `'1'`): `cantidadEmitida`, valor nominal, SBU, modelos de carta y reglas de retención. `ParametroArchive`, `AccionistaArchive`: históricos (la app no los usa).
 - Otros: `Asamblea`, `AccionistasxJunta` (índice `byAsamblea`), `DividendoNuevo`, `DetalleDividendo`,
-  `DividendosAccionista`, `DividendosTitulos`, `Heredero`, `Solicitudes`, `Pais`/`Provincia`/`Ciudad`.
+  `DividendosTitulos`, `Heredero`, `Certificado`, `Pais`/`Provincia`/`Ciudad`.
 
 ### Códigos de operación (`ope_tipo`) — vista de ingreso
 
@@ -112,7 +116,8 @@ Prefijos de campos por entidad: `acc_` Accionista, `tit_` Titulo, `ope_` Operaci
    título origen y se crea uno hijo con `tit_padre`/`tit_nivel + 1` para el cesionario), se actualizan
    `acc_cantidad_acciones`, `acc_participacion` de todos los accionistas y `Parametro.cantidadEmitida` cuando cambia el capital.
 3. **Rechazo**: solo cambia `ope_estado: 2` + motivo/observación.
-4. **Anulación** (`ope_estado: 3`): debe revertir exactamente los efectos de la aprobación (funciones `operacionAnular*`).
+4. **Anulación** (`ope_estado: 3`): revierte exactamente los efectos de la aprobación (`anular` en `services/aprobacion.js`;
+   todos los tipos, incluida la posesión efectiva). Si los títulos cambiaron después, se rechaza con un mensaje en vez de forzarla.
 
 Al agregar o modificar un tipo de operación, tocar siempre: vista de ingreso, `ope_tipo_letras` y los `switch` de
 aprobar/anular en `blotter.jsx`, documentos requeridos mostrados en el diálogo de revisión, y el sidebar.
@@ -129,13 +134,13 @@ aprobar/anular en `blotter.jsx`, documentos requeridos mostrados en el diálogo 
 ## Dividendos (varios repartos por año)
 
 - Cada reparto (`DetalleDividendo`) nace de una asamblea `Realizada` cuya votación del tema `Asamblea.temaDividendo`
-  resultó aprobada (`votacionResultadoN`).
+  resultó aprobada (`resultadoVotacion`: mayoría de acciones presentes en `AccionistasxJunta`).
 - Al **cerrar el quórum** se guarda una foto de todo el libro en `TituloxJunta` (rango, acciones, estados); si no
   existe, se toma al finalizar la asamblea. El reparto usa **solo los títulos de los accionistas presentes**; los
   ausentes se ponen al día con el % acumulado en un reparto posterior al que asistan.
 - Asambleas en `Realizada` o `DividendoGenerado` no permiten cambiar asistencia ni votos (`asambleaCerrada`).
 - Asistencia (`asambleas.jsx`): lista virtual de accionistas activos con acciones > 0; solo se crea un registro
-  `AccionistasxJunta` al marcar Presente o agregar con representante. Leer registros con `accionistasxJuntaByAsamblea`
+  `AccionistasxJunta` al marcar Presente (uno a uno o con "Marcar todos presentes", en lotes) o agregar con representante. Leer registros con `accionistasxJuntaByAsamblea`
   (índice), nunca con `listAccionistasxJuntas` + filtro (recorre toda la tabla).
 - Tramos (`DividendosTitulos`) de un accionista: leer con `dividendosTitulosByAccionista` (índice `byAccionista`), no con
   `listDividendosTitulos` + filtro. `div_tit_accionista_id` nunca debe quedar vacío (`''`): DynamoDB rechaza la escritura.
@@ -148,12 +153,28 @@ aprobar/anular en `blotter.jsx`, documentos requeridos mostrados en el diálogo 
   siguiente, y una acción nunca cobra dos veces aunque cambie de dueño. Cálculo puro en `src/utils/dividendos.js`.
 - Meta: 100% declarado y 100% cubierto (acciones × %) de `DividendoNuevo.div_acciones_base` en el año.
 - `Parametro.valorNominal` se usa para mostrar el capital (acciones × valor nominal); el reparto es proporcional a acciones.
-- El flujo antiguo "Nuevo Dividendo" (por porcentaje sin títulos) se eliminó; sus repartos solo se consultan y pagan.
+- El flujo antiguo "Nuevo Dividendo" y su modelo `DividendosAccionista` se eliminaron.
 - **Aumento de capital en el año:** se actualiza `div_acciones_base` y los repartos restantes se calculan con el
   nuevo valor por acción.
 - **Accionistas o títulos bloqueados:** se calculan, pero quedan `div_tit_estado = 'Retenido'`; el pago requiere
   aprobación en el botón Pagar de la vista dividendos.
-- Retención: sobre lo acumulado del beneficiario en el año (la reducción de 3 salarios básicos se aplica una vez).
+- Retención: sobre lo acumulado del beneficiario en el año, con las reglas de `Parametro.reglasRetencion` (pestaña
+  Parámetros; primera regla que coincide por persona/residencia/nacionalidad: % y SBU a restar). Lógica en
+  `src/utils/retencion.js`; sin reglas guardadas se usan `REGLAS_INICIALES` (equivalentes a la regla anterior).
+  Cada reparto guarda la copia usada en `DetalleDividendo.ddiv_reglas_retencion`.
+- Países: catálogo en la tabla `Pais` (Parámetros → Países; carga inicial con `scripts/cargar-paises.js`). Los accionistas
+  guardan el **nombre** del país (no el id); por eso un país no se renombra ni se borra, solo se desactiva. `Pais.paraisoFiscal`
+  alimenta la residencia "Paraíso fiscal" de las reglas (`mapaAccionistas` marca `acc_paraiso_fiscal`). Si el catálogo no
+  carga, los formularios usan `PAISES_RESPALDO`.
+
+## Certificados y verificación pública (QR)
+
+- Cada impresión del certificado (`components/certificado.js`) crea un `Certificado` (uuid) y el QR apunta a
+  `<origen>/verificar/<id>`. `App.js` muestra `views/verificacion.jsx` **antes** del login: es la única ruta pública.
+- La página hace una sola consulta `getCertificado` por id (con solo los campos que muestra) y la guarda en
+  `sessionStorage`; no lista ni busca. El certificado guarda la identificación enmascarada.
+- Al aprobar o anular cualquier operación, los certificados vigentes de los accionistas involucrados pasan a
+  `SinVigencia` (`quitarVigencia` en `services/aprobacion.js`). Mantenerlo al agregar tipos de operación.
 
 ## Convenciones y cuidados al escribir código
 

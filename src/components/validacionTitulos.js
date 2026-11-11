@@ -1,11 +1,12 @@
 import React, { useState } from 'react';
-import { Button, CircularProgress, Typography } from '@material-ui/core';
+import { Button, Typography } from '@material-ui/core';
 import MuiAlert from '@material-ui/lab/Alert';
 import { DataGrid, GridToolbarContainer, GridToolbarExport } from '@mui/x-data-grid';
 import { API } from 'aws-amplify';
 import { listTitulos, listAccionistas, getParametro } from '../graphql/queries';
 import { listarTodos } from '../services/listarTodos';
 import { validarTitulos } from '../utils/rangos';
+import Cargando from './cargando';
 
 const columnas = [
   { field: 'tipo', headerName: 'Problema', width: 200 },
@@ -53,7 +54,7 @@ export default function ValidacionTitulos() {
         <Button onClick={validar} disabled={cargando} size="small" variant="outlined" color="primary" style={{ marginLeft: 10, textTransform: 'none' }}>
           Validar rangos
         </Button>
-        {cargando && <CircularProgress size={20} style={{ marginLeft: 10 }} />}
+        <Cargando abierto={cargando} />
       </div>
       {error && <MuiAlert severity="error" style={{ marginTop: 10 }}>{error}</MuiAlert>}
       {problemas && problemas.length === 0 && (

@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { Auth } from 'aws-amplify';
 import {
-  Grid, Paper, Typography, Button, TextField, Chip, CircularProgress, Snackbar, Box,
+  Grid, Paper, Typography, Button, TextField, Chip, CircularProgress, Snackbar,
   Dialog, DialogActions, DialogContent, DialogTitle,
 } from '@material-ui/core';
 import { makeStyles } from '@material-ui/core/styles';
@@ -10,10 +10,14 @@ import { DataGrid } from '@mui/x-data-grid';
 import HowToRegIcon from '@material-ui/icons/HowToReg';
 import PrintIcon from '@material-ui/icons/Print';
 import CloudUploadOutlinedIcon from '@material-ui/icons/CloudUploadOutlined';
-import QRcode from 'qrcode.react';
-import { exportarCertificado, URL_VERIFICACION } from '../components/certificado';
+import GetAppIcon from '@material-ui/icons/GetApp';
+import DescriptionOutlinedIcon from '@material-ui/icons/DescriptionOutlined';
+import { exportarCertificado } from '../components/certificado';
 import { cargarDashboardAccionista, registrarEnAsamblea, subirArchivo } from '../services/asambleas';
 import { tieneRepresentante } from '../utils/asambleas';
+import { validarPdf, abrirArchivo } from '../services/archivos';
+import { MODELOS_CARTA } from '../utils/archivos';
+import Cargando from '../components/cargando';
 
 const useStyles = makeStyles((theme) => ({
   appBarSpacer: { ...theme.mixins.toolbar },
@@ -52,7 +56,32 @@ export default function AccionistaDashboard() {
   const [archivo, setArchivo] = useState(null);
   const [guardando, setGuardando] = useState(false);
 
+  const [imprimiendo, setImprimiendo] = useState(false);
+  const [descargando, setDescargando] = useState(false);
+
   const usuario = Auth.user ? Auth.user.username : null;
+
+  // Solo descarga: los modelos se suben y reemplazan en Parámetros.
+  async function descargarModelo(clave) {
+    setDescargando(true);
+    try {
+      await abrirArchivo(clave);
+    } catch (err) {
+      setMensaje({ tipo: 'error', texto: err.message || 'No se pudo descargar el documento.' });
+    }
+    setDescargando(false);
+  }
+
+  async function imprimir() {
+    setImprimiendo(true);
+    try {
+      await exportarCertificado(accionista, parametro);
+    } catch (err) {
+      console.log('Error al emitir el certificado:', err);
+      setMensaje({ tipo: 'error', texto: 'No se pudo emitir el certificado. Intente nuevamente.' });
+    }
+    setImprimiendo(false);
+  }
 
   useEffect(() => {
     if (!usuario) { setCargando(false); return; }
@@ -76,6 +105,20 @@ export default function AccionistaDashboard() {
       : SIN_REPRESENTANTE);
     setArchivo(null);
     setSeleccionada(asamblea);
+  }
+
+  // Valida al elegir para avisar antes de guardar.
+  async function elegirArchivo(e) {
+    const elegido = e.target.files[0] || null;
+    e.target.value = '';
+    if (!elegido) return;
+    try {
+      await validarPdf(elegido);
+      setArchivo(elegido);
+    } catch (err) {
+      setArchivo(null);
+      setMensaje({ tipo: 'error', texto: err.message });
+    }
   }
 
   async function registrarse() {
@@ -125,12 +168,14 @@ export default function AccionistaDashboard() {
     return (
       <main className={classes.content}>
         <div className={classes.appBarSpacer} />
-        <Box display="flex" justifyContent="center" mt={6}><CircularProgress /></Box>
+        <Cargando abierto mensaje="Cargando su información" />
       </main>
     );
   }
 
   const acciones = accionista ? accionista.acc_cantidad_acciones || 0 : 0;
+  // Se ocultan los modelos no cargados o con el formato antiguo "{filename=...}" (el accionista no puede corregirlos).
+  const modelos = MODELOS_CARTA.filter(([campo]) => parametro[campo] && !String(parametro[campo]).startsWith('{'));
   const participacion = parametro.cantidadEmitida ? acciones * 100 / parametro.cantidadEmitida : 0;
 
   return (
@@ -150,10 +195,9 @@ export default function AccionistaDashboard() {
                 </Typography>
               </div>
               <Button startIcon={<PrintIcon />} variant="contained" color="primary" style={{ textTransform: 'none' }}
-                onClick={() => exportarCertificado(accionista, parametro)}>
+                disabled={imprimiendo} onClick={imprimir}>
                 Imprimir certificado de acciones
               </Button>
-              <QRcode hidden value={URL_VERIFICACION} id="qrcode" size={100} />
             </Paper>
           </Grid>
 
@@ -175,6 +219,27 @@ export default function AccionistaDashboard() {
               )}
             </Paper>
           </Grid>
+
+          {modelos.length > 0 && (
+            <Grid item xs={12}>
+              <Paper variant="outlined" className={classes.seccion}>
+                <Typography variant="subtitle1">Modelos de cartas</Typography>
+                <Typography variant="body2" color="textSecondary" gutterBottom>
+                  Descargue el modelo, complételo y entréguelo con su solicitud.
+                </Typography>
+                <Grid container spacing={1}>
+                  {modelos.map(([campo, etiqueta]) => (
+                    <Grid item xs={12} sm={6} md={3} key={campo}>
+                      <Button fullWidth variant="outlined" color="primary" disabled={descargando} onClick={() => descargarModelo(parametro[campo])}
+                        startIcon={<DescriptionOutlinedIcon />} endIcon={<GetAppIcon />} style={{ textTransform: 'none', justifyContent: 'space-between' }}>
+                        {etiqueta}
+                      </Button>
+                    </Grid>
+                  ))}
+                </Grid>
+              </Paper>
+            </Grid>
+          )}
         </Grid>
       )}
 
@@ -201,7 +266,7 @@ export default function AccionistaDashboard() {
               <Grid item xs={12}>
                 <label htmlFor="documento-representante">
                   <input style={{ display: 'none' }} id="documento-representante" type="file" accept="application/pdf"
-                    onChange={(e) => setArchivo(e.target.files[0] || null)} />
+                    onChange={elegirArchivo} />
                   <Button startIcon={<CloudUploadOutlinedIcon />} variant="outlined" component="span" color="primary" size="small" style={{ textTransform: 'none' }}>
                     Identificación del representante
                   </Button>
@@ -225,6 +290,7 @@ export default function AccionistaDashboard() {
       <Snackbar open={!!mensaje} autoHideDuration={6000} onClose={() => setMensaje(null)}>
         {mensaje ? <MuiAlert elevation={6} variant="filled" severity={mensaje.tipo} onClose={() => setMensaje(null)}>{mensaje.texto}</MuiAlert> : <span />}
       </Snackbar>
+      <Cargando abierto={guardando || imprimiendo || descargando} mensaje={imprimiendo ? "Generando su certificado" : descargando ? "Descargando el documento" : "Guardando su registro"} />
     </main>
   );
 }

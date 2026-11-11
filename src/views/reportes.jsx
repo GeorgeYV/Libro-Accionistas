@@ -1,6 +1,6 @@
 import React, { useState, useEffect, useMemo } from 'react';
 import {
-  Paper, Grid, Typography, TextField, Button, MenuItem, Box, CircularProgress, Snackbar, Avatar, Divider, Chip,
+  Paper, Grid, Typography, TextField, Button, MenuItem, Box, Snackbar, Avatar, Divider, Chip,
 } from '@material-ui/core';
 import { makeStyles } from '@material-ui/core/styles';
 import MuiAlert from '@material-ui/lab/Alert';
@@ -11,6 +11,7 @@ import MenuBookIcon from '@material-ui/icons/MenuBook';
 import { cargarDatosReportes, libroAFecha, descargarExcel, fechaHoy } from '../services/reportes';
 import { TIPOS_OPERACION, ESTADOS_OPERACION, MOTIVOS_RECHAZO } from '../services/aprobacion';
 import { ESTADOS_ACCIONISTA, TIPOS_IDENTIFICACION, ESTADOS_CIVILES, separar } from '../utils/accionistas';
+import Cargando from '../components/cargando';
 
 const useStyles = makeStyles((theme) => ({
   appBarSpacer: { ...theme.mixins.toolbar },
@@ -134,7 +135,7 @@ export default function Reportes() {
           <Typography variant="h6">Reportes</Typography>
           <Typography variant="body2" color="textSecondary">Los reportes son de solo lectura: no modifican ningún dato.</Typography>
         </div>
-        {cargando && <CircularProgress size={24} style={{ marginLeft: 'auto' }} />}
+        <Cargando abierto={cargando} />
       </div>
 
       <Grid container spacing={2}>

@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { API } from 'aws-amplify';
 import {
-  Paper, Grid, Button, TextField, CircularProgress, Snackbar, Typography, Box, InputAdornment, IconButton,
+  Paper, Grid, Button, TextField, Snackbar, Typography, Box, InputAdornment, IconButton,
 } from '@material-ui/core';
 import { makeStyles } from '@material-ui/core/styles';
 import MuiAlert from '@material-ui/lab/Alert';
@@ -12,7 +12,13 @@ import SaveIcon from '@material-ui/icons/Save';
 import { getParametro } from '../graphql/queries';
 import { updateParametro } from '../graphql/mutations';
 import { subirArchivo, abrirArchivo } from '../services/archivos';
+import { MODELOS_CARTA } from '../utils/archivos';
 import ValidacionTitulos from '../components/validacionTitulos';
+import Cargando from '../components/cargando';
+import ReglasRetencion from '../components/reglasRetencion';
+import CatalogoPaises from '../components/catalogoPaises';
+import { cargarPaises } from '../services/paises';
+import { leerReglas, validarReglas } from '../utils/retencion';
 
 const useStyles = makeStyles((theme) => ({
   appBarSpacer: { ...theme.mixins.toolbar },
@@ -22,13 +28,7 @@ const useStyles = makeStyles((theme) => ({
 
 const enteros = (n) => new Intl.NumberFormat('en-US').format(n || 0);
 const decimales = (n) => new Intl.NumberFormat('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 }).format(n || 0);
-const MODELOS = [
-  ['modeloCartaCesion', 'Carta de cesión'],
-  ['modeloCartaGerente', 'Carta de gerente'],
-  ['modeloCartaInstrucciones', 'Carta de instrucciones'],
-  ['modeloSolicitudDividendos', 'Solicitud de dividendos'],
-];
-const EDITABLES = ['valorNominal', 'baseImponible', ...MODELOS.map(([campo]) => campo)];
+const EDITABLES = ['valorNominal', 'baseImponible', ...MODELOS_CARTA.map(([campo]) => campo)];
 const ACEPTA = '.doc,.docx,.xml,application/msword,application/vnd.openxmlformats-officedocument.wordprocessingml.document';
 
 // Parámetros generales. El total emitido es de solo lectura: lo actualiza el aumento de capital al aprobarse,
@@ -37,6 +37,11 @@ export default function Parametros() {
   const classes = useStyles();
   const [guardado, setGuardado] = useState(null); // valores en la base
   const [form, setForm] = useState({});
+  const [reglas, setReglas] = useState([]);
+  const [paises, setPaises] = useState([]);
+
+  // Si el catálogo no carga, la página sigue funcionando sin él.
+  const recargarPaises = () => cargarPaises({ recargar: true }).then(setPaises).catch((err) => console.log('Error al cargar países:', err));
   const [cargando, setCargando] = useState(true);
   const [mensaje, setMensaje] = useState(null); // { tipo, texto }
 
@@ -56,6 +61,8 @@ export default function Parametros() {
     ejecutar(async () => {
       const p = (await API.graphql({ query: getParametro, variables: { id: '1' } })).data.getParametro;
       setGuardado(p);
+      setReglas(leerReglas(p.reglasRetencion));
+      await recargarPaises();
       setForm(Object.fromEntries(EDITABLES.map((c) => [c, p[c] == null ? '' : String(p[c])])));
     });
   }, []); // eslint-disable-line react-hooks/exhaustive-deps
@@ -65,19 +72,22 @@ export default function Parametros() {
     const archivo = e.target.files[0];
     e.target.value = '';
     // Se guarda el nombre del archivo (antes se guardaba un objeto y fallaba todo el guardado).
-    if (archivo) ejecutar(async () => { const clave = await subirArchivo(archivo); setForm((f) => ({ ...f, [campo]: clave })); });
+    if (archivo) ejecutar(async () => { const clave = await subirArchivo(archivo, { soloPdf: false }); setForm((f) => ({ ...f, [campo]: clave })); });
   };
 
   const valorNominal = parseFloat(form.valorNominal);
   const baseImponible = parseFloat(form.baseImponible);
   const errorValor = form.valorNominal !== undefined && !(valorNominal > 0) ? 'Debe ser mayor a 0' : '';
   const errorBase = form.baseImponible !== undefined && form.baseImponible !== '' && !(baseImponible >= 0) ? 'Valor inválido' : '';
-  const cambios = guardado ? EDITABLES.filter((c) => String(guardado[c] == null ? '' : guardado[c]) !== form[c]) : [];
+  const cambiosReglas = guardado && JSON.stringify(reglas) !== JSON.stringify(leerReglas(guardado.reglasRetencion));
+  const errorReglas = validarReglas(reglas).length > 0;
+  const cambios = guardado ? [...EDITABLES.filter((c) => String(guardado[c] == null ? '' : guardado[c]) !== form[c]), ...(cambiosReglas ? ['reglasRetencion'] : [])] : [];
 
   const guardar = () => ejecutar(async () => {
-    if (errorValor || errorBase) throw new Error('Revise los valores ingresados.');
+    if (errorValor || errorBase || errorReglas) throw new Error('Revise los valores ingresados.');
     const input = { id: '1' };
     cambios.forEach((c) => {
+      if (c === 'reglasRetencion') { input[c] = JSON.stringify(reglas); return; }
       input[c] = c === 'valorNominal' ? valorNominal : c === 'baseImponible' ? (form[c] === '' ? null : baseImponible) : form[c];
     });
     await API.graphql({ query: updateParametro, variables: { input } });
@@ -90,8 +100,8 @@ export default function Parametros() {
       <Box display="flex" alignItems="center" justifyContent="space-between" mb={2}>
         <Typography variant="h6">Parámetros</Typography>
         <Box display="flex" alignItems="center" style={{ gap: 8 }}>
-          {cargando && <CircularProgress size={24} />}
-          <Button variant="contained" color="primary" startIcon={<SaveIcon />} onClick={guardar} disabled={cargando || cambios.length === 0 || !!errorValor || !!errorBase}>
+          <Cargando abierto={cargando} />
+          <Button variant="contained" color="primary" startIcon={<SaveIcon />} onClick={guardar} disabled={cargando || cambios.length === 0 || !!errorValor || !!errorBase || errorReglas}>
             {cambios.length ? `Guardar cambios (${cambios.length})` : 'Sin cambios'}
           </Button>
         </Box>
@@ -122,10 +132,24 @@ export default function Parametros() {
 
           <Grid item xs={12} md={6}>
             <Paper variant="outlined" className={classes.tarjeta}>
-              <Typography variant="subtitle1" gutterBottom>Retenciones</Typography>
+              <Typography variant="subtitle1" gutterBottom>Salario básico</Typography>
               <TextField fullWidth size="small" variant="outlined" label="Salario básico unificado (SBU)" value={form.baseImponible} onChange={numero('baseImponible')}
-                error={!!errorBase} helperText={errorBase || 'Se usa en la retención de dividendos de personas naturales residentes (reducción de 3 SBU).'}
+                error={!!errorBase} helperText={errorBase || 'Se resta en las reglas de retención que indiquen SBU a descontar.'}
                 InputProps={{ startAdornment: <InputAdornment position="start">USD</InputAdornment> }} />
+            </Paper>
+          </Grid>
+
+          <Grid item xs={12}>
+            <Paper variant="outlined" className={classes.tarjeta}>
+              <Typography variant="subtitle1" gutterBottom>Retención de dividendos</Typography>
+              <ReglasRetencion reglas={reglas} onChange={setReglas} sbu={baseImponible || 0} paises={paises} />
+            </Paper>
+          </Grid>
+
+          <Grid item xs={12}>
+            <Paper variant="outlined" className={classes.tarjeta}>
+              <Typography variant="subtitle1" gutterBottom>Países</Typography>
+              <CatalogoPaises paises={paises} onCambio={recargarPaises} ejecutar={ejecutar} />
             </Paper>
           </Grid>
 
@@ -133,7 +157,7 @@ export default function Parametros() {
             <Paper variant="outlined" className={classes.tarjeta}>
               <Typography variant="subtitle1" gutterBottom>Modelos de cartas</Typography>
               <Typography variant="body2" color="textSecondary" gutterBottom>Plantillas Word que los accionistas descargan desde su portal.</Typography>
-              {MODELOS.map(([campo, etiqueta]) => (
+              {MODELOS_CARTA.map(([campo, etiqueta]) => (
                 <Box key={campo} display="flex" alignItems="center" justifyContent="space-between" py={0.5}>
                   <Box display="flex" alignItems="center" style={{ gap: 8 }}>
                     <CheckCircleIcon fontSize="small" color={form[campo] ? 'primary' : 'disabled'} />

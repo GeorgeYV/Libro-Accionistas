@@ -451,6 +451,7 @@ export const getDetalleDividendo = /* GraphQL */ `
       ddiv_valor_accion
       ddiv_acciones
       ddiv_monto
+      ddiv_reglas_retencion
       createdAt
       updatedAt
       __typename
@@ -483,6 +484,7 @@ export const listDetalleDividendos = /* GraphQL */ `
         ddiv_valor_accion
         ddiv_acciones
         ddiv_monto
+        ddiv_reglas_retencion
         createdAt
         updatedAt
         __typename
@@ -539,6 +541,7 @@ export const getPais = /* GraphQL */ `
       nacionalidad
       codigoTelefono
       estado
+      paraisoFiscal
       createdAt
       updatedAt
       __typename
@@ -559,6 +562,7 @@ export const listPais = /* GraphQL */ `
         nacionalidad
         codigoTelefono
         estado
+        paraisoFiscal
         createdAt
         updatedAt
         __typename
@@ -758,54 +762,14 @@ export const getParametro = /* GraphQL */ `
   query GetParametro($id: ID!) {
     getParametro(id: $id) {
       id
-      moneda
       cantidadEmitida
       valorNominal
       baseImponible
-      noResidente
-      IGdesde1
-      IGhasta1
-      FBretencion1
-      FEretencion1
-      IGdesde2
-      IGhasta2
-      FBretencion2
-      FEretencion2
-      IGdesde3
-      IGhasta3
-      FBretencion3
-      FEretencion3
-      IGdesde4
-      IGhasta4
-      FBretencion4
-      FEretencion4
-      IGdesde5
-      IGhasta5
-      FBretencion5
-      FEretencion5
-      IGdesde6
-      IGhasta6
-      FBretencion6
-      FEretencion6
-      Retencion_Minima
-      Retencion_Maxima
-      Retencion_PN_Loc
-      Retencion_PN_NPF
-      Retencion_PN_PF
-      Retencion_PJ_Loc_Loc
-      Retencion_PJ_Loc_NPF
-      Retencion_PJ_Loc_PF
-      Retencion_PJ_PF_Loc
-      Retencion_PJ_PF_NPF
-      Retencion_PJ_PF_PF
-      Retencion_PJ_NPF_Loc
-      Retencion_PJ_NPF_NPF
-      Retencion_PJ_NPF_PF
       modeloCartaCesion
       modeloCartaGerente
       modeloCartaInstrucciones
       modeloSolicitudDividendos
-      titulos_totales
+      reglasRetencion
       createdAt
       updatedAt
       __typename
@@ -821,54 +785,14 @@ export const listParametros = /* GraphQL */ `
     listParametros(filter: $filter, limit: $limit, nextToken: $nextToken) {
       items {
         id
-        moneda
         cantidadEmitida
         valorNominal
         baseImponible
-        noResidente
-        IGdesde1
-        IGhasta1
-        FBretencion1
-        FEretencion1
-        IGdesde2
-        IGhasta2
-        FBretencion2
-        FEretencion2
-        IGdesde3
-        IGhasta3
-        FBretencion3
-        FEretencion3
-        IGdesde4
-        IGhasta4
-        FBretencion4
-        FEretencion4
-        IGdesde5
-        IGhasta5
-        FBretencion5
-        FEretencion5
-        IGdesde6
-        IGhasta6
-        FBretencion6
-        FEretencion6
-        Retencion_Minima
-        Retencion_Maxima
-        Retencion_PN_Loc
-        Retencion_PN_NPF
-        Retencion_PN_PF
-        Retencion_PJ_Loc_Loc
-        Retencion_PJ_Loc_NPF
-        Retencion_PJ_Loc_PF
-        Retencion_PJ_PF_Loc
-        Retencion_PJ_PF_NPF
-        Retencion_PJ_PF_PF
-        Retencion_PJ_NPF_Loc
-        Retencion_PJ_NPF_NPF
-        Retencion_PJ_NPF_PF
         modeloCartaCesion
         modeloCartaGerente
         modeloCartaInstrucciones
         modeloSolicitudDividendos
-        titulos_totales
+        reglasRetencion
         createdAt
         updatedAt
         __typename
@@ -1024,25 +948,11 @@ export const getAsamblea = /* GraphQL */ `
       capital
       acta
       votaciones
-      horaAperturaQuorum
       horaCierreQuorum
       cierreQuorum
       presentes
-      presentesCapital
-      presentesPorcentajePersona
-      presentesPorcentajeCapital
       ausentes
-      ausentesCapital
-      ausentesPorcentajePersona
-      ausentesPorcentajeCapital
       representados
-      representadosCapital
-      representadosPorcentajePersona
-      representadosPorcentajeCapital
-      totalpresentes
-      totalcapitalpresentes
-      totalporcentajePersona
-      totalporcentajeCapital
       votacionTema1
       votacionTema2
       votacionTema3
@@ -1058,21 +968,6 @@ export const getAsamblea = /* GraphQL */ `
       votacionTema13
       votacionTema14
       votacionTema15
-      votacionResultado1
-      votacionResultado2
-      votacionResultado3
-      votacionResultado4
-      votacionResultado5
-      votacionResultado6
-      votacionResultado7
-      votacionResultado8
-      votacionResultado9
-      votacionResultado10
-      votacionResultado11
-      votacionResultado12
-      votacionResultado13
-      votacionResultado14
-      votacionResultado15
       habilitanteTema1
       habilitanteTema2
       habilitanteTema3
@@ -1088,7 +983,6 @@ export const getAsamblea = /* GraphQL */ `
       habilitanteTema13
       habilitanteTema14
       habilitanteTema15
-      rutaGrabacion
       temaDividendo
       createdAt
       updatedAt
@@ -1121,25 +1015,11 @@ export const listAsambleas = /* GraphQL */ `
         capital
         acta
         votaciones
-        horaAperturaQuorum
         horaCierreQuorum
         cierreQuorum
         presentes
-        presentesCapital
-        presentesPorcentajePersona
-        presentesPorcentajeCapital
         ausentes
-        ausentesCapital
-        ausentesPorcentajePersona
-        ausentesPorcentajeCapital
         representados
-        representadosCapital
-        representadosPorcentajePersona
-        representadosPorcentajeCapital
-        totalpresentes
-        totalcapitalpresentes
-        totalporcentajePersona
-        totalporcentajeCapital
         votacionTema1
         votacionTema2
         votacionTema3
@@ -1155,21 +1035,6 @@ export const listAsambleas = /* GraphQL */ `
         votacionTema13
         votacionTema14
         votacionTema15
-        votacionResultado1
-        votacionResultado2
-        votacionResultado3
-        votacionResultado4
-        votacionResultado5
-        votacionResultado6
-        votacionResultado7
-        votacionResultado8
-        votacionResultado9
-        votacionResultado10
-        votacionResultado11
-        votacionResultado12
-        votacionResultado13
-        votacionResultado14
-        votacionResultado15
         habilitanteTema1
         habilitanteTema2
         habilitanteTema3
@@ -1185,7 +1050,6 @@ export const listAsambleas = /* GraphQL */ `
         habilitanteTema13
         habilitanteTema14
         habilitanteTema15
-        rutaGrabacion
         temaDividendo
         createdAt
         updatedAt
@@ -1410,148 +1274,6 @@ export const accionistasxJuntaByAsamblea = /* GraphQL */ `
     }
   }
 `;
-export const getDividendosAccionista = /* GraphQL */ `
-  query GetDividendosAccionista($id: ID!) {
-    getDividendosAccionista(id: $id) {
-      id
-      idAccionista
-      tipoIdentificacion
-      identificacion
-      nombre
-      direccionPais
-      paisNacionalidad
-      cantidadAcciones
-      participacion
-      tipoAcciones
-      estado
-      tipoPersona
-      decevale
-      idDividendo
-      periodo
-      dividendo
-      baseImponible
-      retencion
-      dividendoRecibido
-      estadoDividendo
-      documento
-      solicitado
-      fechaSolicitud
-      HoraSolicitud
-      fechaPago
-      createdAt
-      updatedAt
-      __typename
-    }
-  }
-`;
-export const listDividendosAccionistas = /* GraphQL */ `
-  query ListDividendosAccionistas(
-    $filter: ModelDividendosAccionistaFilterInput
-    $limit: Int
-    $nextToken: String
-  ) {
-    listDividendosAccionistas(
-      filter: $filter
-      limit: $limit
-      nextToken: $nextToken
-    ) {
-      items {
-        id
-        idAccionista
-        tipoIdentificacion
-        identificacion
-        nombre
-        direccionPais
-        paisNacionalidad
-        cantidadAcciones
-        participacion
-        tipoAcciones
-        estado
-        tipoPersona
-        decevale
-        idDividendo
-        periodo
-        dividendo
-        baseImponible
-        retencion
-        dividendoRecibido
-        estadoDividendo
-        documento
-        solicitado
-        fechaSolicitud
-        HoraSolicitud
-        fechaPago
-        createdAt
-        updatedAt
-        __typename
-      }
-      nextToken
-      __typename
-    }
-  }
-`;
-export const getSolicitudes = /* GraphQL */ `
-  query GetSolicitudes($id: ID!) {
-    getSolicitudes(id: $id) {
-      id
-      fecha
-      operacion
-      idCedente
-      cedente
-      cedenteIdentificacion
-      acciones
-      valorVenta
-      totalVenta
-      cesionarioIdentificacion
-      cesionarioNombre
-      cesionarioDireccion
-      cesionarioEmail
-      cesionarioTelefono
-      estado
-      cs
-      ci
-      docIdentidad
-      createdAt
-      updatedAt
-      __typename
-    }
-  }
-`;
-export const listSolicitudes = /* GraphQL */ `
-  query ListSolicitudes(
-    $filter: ModelSolicitudesFilterInput
-    $limit: Int
-    $nextToken: String
-  ) {
-    listSolicitudes(filter: $filter, limit: $limit, nextToken: $nextToken) {
-      items {
-        id
-        fecha
-        operacion
-        idCedente
-        cedente
-        cedenteIdentificacion
-        acciones
-        valorVenta
-        totalVenta
-        cesionarioIdentificacion
-        cesionarioNombre
-        cesionarioDireccion
-        cesionarioEmail
-        cesionarioTelefono
-        estado
-        cs
-        ci
-        docIdentidad
-        createdAt
-        updatedAt
-        __typename
-      }
-      nextToken
-      __typename
-    }
-  }
-`;
 export const getAccionistaArchive = /* GraphQL */ `
   query GetAccionistaArchive($id: ID!) {
     getAccionistaArchive(id: $id) {
@@ -1660,45 +1382,81 @@ export const AccionistaArchiveByFecha = /* GraphQL */ `
     }
   }
 `;
-export const getTituloArchive = /* GraphQL */ `
-  query GetTituloArchive($id: ID!) {
-    getTituloArchive(id: $id) {
-      fecha
+export const getCertificado = /* GraphQL */ `
+  query GetCertificado($id: ID!) {
+    getCertificado(id: $id) {
       id
-      accionistaID
-      titulo
-      acciones
-      fechaCompra
-      estado
-      idCedenteHereda
-      nombreCedenteHereda
-      desde
-      hasta
+      cer_accionista_id
+      cer_nombre
+      cer_identificacion
+      cer_acciones
+      cer_valor_nominal
+      cer_fecha_emision
+      cer_emisor
+      cer_estado
+      cer_fecha_baja
+      cer_motivo_baja
       createdAt
       updatedAt
       __typename
     }
   }
 `;
-export const listTituloArchives = /* GraphQL */ `
-  query ListTituloArchives(
-    $filter: ModelTituloArchiveFilterInput
+export const listCertificados = /* GraphQL */ `
+  query ListCertificados(
+    $filter: ModelCertificadoFilterInput
     $limit: Int
     $nextToken: String
   ) {
-    listTituloArchives(filter: $filter, limit: $limit, nextToken: $nextToken) {
+    listCertificados(filter: $filter, limit: $limit, nextToken: $nextToken) {
       items {
-        fecha
         id
-        accionistaID
-        titulo
-        acciones
-        fechaCompra
-        estado
-        idCedenteHereda
-        nombreCedenteHereda
-        desde
-        hasta
+        cer_accionista_id
+        cer_nombre
+        cer_identificacion
+        cer_acciones
+        cer_valor_nominal
+        cer_fecha_emision
+        cer_emisor
+        cer_estado
+        cer_fecha_baja
+        cer_motivo_baja
+        createdAt
+        updatedAt
+        __typename
+      }
+      nextToken
+      __typename
+    }
+  }
+`;
+export const certificadosByAccionista = /* GraphQL */ `
+  query CertificadosByAccionista(
+    $cer_accionista_id: String
+    $sortDirection: ModelSortDirection
+    $filter: ModelCertificadoFilterInput
+    $limit: Int
+    $nextToken: String
+  ) {
+    certificadosByAccionista(
+      cer_accionista_id: $cer_accionista_id
+      sortDirection: $sortDirection
+      filter: $filter
+      limit: $limit
+      nextToken: $nextToken
+    ) {
+      items {
+        id
+        cer_accionista_id
+        cer_nombre
+        cer_identificacion
+        cer_acciones
+        cer_valor_nominal
+        cer_fecha_emision
+        cer_emisor
+        cer_estado
+        cer_fecha_baja
+        cer_motivo_baja
         createdAt
         updatedAt
         __typename

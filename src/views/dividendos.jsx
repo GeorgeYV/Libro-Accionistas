@@ -1,20 +1,19 @@
 import React, { useState, useEffect, useCallback } from 'react';
 import { Auth, API } from 'aws-amplify';
-import {
-  Grid, Typography, Button, Chip, IconButton, Dialog, DialogActions, DialogContent, DialogTitle, Snackbar, CircularProgress,
-} from '@material-ui/core';
+import { Grid, Button, IconButton, Snackbar } from '@material-ui/core';
 import { makeStyles } from '@material-ui/core/styles';
-import { DataGrid, GridToolbarContainer, GridToolbarExport } from '@mui/x-data-grid';
+import { DataGrid } from '@mui/x-data-grid';
 import MuiAlert from '@material-ui/lab/Alert';
 import PageviewIcon from '@material-ui/icons/Pageview';
-import DescriptionIcon from '@material-ui/icons/Description';
-import CheckIcon from '@material-ui/icons/Check';
 import { getParametro } from '../graphql/queries';
 import {
-  listarRepartos, mapaAccionistas, detalleReparto, pagarAccionista, urlDocumento, sincronizarPendientesConTitulos,
+  listarRepartos, mapaAccionistas, detalleReparto, pagarAccionista, sincronizarPendientesConTitulos,
 } from '../services/repartoDividendos';
-import RepartoDesdeAsamblea, { formato, enteros } from '../components/repartoDesdeAsamblea';
+import RepartoDesdeAsamblea, { formato } from '../components/repartoDesdeAsamblea';
+import DetalleReparto from '../components/detalleReparto';
 import DividendosAccionista from '../components/dividendosAccionista';
+import Cargando from '../components/cargando';
+import { abrirArchivo } from '../services/archivos';
 
 const useStyles = makeStyles((theme) => ({
   appBarSpacer: { ...theme.mixins.toolbar },
@@ -25,10 +24,6 @@ const useStyles = makeStyles((theme) => ({
 function fechaHoy() {
   const d = new Date();
   return `${String(d.getDate()).padStart(2, '0')}-${String(d.getMonth() + 1).padStart(2, '0')}-${d.getFullYear()}`;
-}
-
-function Toolbar() {
-  return <GridToolbarContainer><GridToolbarExport /></GridToolbarContainer>;
 }
 
 const numero = (field, headerName, width = 120) => ({
@@ -98,7 +93,7 @@ export default function Dividendos() {
     if (cambios) await cargar();
   });
 
-  const verDocumento = (documento) => ejecutar(async () => { window.open(await urlDocumento(documento)); });
+  const verDocumento = (documento) => ejecutar(() => abrirArchivo(documento));
 
   const columnasRepartos = [
     { field: 'div_periodo', headerName: 'Período', width: 90 },
@@ -114,43 +109,6 @@ export default function Dividendos() {
     {
       field: 'detalle', headerName: 'Detalle', width: 80, sortable: false,
       renderCell: (p) => <IconButton color="primary" onClick={() => abrirDetalle(p.row)}><PageviewIcon /></IconButton>,
-    },
-  ];
-
-  const columnasDetalle = [
-    { field: 'identificacion', headerName: 'Identificación', width: 130 },
-    { field: 'persona', headerName: 'Persona', width: 90 },
-    { field: 'residencia', headerName: 'Residencia', width: 100 },
-    { field: 'nombre', headerName: 'Beneficiario', flex: 1, minWidth: 220 },
-    { field: 'acciones', headerName: 'Acciones', type: 'number', width: 110, valueFormatter: (p) => enteros(p.value) },
-    {
-      field: 'capital', headerName: 'Capital', type: 'number', width: 110,
-      valueGetter: (p) => p.row.acciones * (parametros.valorNominal || 0), valueFormatter: (p) => formato(p.value),
-    },
-    numero('dividendo', 'Dividendo', 110),
-    numero('retencion', 'Retención', 110),
-    numero('neto', 'Total neto', 110),
-    numero('porPagar', 'Por pagar', 110),
-    { field: 'fechaPago', headerName: 'Fecha de pago', width: 110 },
-    { field: 'estado', headerName: 'Estado', width: 90 },
-    {
-      field: 'pagar', headerName: 'Pagar', width: 150, sortable: false,
-      renderCell: (p) => {
-        const fila = p.row;
-        return (
-          <>
-            {fila.documento && <IconButton onClick={() => verDocumento(fila.documento)} title="Ver comprobante"><CheckIcon /></IconButton>}
-            {/* Retenido: accionista o título bloqueado al corte; el pago requiere aprobación (pendiente de implementar). */}
-            {fila.estado === 'Retenido' && <Chip size="small" label="Retenido" />}
-            {fila.estado === 'Pendiente' && (
-              <label>
-                <input style={{ display: 'none' }} type="file" accept="application/pdf" onChange={pagar(fila)} />
-                <Button component="span" variant="outlined" color="primary" size="small" startIcon={<DescriptionIcon />} style={{ textTransform: 'none' }}>PDF</Button>
-              </label>
-            )}
-          </>
-        );
-      },
     },
   ];
 
@@ -181,35 +139,19 @@ export default function Dividendos() {
         </Grid>
       </Grid>
 
-      <Dialog open={!!repartoSeleccionado} onClose={() => setRepartoSeleccionado(null)} fullWidth maxWidth="xl">
-        {repartoSeleccionado && (
-          <DialogTitle>
-            <div style={{ display: 'flex', justifyContent: 'space-around', alignItems: 'center', flexWrap: 'wrap' }}>
-              <Typography>{`${repartoSeleccionado.div_concepto}: ${repartoSeleccionado.div_periodo} - ${repartoSeleccionado.ddiv_secuencial}`}</Typography>
-              <Typography>{`Dividendo del período: ${formato(repartoSeleccionado.div_dividendo)}`}</Typography>
-              <Typography>{`% acordado: ${formato(repartoSeleccionado.ddiv_porcentaje)}%`}</Typography>
-              <Typography>{`Monto del reparto: ${formato(repartoSeleccionado.monto)}`}</Typography>
-              <Typography>{`Saldo: ${formato(repartoSeleccionado.saldo)}`}</Typography>
-            </div>
-          </DialogTitle>
-        )}
-        <DialogContent style={{ height: 500 }}>
-          <DataGrid
-            style={{ backgroundColor: 'white' }}
-            density="compact"
-            disableColumnMenu
-            disableSelectionOnClick
-            rows={filasDetalle}
-            columns={columnasDetalle}
-            pageSize={25}
-            rowsPerPageOptions={[25]}
-            components={{ Toolbar }}
-          />
-        </DialogContent>
-        <DialogActions>
-          <Button onClick={() => setRepartoSeleccionado(null)} color="primary">Salir</Button>
-        </DialogActions>
-      </Dialog>
+      {repartoSeleccionado && (
+        <DetalleReparto
+          reparto={repartoSeleccionado}
+          filas={filasDetalle}
+          repartos={repartos}
+          valorNominal={parametros.valorNominal}
+          sbu={parametros.baseImponible}
+        reglas={parametros.reglasRetencion}
+          onClose={() => setRepartoSeleccionado(null)}
+          pagar={pagar}
+          verDocumento={verDocumento}
+        />
+      )}
 
       <RepartoDesdeAsamblea
         open={openReparto}
@@ -222,6 +164,7 @@ export default function Dividendos() {
         usuario={Auth.user ? Auth.user.username : ''}
         cantidadEmitida={parametros.cantidadEmitida}
         sbu={parametros.baseImponible}
+        reglas={parametros.reglasRetencion}
         valorNominal={parametros.valorNominal}
       />
 
@@ -234,7 +177,7 @@ export default function Dividendos() {
         onPagado={() => listarRepartos().then(setRepartos).catch((err) => console.log('Error al actualizar repartos:', err))}
       />
 
-      {cargando && <CircularProgress style={{ position: 'fixed', top: '50%', left: '50%' }} />}
+      <Cargando abierto={cargando} />
       <Snackbar open={!!mensaje} autoHideDuration={8000} onClose={() => setMensaje(null)}>
         {mensaje ? <MuiAlert elevation={6} variant="filled" severity={mensaje.tipo} onClose={() => setMensaje(null)}>{mensaje.texto}</MuiAlert> : <span />}
       </Snackbar>

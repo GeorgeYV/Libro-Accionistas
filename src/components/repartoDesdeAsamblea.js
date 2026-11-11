@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import {
-  Button, CircularProgress, Dialog, DialogActions, DialogContent, DialogTitle, FormControl, Grid,
+  Button, Dialog, DialogActions, DialogContent, DialogTitle, FormControl, Grid,
   InputLabel, LinearProgress, MenuItem, Select, TextField, Typography,
 } from '@material-ui/core';
 import MuiAlert from '@material-ui/lab/Alert';
@@ -9,6 +9,7 @@ import {
   asambleasDisponibles, revisarAsamblea, obtenerPeriodo, mapaAccionistas, guardarReparto,
 } from '../services/repartoDividendos';
 import { calcularReparto, coberturaPeriodo } from '../utils/dividendos';
+import Cargando from './cargando';
 
 export const formato = (n) => new Intl.NumberFormat('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 }).format(n || 0);
 export const enteros = (n) => new Intl.NumberFormat('en-US').format(n || 0);
@@ -29,7 +30,7 @@ const inicial = {
 };
 
 // Genera un reparto de dividendos a partir de la foto de títulos de una asamblea.
-export default function RepartoDesdeAsamblea({ open, onClose, onGuardado, usuario, cantidadEmitida, sbu, valorNominal }) {
+export default function RepartoDesdeAsamblea({ open, onClose, onGuardado, usuario, cantidadEmitida, sbu, valorNominal, reglas }) {
   const [form, setForm] = useState(inicial);
   const [asambleas, setAsambleas] = useState([]);
   const [revision, setRevision] = useState(null);
@@ -95,6 +96,7 @@ export default function RepartoDesdeAsamblea({ open, onClose, onGuardado, usuari
       porcentajeReparto,
       sbu: sbu || 0,
       valorNominal: valorNominal || 0,
+      reglas,
     });
     if (r.tramos.length === 0) throw new Error('Las acciones de esta asamblea ya cobraron el porcentaje declarado.');
     setCalculo(r);
@@ -196,7 +198,7 @@ export default function RepartoDesdeAsamblea({ open, onClose, onGuardado, usuari
         </Grid>
       </DialogContent>
       <DialogActions>
-        {cargando && <CircularProgress size={24} />}
+        <Cargando abierto={cargando} />
         <Button onClick={calcular} disabled={!puedeCalcular || cargando} color="primary" variant="outlined" style={{ textTransform: 'none' }}>Calcular</Button>
         <Button onClick={confirmar} disabled={!calculo || cargando} color="primary" variant="contained" style={{ textTransform: 'none' }}>Confirmar reparto</Button>
         <Button onClick={onClose} color="secondary" style={{ textTransform: 'none' }}>Salir</Button>

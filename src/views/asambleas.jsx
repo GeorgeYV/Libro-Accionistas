@@ -2,7 +2,7 @@ import React, { useState, useEffect, useMemo } from 'react';
 import { Storage } from 'aws-amplify';
 import {
   Grid, Typography, Button, Chip, TextField, FormControl, Box, Tabs, Tab, IconButton, Checkbox, InputLabel, Select,
-  MenuItem, Dialog, DialogActions, DialogContent, DialogTitle, Snackbar, CircularProgress, Divider, Paper,
+  MenuItem, Dialog, DialogActions, DialogContent, DialogTitle, Snackbar, Divider, Paper,
 } from '@material-ui/core';
 import { makeStyles } from '@material-ui/core/styles';
 import { DataGrid } from '@mui/x-data-grid';
@@ -16,7 +16,7 @@ import { PieChart } from 'react-minimal-pie-chart';
 import jsPDF from 'jspdf';
 import 'jspdf-autotable';
 import logo from '../images/logoUNACEMmedMarco2.png';
-import { guardarFotoTitulos, obtenerFotoTitulos } from '../services/fotoTitulos';
+import { guardarFotoTitulos, obtenerFotoTitulos, enLotes } from '../services/fotoTitulos';
 import {
   cargarInicio, cargarRegistros, crearAsamblea, actualizarAsamblea, guardarRegistro, eliminarRegistro, subirArchivo, abrirArchivo,
 } from '../services/asambleas';
@@ -24,6 +24,8 @@ import {
   unirListaAsistencia, filtrarPorNombre, TEMAS, asambleaCerrada, temasDe, resumenQuorum, conteoVotos,
 } from '../utils/asambleas';
 import { resultadoVotacion } from '../utils/dividendos';
+import Cargando from '../components/cargando';
+import { ACEPTA_PDF } from '../utils/archivos';
 
 const useStyles = makeStyles((theme) => ({
   appBarSpacer: { ...theme.mixins.toolbar },
@@ -56,16 +58,16 @@ function nuevoPdf(titulo, asamblea) {
 }
 
 // Fila de documento: subir, ver y quitar (acta o expediente de un tema).
-function Documento({ etiqueta, nombre, onSubir, onQuitar }) {
+function Documento({ etiqueta, nombre, onSubir, onQuitar, onVer }) {
   return (
     <Box display="flex" alignItems="center" justifyContent="space-between" py={0.5}>
       <Typography variant="body2">{etiqueta}</Typography>
       <Box display="flex" alignItems="center">
-        {nombre && <IconButton size="small" title="Ver" onClick={() => abrirArchivo(nombre)}><PageviewIcon /></IconButton>}
+        {nombre && <IconButton size="small" title="Ver" onClick={() => onVer(nombre)}><PageviewIcon /></IconButton>}
         {nombre && <IconButton size="small" title="Quitar" onClick={onQuitar}><DeleteIcon /></IconButton>}
         <Button component="label" size="small" variant="outlined" color="primary" startIcon={<CloudUploadOutlinedIcon />} style={{ textTransform: 'none' }}>
           {nombre ? 'Reemplazar' : 'Subir'}
-          <input hidden type="file" onChange={onSubir} />
+          <input hidden type="file" accept={ACEPTA_PDF} onChange={onSubir} />
         </Button>
       </Box>
     </Box>
@@ -95,6 +97,7 @@ export default function Asambleas() {
   const [temaVotacion, setTemaVotacion] = useState('');
   const [representado, setRepresentado] = useState({ accionista: null, nombre: '', identificacion: '', documento: '' });
   const [openCrear, setOpenCrear] = useState(false);
+  const [confirmarTodos, setConfirmarTodos] = useState(false);
   const [formData, setFormData] = useState(formularioVacio());
   const [cargando, setCargando] = useState(true);
   const [mensaje, setMensaje] = useState(null); // { tipo, texto }
@@ -128,6 +131,7 @@ export default function Asambleas() {
   const listaAsistencia = useMemo(() => unirListaAsistencia(accionistas, accionistasxJuntas), [accionistas, accionistasxJuntas]);
   const filasAsistencia = useMemo(() => filtrarPorNombre(listaAsistencia, busqueda), [listaAsistencia, busqueda]);
   const presentes = useMemo(() => accionistasxJuntas.filter((r) => r.presente === true), [accionistasxJuntas]);
+  const ausentes = useMemo(() => listaAsistencia.filter((r) => r.presente !== true), [listaAsistencia]);
   const filasVotacion = useMemo(() => filtrarPorNombre(presentes, busquedaVotacion), [presentes, busquedaVotacion]);
   const resumen = useMemo(
     () => resumenQuorum(accionistasxJuntas, accionistas.length, cantidadEmitida, valorNominal),
@@ -165,6 +169,29 @@ export default function Asambleas() {
     reemplazarRegistro(item.id, registro);
     await cambiarAsamblea({ registrados: presentes.filter((r) => r.id !== item.id).length + (registro.presente ? 1 : 0) });
   });
+
+  // Marca presentes a todos los ausentes de la lista (crea los registros que falten), en lotes.
+  // Si algunos fallan, se conservan los guardados y el botón permite reintentar con los que quedan.
+  const marcarTodosPresentes = () => ejecutar(async () => {
+    setConfirmarTodos(false);
+    validarAbierta();
+    const guardados = new Map();
+    let fallidos = 0;
+    await enLotes(ausentes, 25, async (item) => {
+      try {
+        guardados.set(item.id, await guardarRegistro(asambleaSeleccionada, item, { presente: true }));
+      } catch (err) {
+        fallidos++;
+        console.log('Error al marcar presente:', err);
+      }
+    });
+    setAccionistasxJuntas((lista) => [
+      ...lista.map((r) => guardados.get(r.id) || r),
+      ...[...guardados.entries()].filter(([id]) => !lista.some((r) => r.id === id)).map(([, r]) => r),
+    ]);
+    await cambiarAsamblea({ registrados: presentes.length + guardados.size });
+    if (fallidos) throw new Error(`Se marcaron ${guardados.size} accionistas; ${fallidos} no se pudieron guardar. Presione el botón otra vez para reintentar.`);
+  }, 'Todos los accionistas quedaron presentes.');
 
   const toggleVoto = (item) => ejecutar(async () => {
     validarAbierta();
@@ -205,6 +232,7 @@ export default function Asambleas() {
     const archivo = leerArchivo(e);
     if (archivo) ejecutar(async () => cambiarAsamblea({ [campo]: await subirArchivo(archivo) }));
   };
+  const verDocumento = (nombre) => ejecutar(() => abrirArchivo(nombre));
   const quitarDocumento = (campo) => () => ejecutar(async () => {
     await Storage.remove(asambleaSeleccionada[campo]);
     await cambiarAsamblea({ [campo]: '' });
@@ -345,7 +373,7 @@ export default function Asambleas() {
       field: 'opciones', headerName: '', width: 90, sortable: false,
       renderCell: (p) => (
         <>
-          {p.row.representanteDI && <IconButton size="small" title="Documento del representante" onClick={() => abrirArchivo(p.row.representanteDI)}><PageviewIcon /></IconButton>}
+          {p.row.representanteDI && <IconButton size="small" title="Documento del representante" onClick={() => ejecutar(() => abrirArchivo(p.row.representanteDI))}><PageviewIcon /></IconButton>}
           {!p.row.virtual && !p.row.presente && !cerrada && <IconButton size="small" title="Quitar registro" onClick={() => quitarRegistro(p.row)}><DeleteIcon /></IconButton>}
         </>
       ),
@@ -414,7 +442,7 @@ export default function Asambleas() {
                       <TextField size="small" variant="outlined" label="Identificación" value={representado.identificacion} onChange={(e) => setRepresentado({ ...representado, identificacion: e.target.value })} style={{ flex: 1 }} />
                       <Button component="label" variant="outlined" color="primary" startIcon={representado.documento ? <CheckIcon /> : <CloudUploadOutlinedIcon />} style={{ textTransform: 'none' }}>
                         Documento
-                        <input hidden type="file" onChange={subirAFormulario((nombre) => setRepresentado((r) => ({ ...r, documento: nombre })))} />
+                        <input hidden type="file" accept={ACEPTA_PDF} onChange={subirAFormulario((nombre) => setRepresentado((r) => ({ ...r, documento: nombre })))} />
                       </Button>
                       <Button variant="contained" color="primary" className={classes.boton} onClick={agregarRepresentado}>Agregar</Button>
                     </div>
@@ -424,6 +452,12 @@ export default function Asambleas() {
                     <Typography variant="body2" color="textSecondary">
                       {`${enteros(listaAsistencia.length)} accionistas activos con acciones — ${resumen.quorum.personas} presentes`}
                     </Typography>
+                    {!cerrada && ausentes.length > 0 && (
+                      <Button variant="outlined" color="primary" size="small" startIcon={<CheckIcon />} style={{ textTransform: 'none', marginLeft: 'auto' }}
+                        onClick={() => setConfirmarTodos(true)}>
+                        Marcar todos presentes ({enteros(ausentes.length)})
+                      </Button>
+                    )}
                   </div>
                   <div style={{ height: 440 }}>
                     <DataGrid rows={filasAsistencia} columns={columnasAsistencia} {...grillaProps} />
@@ -512,12 +546,12 @@ export default function Asambleas() {
                     </Paper>
                   </Grid>
                   <Grid item xs={12} md={8}>
-                    <Documento etiqueta="Acta de cierre" nombre={asambleaSeleccionada.acta} onSubir={subirDocumento('acta')} onQuitar={quitarDocumento('acta')} />
-                    {asambleaSeleccionada.ordenDia && <Documento etiqueta="Orden del día" nombre={asambleaSeleccionada.ordenDia} onSubir={subirDocumento('ordenDia')} onQuitar={quitarDocumento('ordenDia')} />}
+                    <Documento onVer={verDocumento} etiqueta="Acta de cierre" nombre={asambleaSeleccionada.acta} onSubir={subirDocumento('acta')} onQuitar={quitarDocumento('acta')} />
+                    {asambleaSeleccionada.ordenDia && <Documento onVer={verDocumento} etiqueta="Orden del día" nombre={asambleaSeleccionada.ordenDia} onSubir={subirDocumento('ordenDia')} onQuitar={quitarDocumento('ordenDia')} />}
                     <Divider style={{ margin: '8px 0' }} />
                     <Typography variant="subtitle2">Expediente del acta de junta</Typography>
                     {temas.map((n) => (
-                      <Documento key={n} etiqueta={`Tema ${n}: ${asambleaSeleccionada['votacionTema' + n]}`} nombre={asambleaSeleccionada['habilitanteTema' + n]}
+                      <Documento onVer={verDocumento} key={n} etiqueta={`Tema ${n}: ${asambleaSeleccionada['votacionTema' + n]}`} nombre={asambleaSeleccionada['habilitanteTema' + n]}
                         onSubir={subirDocumento('habilitanteTema' + n)} onQuitar={quitarDocumento('habilitanteTema' + n)} />
                     ))}
                   </Grid>
@@ -557,7 +591,7 @@ export default function Asambleas() {
               <Button component="label" variant="outlined" color="primary" style={{ textTransform: 'none', marginTop: 12 }}
                 startIcon={formData.ordenDia ? <CheckIcon /> : <CloudUploadOutlinedIcon />}>
                 Orden del día
-                <input hidden type="file" onChange={subirAFormulario((nombre) => setFormData((f) => ({ ...f, ordenDia: nombre })))} />
+                <input hidden type="file" accept={ACEPTA_PDF} onChange={subirAFormulario((nombre) => setFormData((f) => ({ ...f, ordenDia: nombre })))} />
               </Button>
             </Grid>
             <Grid item xs={12} md={6}>
@@ -593,7 +627,23 @@ export default function Asambleas() {
         </DialogActions>
       </Dialog>
 
-      {cargando && <CircularProgress style={{ position: 'fixed', top: '50%', left: '50%', zIndex: 2000 }} />}
+      <Cargando abierto={cargando} />
+      <Dialog open={confirmarTodos} onClose={() => setConfirmarTodos(false)} maxWidth="xs">
+        <DialogTitle>Marcar todos presentes</DialogTitle>
+        <DialogContent>
+          <Typography variant="body2" paragraph>
+            Se registrará la asistencia de {enteros(ausentes.length)} accionistas que aún no están presentes.
+          </Typography>
+          <Typography variant="body2" color="textSecondary">
+            Cada uno queda presente sin representante. Luego puede desmarcar a quien no asistió.
+          </Typography>
+        </DialogContent>
+        <DialogActions>
+          <Button color="primary" onClick={() => setConfirmarTodos(false)}>Cancelar</Button>
+          <Button variant="contained" color="primary" onClick={marcarTodosPresentes}>Marcar presentes</Button>
+        </DialogActions>
+      </Dialog>
+
       <Snackbar open={!!mensaje} autoHideDuration={8000} onClose={() => setMensaje(null)}>
         {mensaje ? <Alert severity={mensaje.tipo} onClose={() => setMensaje(null)}>{mensaje.texto}</Alert> : <span />}
       </Snackbar>

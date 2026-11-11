@@ -5,6 +5,7 @@ import {
   getPersonaNatural
 } from '../graphql/queries';
 import { API } from 'aws-amplify';
+import { estadoAlGuardarFicha } from '../utils/operaciones';
 async function validarIdentificacionExiste(idAccionista) {
   var apiData = await API.graphql({ query: getAccionista, variables: { id: idAccionista } });
   var accionistaFinal = apiData.data.getAccionista;
@@ -48,7 +49,8 @@ export function devolverSoloAccionista(accionista) {
   var accionistaAux = {
       id: accionista.acc_identificacion ? accionista.acc_identificacion : "",
       acc_decevale: accionista.acc_decevale ? accionista.acc_decevale : "",
-      acc_estado: accionista.acc_estado ? accionista.acc_estado : 0,
+      // Un heredero que completa su ficha pasa a activo (ver estadoAlGuardarFicha).
+      acc_estado: estadoAlGuardarFicha(accionista.acc_estado, accionista.acc_cantidad_acciones),
       acc_tipo_identificacion: accionista.acc_tipo_identificacion == null ? 0 : accionista.acc_tipo_identificacion,
       acc_identificacion: accionista.acc_identificacion ? accionista.acc_identificacion : "",
       acc_nacionalidad: accionista.acc_nacionalidad == null ? 'Ecuador' : accionista.acc_nacionalidad,

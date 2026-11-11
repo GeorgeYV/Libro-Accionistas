@@ -3,7 +3,7 @@
 import React, { useState, useEffect } from 'react';
 import { Auth } from 'aws-amplify';
 import {
-  Paper, Grid, Typography, TextField, Button, Snackbar, CircularProgress, Avatar, Box, Chip, Divider,
+  Paper, Grid, Typography, TextField, Button, Snackbar, Avatar, Box, Chip, Divider,
   Stepper, Step, StepLabel,
 } from '@material-ui/core';
 import { makeStyles } from '@material-ui/core/styles';
@@ -16,6 +16,7 @@ import PageviewIcon from '@material-ui/icons/Pageview';
 import SendIcon from '@material-ui/icons/Send';
 import { listarAccionistasPorEstado, listarTitulosVigentes, tieneOperacionPendiente, solicitarOperacion } from '../services/operaciones';
 import { subirArchivo, abrirArchivo } from '../services/archivos';
+import Cargando from './cargando';
 
 const useStyles = makeStyles((theme) => ({
   appBarSpacer: { ...theme.mixins.toolbar },
@@ -177,7 +178,7 @@ export default function OperacionTitulos({ config }) {
       </Grid>
 
       <Box display="flex" justifyContent="flex-end" alignItems="center" mt={2} style={{ gap: 8 }}>
-        {cargando && <CircularProgress size={24} />}
+        <Cargando abierto={cargando} />
         <Button variant="contained" color="primary" startIcon={<SendIcon />} onClick={solicitar} disabled={cargando || !accionista || titulos.length === 0}>
           Solicitar aprobación
         </Button>

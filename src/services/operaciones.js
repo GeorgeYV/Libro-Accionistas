@@ -1,9 +1,13 @@
 import { API } from 'aws-amplify';
-import { listAccionistas, listTitulos, listAccionistaOperacions, listTituloPorOperacions, getOperacion, listHerederos } from '../graphql/queries';
+import {
+  listAccionistas, listTitulos, listAccionistaOperacions, listTituloPorOperacions, getOperacion, listHerederos, getAccionista,
+  getPersonaNatural, getPersonaJuridica,
+} from '../graphql/queries';
 import { createOperacion, createAccionistaOperacion, createTituloPorOperacion, createAumentoCapital, updateHeredero } from '../graphql/mutations';
 import { listarTodos } from './listarTodos';
 import { enLotes } from './fotoTitulos';
 import { ID_TITULO_RAIZ } from '../utils/rangos';
+import { problemasHeredero, problemasFicha } from '../utils/operaciones';
 
 // Fecha de operación en el formato que ya usa el blotter (d-m-aaaa, sin ceros a la izquierda).
 export const fechaOperacion = (d = new Date()) => `${d.getDate()}-${d.getMonth() + 1}-${d.getFullYear()}`;
@@ -93,7 +97,39 @@ export function listarHerederosDe(accionistaId) {
  * Posesión efectiva (ope_tipo 6) sobre UN título del causante: el blotter lo reparte entre los herederos según
  * her_cant_acciones (que se guarda aquí). reparto: [{ heredero, acciones }] con la suma igual a las acciones del título.
  */
+// Revisa los herederos que ya son accionistas: válidos, con datos básicos y tipo de persona (ver problemasHeredero).
+// Devuelve [{ heredero, existe, problemas }] (problemas vacío = puede recibir; existe false = se creará al aprobar).
+export async function revisarHerederos(herederos, causanteId) {
+  return Promise.all(herederos.map(async (heredero) => {
+    const accionista = (await API.graphql({ query: getAccionista, variables: { id: heredero.her_identificacion } })).data.getAccionista;
+    let persona = null;
+    if (accionista && (accionista.acc_tipo_persona === 0 || accionista.acc_tipo_persona === 1)) {
+      const [query, campo] = accionista.acc_tipo_persona === 0 ? [getPersonaNatural, 'getPersonaNatural'] : [getPersonaJuridica, 'getPersonaJuridica'];
+      persona = (await API.graphql({ query, variables: { id: accionista.id } })).data[campo];
+    }
+    return {
+      heredero,
+      existe: !!accionista,
+      problemas: problemasHeredero(accionista, persona, causanteId) || [],
+      // Aceptado sin ficha completa: recibe las acciones en estado Heredero.
+      fichaIncompleta: !!accionista && problemasFicha(accionista, persona).length > 0,
+    };
+  }));
+}
+
+// Lanza un error con el detalle si algún heredero que ya es accionista no es válido; si todos lo son, devuelve la revisión.
+export async function exigirHerederosValidos(herederos, causanteId) {
+  const revision = await revisarHerederos(herederos, causanteId);
+  const malos = revision.filter((r) => r.problemas.length);
+  if (malos.length) {
+    const detalle = malos.map((r) => `${r.heredero.her_nombre || r.heredero.her_identificacion} (${r.problemas.join('; ')})`).join(' · ');
+    throw new Error(`Herederos que ya son accionistas con datos incompletos o no válidos: ${detalle}. Complete su ficha en Accionistas.`);
+  }
+  return revision;
+}
+
 export async function solicitarPosesionEfectiva({ causante, titulo, reparto, documento, usuario }) {
+  await exigirHerederosValidos(reparto.filter((r) => r.acciones > 0).map((r) => r.heredero), causante.id);
   if (await tieneOperacionPendiente(causante.id, 6)) throw new Error('El causante ya tiene una posesión efectiva pendiente de aprobación.');
   if ((await titulosEnOperacionPendiente([titulo])).length) throw new Error(`El título ${titulo.id} ya está en otra operación pendiente.`);
   const operacion = await solicitarOperacion({

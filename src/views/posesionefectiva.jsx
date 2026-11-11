@@ -1,7 +1,7 @@
 import React, { useState, useEffect, useMemo } from 'react';
 import { Auth } from 'aws-amplify';
 import {
-  Paper, Grid, Typography, TextField, Button, Snackbar, CircularProgress, Avatar, Box, Chip, IconButton, Radio,
+  Paper, Grid, Typography, TextField, Button, Snackbar, Avatar, Box, Chip, IconButton, Radio,
   Table, TableHead, TableBody, TableRow, TableCell, Stepper, Step, StepLabel,
 } from '@material-ui/core';
 import { makeStyles } from '@material-ui/core/styles';
@@ -15,9 +15,10 @@ import DeleteOutlineIcon from '@material-ui/icons/DeleteOutline';
 import SendIcon from '@material-ui/icons/Send';
 import { listAccionistas } from '../graphql/queries';
 import { listarTodos } from '../services/listarTodos';
-import { listarTitulosVigentes, listarHerederosDe, solicitarPosesionEfectiva } from '../services/operaciones';
+import { listarTitulosVigentes, listarHerederosDe, solicitarPosesionEfectiva, revisarHerederos } from '../services/operaciones';
 import { subirArchivo, abrirArchivo } from '../services/archivos';
 import { repartoInicial, validarReparto } from '../utils/operaciones';
+import Cargando from '../components/cargando';
 
 const useStyles = makeStyles((theme) => ({
   appBarSpacer: { ...theme.mixins.toolbar },
@@ -40,6 +41,7 @@ export default function PosesionEfectiva() {
   const [titulos, setTitulos] = useState([]);
   const [tituloId, setTituloId] = useState('');
   const [herederos, setHerederos] = useState([]);
+  const [revision, setRevision] = useState({}); // id del heredero -> { existe, problemas }
   const [cantidades, setCantidades] = useState([]); // texto por heredero
   const [documentos, setDocumentos] = useState(() => DOCUMENTOS.map(() => ''));
   const [cargando, setCargando] = useState(true);
@@ -75,6 +77,7 @@ export default function PosesionEfectiva() {
     setCausante(valor);
     setTitulos([]);
     setHerederos([]);
+    setRevision({});
     setTituloId('');
     setCantidades([]);
     if (!valor) return;
@@ -83,6 +86,7 @@ export default function PosesionEfectiva() {
       const activos = lista.filter((t) => t.tit_estado === 1);
       setTitulos(activos);
       setHerederos(suyos);
+      setRevision(Object.fromEntries((await revisarHerederos(suyos, valor.id)).map((r) => [r.heredero.id, r])));
       elegirTitulo(activos.length === 1 ? activos[0] : null, suyos);
     });
   };
@@ -90,6 +94,8 @@ export default function PosesionEfectiva() {
   const numeros = useMemo(() => cantidades.map((c) => parseInt(c, 10) || 0), [cantidades]);
   const validacion = titulo ? validarReparto(numeros, total) : { asignado: 0, error: 'Seleccione el título.' };
   const documentosCargados = documentos.filter(Boolean).length;
+  // Herederos que reciben acciones y ya son accionistas con datos incompletos o no válidos.
+  const herederosInvalidos = herederos.filter((h, i) => numeros[i] > 0 && revision[h.id] && revision[h.id].problemas.length);
   const paso = !causante ? 0 : !titulo ? 1 : validacion.error ? 2 : documentosCargados === 0 ? 3 : 4;
 
   const subir = (i) => (e) => {
@@ -204,6 +210,7 @@ export default function PosesionEfectiva() {
                   <TableRow>
                     <TableCell>Identificación</TableCell>
                     <TableCell>Nombre</TableCell>
+                    <TableCell>Registro</TableCell>
                     <TableCell align="right" style={{ width: 160 }}>Acciones</TableCell>
                   </TableRow>
                 </TableHead>
@@ -212,6 +219,11 @@ export default function PosesionEfectiva() {
                     <TableRow key={h.id}>
                       <TableCell>{h.her_identificacion}</TableCell>
                       <TableCell>{h.her_nombre}</TableCell>
+                      <TableCell>
+                        {!revision[h.id] ? null : revision[h.id].problemas.length
+                          ? <Typography variant="caption" color="error">{`Accionista no válido: ${revision[h.id].problemas.join('; ')}`}</Typography>
+                          : <Chip size="small" variant="outlined" label={!revision[h.id].existe ? 'Se creará como heredero' : revision[h.id].fichaIncompleta ? 'Recibirá como heredero (ficha incompleta)' : 'Accionista registrado'} />}
+                      </TableCell>
                       <TableCell align="right">
                         <TextField
                           size="small" disabled={!titulo} value={cantidades[i] || ''}
@@ -223,6 +235,11 @@ export default function PosesionEfectiva() {
                   ))}
                 </TableBody>
               </Table>
+            )}
+            {herederosInvalidos.length > 0 && (
+              <MuiAlert severity="error" style={{ marginTop: 12 }}>
+                Hay herederos que ya son accionistas con datos incompletos o no válidos. Complete su ficha en Accionistas o asígneles 0 acciones.
+              </MuiAlert>
             )}
             {titulo && herederos.length > 0 && validacion.error && <MuiAlert severity="warning" style={{ marginTop: 12 }}>{validacion.error}</MuiAlert>}
           </Paper>
@@ -250,9 +267,9 @@ export default function PosesionEfectiva() {
       </Grid>
 
       <Box display="flex" justifyContent="flex-end" alignItems="center" mt={2} style={{ gap: 8 }}>
-        {cargando && <CircularProgress size={24} />}
+        <Cargando abierto={cargando} />
         <Button variant="contained" color="primary" startIcon={<SendIcon />} onClick={solicitar}
-          disabled={cargando || !causante || !titulo || herederos.length === 0 || !!validacion.error}>
+          disabled={cargando || !causante || !titulo || herederos.length === 0 || !!validacion.error || herederosInvalidos.length > 0}>
           Solicitar aprobación
         </Button>
       </Box>

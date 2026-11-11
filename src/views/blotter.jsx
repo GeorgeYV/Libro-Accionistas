@@ -1,7 +1,7 @@
 import React, { useState, useEffect, useMemo } from 'react';
 import { Auth } from 'aws-amplify';
 import {
-  Paper, Grid, Typography, Button, Chip, IconButton, TextField, Tabs, Tab, Badge, Box, Divider, Snackbar, CircularProgress,
+  Paper, Grid, Typography, Button, Chip, IconButton, TextField, Tabs, Tab, Badge, Box, Divider, Snackbar,
   Dialog, DialogTitle, DialogContent, DialogActions, MenuItem, InputAdornment,
   Table, TableHead, TableBody, TableRow, TableCell,
 } from '@material-ui/core';
@@ -20,6 +20,7 @@ import {
 } from '../services/aprobacion';
 import { subirArchivo, abrirArchivo } from '../services/archivos';
 import { valorFecha } from '../utils/libro'; // entiende d-m-aaaa y aaaammdd (registros antiguos)
+import Cargando from '../components/cargando';
 
 const useStyles = makeStyles((theme) => ({
   appBarSpacer: { ...theme.mixins.toolbar },
@@ -106,7 +107,8 @@ export default function Operaciones() {
     setDetalle(d);
     setSeleccionada(op);
   });
-  const cerrar = () => { setSeleccionada(null); setDetalle(null); setConfirmar(null); };
+  // La confirmación se cierra primero: tras un await React 17 no agrupa los cambios y el diálogo leía la operación ya en null.
+  const cerrar = () => { setConfirmar(null); setSeleccionada(null); setDetalle(null); };
 
   // Acciones que cambian datos: siempre tras confirmar.
   const ACCIONES = {
@@ -163,7 +165,7 @@ export default function Operaciones() {
       <div className={classes.appBarSpacer} />
       <Box display="flex" alignItems="center" justifyContent="space-between" mb={1}>
         <Typography variant="h6">Operaciones</Typography>
-        {cargando && <CircularProgress size={24} />}
+        <Cargando abierto={cargando} />
       </Box>
       <Paper variant="outlined">
         <Tabs value={estado} onChange={(e, v) => { setEstado(v); setBusqueda(''); }} indicatorColor="primary" textColor="primary" variant="fullWidth">
@@ -287,10 +289,9 @@ export default function Operaciones() {
               )}
             </DialogContent>
             <DialogActions>
-              {cargando && <CircularProgress size={24} />}
               {op.ope_estado === 0 && <Button color="secondary" disabled={cargando || motivos.length === 0} onClick={() => setConfirmar('rechazar')}>Rechazar</Button>}
               {op.ope_estado === 0 && <Button variant="contained" color="primary" disabled={cargando || (!detalle.principal && op.ope_tipo !== 6)} onClick={() => setConfirmar('aprobar')}>Aprobar</Button>}
-              {op.ope_estado === 1 && op.ope_tipo !== 6 && <Button variant="contained" className={classes.peligro} disabled={cargando} onClick={() => setConfirmar('anular')}>Anular</Button>}
+              {op.ope_estado === 1 && <Button variant="contained" className={classes.peligro} disabled={cargando} onClick={() => setConfirmar('anular')}>Anular</Button>}
               {op.ope_estado === 2 && <Button variant="contained" color="primary" disabled={cargando} onClick={() => setConfirmar('reenviar')}>Volver a solicitar aprobación</Button>}
               <Button onClick={cerrar}>Salir</Button>
             </DialogActions>
@@ -298,8 +299,8 @@ export default function Operaciones() {
         )}
       </Dialog>
 
-      <Dialog open={!!confirmar} onClose={() => setConfirmar(null)}>
-        {confirmar && (
+      <Dialog open={!!confirmar && !!op} onClose={() => setConfirmar(null)}>
+        {confirmar && op && (
           <>
             <DialogTitle>{ACCIONES[confirmar].titulo}</DialogTitle>
             <DialogContent>

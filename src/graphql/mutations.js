@@ -555,6 +555,7 @@ export const createDetalleDividendo = /* GraphQL */ `
       ddiv_valor_accion
       ddiv_acciones
       ddiv_monto
+      ddiv_reglas_retencion
       createdAt
       updatedAt
       __typename
@@ -581,6 +582,7 @@ export const updateDetalleDividendo = /* GraphQL */ `
       ddiv_valor_accion
       ddiv_acciones
       ddiv_monto
+      ddiv_reglas_retencion
       createdAt
       updatedAt
       __typename
@@ -607,6 +609,7 @@ export const deleteDetalleDividendo = /* GraphQL */ `
       ddiv_valor_accion
       ddiv_acciones
       ddiv_monto
+      ddiv_reglas_retencion
       createdAt
       updatedAt
       __typename
@@ -679,6 +682,7 @@ export const createPais = /* GraphQL */ `
       nacionalidad
       codigoTelefono
       estado
+      paraisoFiscal
       createdAt
       updatedAt
       __typename
@@ -697,6 +701,7 @@ export const updatePais = /* GraphQL */ `
       nacionalidad
       codigoTelefono
       estado
+      paraisoFiscal
       createdAt
       updatedAt
       __typename
@@ -715,6 +720,7 @@ export const deletePais = /* GraphQL */ `
       nacionalidad
       codigoTelefono
       estado
+      paraisoFiscal
       createdAt
       updatedAt
       __typename
@@ -995,54 +1001,14 @@ export const createParametro = /* GraphQL */ `
   ) {
     createParametro(input: $input, condition: $condition) {
       id
-      moneda
       cantidadEmitida
       valorNominal
       baseImponible
-      noResidente
-      IGdesde1
-      IGhasta1
-      FBretencion1
-      FEretencion1
-      IGdesde2
-      IGhasta2
-      FBretencion2
-      FEretencion2
-      IGdesde3
-      IGhasta3
-      FBretencion3
-      FEretencion3
-      IGdesde4
-      IGhasta4
-      FBretencion4
-      FEretencion4
-      IGdesde5
-      IGhasta5
-      FBretencion5
-      FEretencion5
-      IGdesde6
-      IGhasta6
-      FBretencion6
-      FEretencion6
-      Retencion_Minima
-      Retencion_Maxima
-      Retencion_PN_Loc
-      Retencion_PN_NPF
-      Retencion_PN_PF
-      Retencion_PJ_Loc_Loc
-      Retencion_PJ_Loc_NPF
-      Retencion_PJ_Loc_PF
-      Retencion_PJ_PF_Loc
-      Retencion_PJ_PF_NPF
-      Retencion_PJ_PF_PF
-      Retencion_PJ_NPF_Loc
-      Retencion_PJ_NPF_NPF
-      Retencion_PJ_NPF_PF
       modeloCartaCesion
       modeloCartaGerente
       modeloCartaInstrucciones
       modeloSolicitudDividendos
-      titulos_totales
+      reglasRetencion
       createdAt
       updatedAt
       __typename
@@ -1056,54 +1022,14 @@ export const updateParametro = /* GraphQL */ `
   ) {
     updateParametro(input: $input, condition: $condition) {
       id
-      moneda
       cantidadEmitida
       valorNominal
       baseImponible
-      noResidente
-      IGdesde1
-      IGhasta1
-      FBretencion1
-      FEretencion1
-      IGdesde2
-      IGhasta2
-      FBretencion2
-      FEretencion2
-      IGdesde3
-      IGhasta3
-      FBretencion3
-      FEretencion3
-      IGdesde4
-      IGhasta4
-      FBretencion4
-      FEretencion4
-      IGdesde5
-      IGhasta5
-      FBretencion5
-      FEretencion5
-      IGdesde6
-      IGhasta6
-      FBretencion6
-      FEretencion6
-      Retencion_Minima
-      Retencion_Maxima
-      Retencion_PN_Loc
-      Retencion_PN_NPF
-      Retencion_PN_PF
-      Retencion_PJ_Loc_Loc
-      Retencion_PJ_Loc_NPF
-      Retencion_PJ_Loc_PF
-      Retencion_PJ_PF_Loc
-      Retencion_PJ_PF_NPF
-      Retencion_PJ_PF_PF
-      Retencion_PJ_NPF_Loc
-      Retencion_PJ_NPF_NPF
-      Retencion_PJ_NPF_PF
       modeloCartaCesion
       modeloCartaGerente
       modeloCartaInstrucciones
       modeloSolicitudDividendos
-      titulos_totales
+      reglasRetencion
       createdAt
       updatedAt
       __typename
@@ -1117,54 +1043,14 @@ export const deleteParametro = /* GraphQL */ `
   ) {
     deleteParametro(input: $input, condition: $condition) {
       id
-      moneda
       cantidadEmitida
       valorNominal
       baseImponible
-      noResidente
-      IGdesde1
-      IGhasta1
-      FBretencion1
-      FEretencion1
-      IGdesde2
-      IGhasta2
-      FBretencion2
-      FEretencion2
-      IGdesde3
-      IGhasta3
-      FBretencion3
-      FEretencion3
-      IGdesde4
-      IGhasta4
-      FBretencion4
-      FEretencion4
-      IGdesde5
-      IGhasta5
-      FBretencion5
-      FEretencion5
-      IGdesde6
-      IGhasta6
-      FBretencion6
-      FEretencion6
-      Retencion_Minima
-      Retencion_Maxima
-      Retencion_PN_Loc
-      Retencion_PN_NPF
-      Retencion_PN_PF
-      Retencion_PJ_Loc_Loc
-      Retencion_PJ_Loc_NPF
-      Retencion_PJ_Loc_PF
-      Retencion_PJ_PF_Loc
-      Retencion_PJ_PF_NPF
-      Retencion_PJ_PF_PF
-      Retencion_PJ_NPF_Loc
-      Retencion_PJ_NPF_NPF
-      Retencion_PJ_NPF_PF
       modeloCartaCesion
       modeloCartaGerente
       modeloCartaInstrucciones
       modeloSolicitudDividendos
-      titulos_totales
+      reglasRetencion
       createdAt
       updatedAt
       __typename
@@ -1374,25 +1260,11 @@ export const createAsamblea = /* GraphQL */ `
       capital
       acta
       votaciones
-      horaAperturaQuorum
       horaCierreQuorum
       cierreQuorum
       presentes
-      presentesCapital
-      presentesPorcentajePersona
-      presentesPorcentajeCapital
       ausentes
-      ausentesCapital
-      ausentesPorcentajePersona
-      ausentesPorcentajeCapital
       representados
-      representadosCapital
-      representadosPorcentajePersona
-      representadosPorcentajeCapital
-      totalpresentes
-      totalcapitalpresentes
-      totalporcentajePersona
-      totalporcentajeCapital
       votacionTema1
       votacionTema2
       votacionTema3
@@ -1408,21 +1280,6 @@ export const createAsamblea = /* GraphQL */ `
       votacionTema13
       votacionTema14
       votacionTema15
-      votacionResultado1
-      votacionResultado2
-      votacionResultado3
-      votacionResultado4
-      votacionResultado5
-      votacionResultado6
-      votacionResultado7
-      votacionResultado8
-      votacionResultado9
-      votacionResultado10
-      votacionResultado11
-      votacionResultado12
-      votacionResultado13
-      votacionResultado14
-      votacionResultado15
       habilitanteTema1
       habilitanteTema2
       habilitanteTema3
@@ -1438,7 +1295,6 @@ export const createAsamblea = /* GraphQL */ `
       habilitanteTema13
       habilitanteTema14
       habilitanteTema15
-      rutaGrabacion
       temaDividendo
       createdAt
       updatedAt
@@ -1469,25 +1325,11 @@ export const updateAsamblea = /* GraphQL */ `
       capital
       acta
       votaciones
-      horaAperturaQuorum
       horaCierreQuorum
       cierreQuorum
       presentes
-      presentesCapital
-      presentesPorcentajePersona
-      presentesPorcentajeCapital
       ausentes
-      ausentesCapital
-      ausentesPorcentajePersona
-      ausentesPorcentajeCapital
       representados
-      representadosCapital
-      representadosPorcentajePersona
-      representadosPorcentajeCapital
-      totalpresentes
-      totalcapitalpresentes
-      totalporcentajePersona
-      totalporcentajeCapital
       votacionTema1
       votacionTema2
       votacionTema3
@@ -1503,21 +1345,6 @@ export const updateAsamblea = /* GraphQL */ `
       votacionTema13
       votacionTema14
       votacionTema15
-      votacionResultado1
-      votacionResultado2
-      votacionResultado3
-      votacionResultado4
-      votacionResultado5
-      votacionResultado6
-      votacionResultado7
-      votacionResultado8
-      votacionResultado9
-      votacionResultado10
-      votacionResultado11
-      votacionResultado12
-      votacionResultado13
-      votacionResultado14
-      votacionResultado15
       habilitanteTema1
       habilitanteTema2
       habilitanteTema3
@@ -1533,7 +1360,6 @@ export const updateAsamblea = /* GraphQL */ `
       habilitanteTema13
       habilitanteTema14
       habilitanteTema15
-      rutaGrabacion
       temaDividendo
       createdAt
       updatedAt
@@ -1564,25 +1390,11 @@ export const deleteAsamblea = /* GraphQL */ `
       capital
       acta
       votaciones
-      horaAperturaQuorum
       horaCierreQuorum
       cierreQuorum
       presentes
-      presentesCapital
-      presentesPorcentajePersona
-      presentesPorcentajeCapital
       ausentes
-      ausentesCapital
-      ausentesPorcentajePersona
-      ausentesPorcentajeCapital
       representados
-      representadosCapital
-      representadosPorcentajePersona
-      representadosPorcentajeCapital
-      totalpresentes
-      totalcapitalpresentes
-      totalporcentajePersona
-      totalporcentajeCapital
       votacionTema1
       votacionTema2
       votacionTema3
@@ -1598,21 +1410,6 @@ export const deleteAsamblea = /* GraphQL */ `
       votacionTema13
       votacionTema14
       votacionTema15
-      votacionResultado1
-      votacionResultado2
-      votacionResultado3
-      votacionResultado4
-      votacionResultado5
-      votacionResultado6
-      votacionResultado7
-      votacionResultado8
-      votacionResultado9
-      votacionResultado10
-      votacionResultado11
-      votacionResultado12
-      votacionResultado13
-      votacionResultado14
-      votacionResultado15
       habilitanteTema1
       habilitanteTema2
       habilitanteTema3
@@ -1628,7 +1425,6 @@ export const deleteAsamblea = /* GraphQL */ `
       habilitanteTema13
       habilitanteTema14
       habilitanteTema15
-      rutaGrabacion
       temaDividendo
       createdAt
       updatedAt
@@ -1816,207 +1612,6 @@ export const deleteAccionistasxJunta = /* GraphQL */ `
     }
   }
 `;
-export const createDividendosAccionista = /* GraphQL */ `
-  mutation CreateDividendosAccionista(
-    $input: CreateDividendosAccionistaInput!
-    $condition: ModelDividendosAccionistaConditionInput
-  ) {
-    createDividendosAccionista(input: $input, condition: $condition) {
-      id
-      idAccionista
-      tipoIdentificacion
-      identificacion
-      nombre
-      direccionPais
-      paisNacionalidad
-      cantidadAcciones
-      participacion
-      tipoAcciones
-      estado
-      tipoPersona
-      decevale
-      idDividendo
-      periodo
-      dividendo
-      baseImponible
-      retencion
-      dividendoRecibido
-      estadoDividendo
-      documento
-      solicitado
-      fechaSolicitud
-      HoraSolicitud
-      fechaPago
-      createdAt
-      updatedAt
-      __typename
-    }
-  }
-`;
-export const updateDividendosAccionista = /* GraphQL */ `
-  mutation UpdateDividendosAccionista(
-    $input: UpdateDividendosAccionistaInput!
-    $condition: ModelDividendosAccionistaConditionInput
-  ) {
-    updateDividendosAccionista(input: $input, condition: $condition) {
-      id
-      idAccionista
-      tipoIdentificacion
-      identificacion
-      nombre
-      direccionPais
-      paisNacionalidad
-      cantidadAcciones
-      participacion
-      tipoAcciones
-      estado
-      tipoPersona
-      decevale
-      idDividendo
-      periodo
-      dividendo
-      baseImponible
-      retencion
-      dividendoRecibido
-      estadoDividendo
-      documento
-      solicitado
-      fechaSolicitud
-      HoraSolicitud
-      fechaPago
-      createdAt
-      updatedAt
-      __typename
-    }
-  }
-`;
-export const deleteDividendosAccionista = /* GraphQL */ `
-  mutation DeleteDividendosAccionista(
-    $input: DeleteDividendosAccionistaInput!
-    $condition: ModelDividendosAccionistaConditionInput
-  ) {
-    deleteDividendosAccionista(input: $input, condition: $condition) {
-      id
-      idAccionista
-      tipoIdentificacion
-      identificacion
-      nombre
-      direccionPais
-      paisNacionalidad
-      cantidadAcciones
-      participacion
-      tipoAcciones
-      estado
-      tipoPersona
-      decevale
-      idDividendo
-      periodo
-      dividendo
-      baseImponible
-      retencion
-      dividendoRecibido
-      estadoDividendo
-      documento
-      solicitado
-      fechaSolicitud
-      HoraSolicitud
-      fechaPago
-      createdAt
-      updatedAt
-      __typename
-    }
-  }
-`;
-export const createSolicitudes = /* GraphQL */ `
-  mutation CreateSolicitudes(
-    $input: CreateSolicitudesInput!
-    $condition: ModelSolicitudesConditionInput
-  ) {
-    createSolicitudes(input: $input, condition: $condition) {
-      id
-      fecha
-      operacion
-      idCedente
-      cedente
-      cedenteIdentificacion
-      acciones
-      valorVenta
-      totalVenta
-      cesionarioIdentificacion
-      cesionarioNombre
-      cesionarioDireccion
-      cesionarioEmail
-      cesionarioTelefono
-      estado
-      cs
-      ci
-      docIdentidad
-      createdAt
-      updatedAt
-      __typename
-    }
-  }
-`;
-export const updateSolicitudes = /* GraphQL */ `
-  mutation UpdateSolicitudes(
-    $input: UpdateSolicitudesInput!
-    $condition: ModelSolicitudesConditionInput
-  ) {
-    updateSolicitudes(input: $input, condition: $condition) {
-      id
-      fecha
-      operacion
-      idCedente
-      cedente
-      cedenteIdentificacion
-      acciones
-      valorVenta
-      totalVenta
-      cesionarioIdentificacion
-      cesionarioNombre
-      cesionarioDireccion
-      cesionarioEmail
-      cesionarioTelefono
-      estado
-      cs
-      ci
-      docIdentidad
-      createdAt
-      updatedAt
-      __typename
-    }
-  }
-`;
-export const deleteSolicitudes = /* GraphQL */ `
-  mutation DeleteSolicitudes(
-    $input: DeleteSolicitudesInput!
-    $condition: ModelSolicitudesConditionInput
-  ) {
-    deleteSolicitudes(input: $input, condition: $condition) {
-      id
-      fecha
-      operacion
-      idCedente
-      cedente
-      cedenteIdentificacion
-      acciones
-      valorVenta
-      totalVenta
-      cesionarioIdentificacion
-      cesionarioNombre
-      cesionarioDireccion
-      cesionarioEmail
-      cesionarioTelefono
-      estado
-      cs
-      ci
-      docIdentidad
-      createdAt
-      updatedAt
-      __typename
-    }
-  }
-`;
 export const createAccionistaArchive = /* GraphQL */ `
   mutation CreateAccionistaArchive(
     $input: CreateAccionistaArchiveInput!
@@ -2104,69 +1699,69 @@ export const deleteAccionistaArchive = /* GraphQL */ `
     }
   }
 `;
-export const createTituloArchive = /* GraphQL */ `
-  mutation CreateTituloArchive(
-    $input: CreateTituloArchiveInput!
-    $condition: ModelTituloArchiveConditionInput
+export const createCertificado = /* GraphQL */ `
+  mutation CreateCertificado(
+    $input: CreateCertificadoInput!
+    $condition: ModelCertificadoConditionInput
   ) {
-    createTituloArchive(input: $input, condition: $condition) {
-      fecha
+    createCertificado(input: $input, condition: $condition) {
       id
-      accionistaID
-      titulo
-      acciones
-      fechaCompra
-      estado
-      idCedenteHereda
-      nombreCedenteHereda
-      desde
-      hasta
+      cer_accionista_id
+      cer_nombre
+      cer_identificacion
+      cer_acciones
+      cer_valor_nominal
+      cer_fecha_emision
+      cer_emisor
+      cer_estado
+      cer_fecha_baja
+      cer_motivo_baja
       createdAt
       updatedAt
       __typename
     }
   }
 `;
-export const updateTituloArchive = /* GraphQL */ `
-  mutation UpdateTituloArchive(
-    $input: UpdateTituloArchiveInput!
-    $condition: ModelTituloArchiveConditionInput
+export const updateCertificado = /* GraphQL */ `
+  mutation UpdateCertificado(
+    $input: UpdateCertificadoInput!
+    $condition: ModelCertificadoConditionInput
   ) {
-    updateTituloArchive(input: $input, condition: $condition) {
-      fecha
+    updateCertificado(input: $input, condition: $condition) {
       id
-      accionistaID
-      titulo
-      acciones
-      fechaCompra
-      estado
-      idCedenteHereda
-      nombreCedenteHereda
-      desde
-      hasta
+      cer_accionista_id
+      cer_nombre
+      cer_identificacion
+      cer_acciones
+      cer_valor_nominal
+      cer_fecha_emision
+      cer_emisor
+      cer_estado
+      cer_fecha_baja
+      cer_motivo_baja
       createdAt
       updatedAt
       __typename
     }
   }
 `;
-export const deleteTituloArchive = /* GraphQL */ `
-  mutation DeleteTituloArchive(
-    $input: DeleteTituloArchiveInput!
-    $condition: ModelTituloArchiveConditionInput
+export const deleteCertificado = /* GraphQL */ `
+  mutation DeleteCertificado(
+    $input: DeleteCertificadoInput!
+    $condition: ModelCertificadoConditionInput
   ) {
-    deleteTituloArchive(input: $input, condition: $condition) {
-      fecha
+    deleteCertificado(input: $input, condition: $condition) {
       id
-      accionistaID
-      titulo
-      acciones
-      fechaCompra
-      estado
-      idCedenteHereda
-      nombreCedenteHereda
-      desde
-      hasta
+      cer_accionista_id
+      cer_nombre
+      cer_identificacion
+      cer_acciones
+      cer_valor_nominal
+      cer_fecha_emision
+      cer_emisor
+      cer_estado
+      cer_fecha_baja
+      cer_motivo_baja
       createdAt
       updatedAt
       __typename

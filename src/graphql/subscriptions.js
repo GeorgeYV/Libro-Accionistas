@@ -471,6 +471,7 @@ export const onCreateDetalleDividendo = /* GraphQL */ `
       ddiv_valor_accion
       ddiv_acciones
       ddiv_monto
+      ddiv_reglas_retencion
       createdAt
       updatedAt
       __typename
@@ -494,6 +495,7 @@ export const onUpdateDetalleDividendo = /* GraphQL */ `
       ddiv_valor_accion
       ddiv_acciones
       ddiv_monto
+      ddiv_reglas_retencion
       createdAt
       updatedAt
       __typename
@@ -517,6 +519,7 @@ export const onDeleteDetalleDividendo = /* GraphQL */ `
       ddiv_valor_accion
       ddiv_acciones
       ddiv_monto
+      ddiv_reglas_retencion
       createdAt
       updatedAt
       __typename
@@ -577,6 +580,7 @@ export const onCreatePais = /* GraphQL */ `
       nacionalidad
       codigoTelefono
       estado
+      paraisoFiscal
       createdAt
       updatedAt
       __typename
@@ -592,6 +596,7 @@ export const onUpdatePais = /* GraphQL */ `
       nacionalidad
       codigoTelefono
       estado
+      paraisoFiscal
       createdAt
       updatedAt
       __typename
@@ -607,6 +612,7 @@ export const onDeletePais = /* GraphQL */ `
       nacionalidad
       codigoTelefono
       estado
+      paraisoFiscal
       createdAt
       updatedAt
       __typename
@@ -848,54 +854,14 @@ export const onCreateParametro = /* GraphQL */ `
   subscription OnCreateParametro {
     onCreateParametro {
       id
-      moneda
       cantidadEmitida
       valorNominal
       baseImponible
-      noResidente
-      IGdesde1
-      IGhasta1
-      FBretencion1
-      FEretencion1
-      IGdesde2
-      IGhasta2
-      FBretencion2
-      FEretencion2
-      IGdesde3
-      IGhasta3
-      FBretencion3
-      FEretencion3
-      IGdesde4
-      IGhasta4
-      FBretencion4
-      FEretencion4
-      IGdesde5
-      IGhasta5
-      FBretencion5
-      FEretencion5
-      IGdesde6
-      IGhasta6
-      FBretencion6
-      FEretencion6
-      Retencion_Minima
-      Retencion_Maxima
-      Retencion_PN_Loc
-      Retencion_PN_NPF
-      Retencion_PN_PF
-      Retencion_PJ_Loc_Loc
-      Retencion_PJ_Loc_NPF
-      Retencion_PJ_Loc_PF
-      Retencion_PJ_PF_Loc
-      Retencion_PJ_PF_NPF
-      Retencion_PJ_PF_PF
-      Retencion_PJ_NPF_Loc
-      Retencion_PJ_NPF_NPF
-      Retencion_PJ_NPF_PF
       modeloCartaCesion
       modeloCartaGerente
       modeloCartaInstrucciones
       modeloSolicitudDividendos
-      titulos_totales
+      reglasRetencion
       createdAt
       updatedAt
       __typename
@@ -906,54 +872,14 @@ export const onUpdateParametro = /* GraphQL */ `
   subscription OnUpdateParametro {
     onUpdateParametro {
       id
-      moneda
       cantidadEmitida
       valorNominal
       baseImponible
-      noResidente
-      IGdesde1
-      IGhasta1
-      FBretencion1
-      FEretencion1
-      IGdesde2
-      IGhasta2
-      FBretencion2
-      FEretencion2
-      IGdesde3
-      IGhasta3
-      FBretencion3
-      FEretencion3
-      IGdesde4
-      IGhasta4
-      FBretencion4
-      FEretencion4
-      IGdesde5
-      IGhasta5
-      FBretencion5
-      FEretencion5
-      IGdesde6
-      IGhasta6
-      FBretencion6
-      FEretencion6
-      Retencion_Minima
-      Retencion_Maxima
-      Retencion_PN_Loc
-      Retencion_PN_NPF
-      Retencion_PN_PF
-      Retencion_PJ_Loc_Loc
-      Retencion_PJ_Loc_NPF
-      Retencion_PJ_Loc_PF
-      Retencion_PJ_PF_Loc
-      Retencion_PJ_PF_NPF
-      Retencion_PJ_PF_PF
-      Retencion_PJ_NPF_Loc
-      Retencion_PJ_NPF_NPF
-      Retencion_PJ_NPF_PF
       modeloCartaCesion
       modeloCartaGerente
       modeloCartaInstrucciones
       modeloSolicitudDividendos
-      titulos_totales
+      reglasRetencion
       createdAt
       updatedAt
       __typename
@@ -964,54 +890,14 @@ export const onDeleteParametro = /* GraphQL */ `
   subscription OnDeleteParametro {
     onDeleteParametro {
       id
-      moneda
       cantidadEmitida
       valorNominal
       baseImponible
-      noResidente
-      IGdesde1
-      IGhasta1
-      FBretencion1
-      FEretencion1
-      IGdesde2
-      IGhasta2
-      FBretencion2
-      FEretencion2
-      IGdesde3
-      IGhasta3
-      FBretencion3
-      FEretencion3
-      IGdesde4
-      IGhasta4
-      FBretencion4
-      FEretencion4
-      IGdesde5
-      IGhasta5
-      FBretencion5
-      FEretencion5
-      IGdesde6
-      IGhasta6
-      FBretencion6
-      FEretencion6
-      Retencion_Minima
-      Retencion_Maxima
-      Retencion_PN_Loc
-      Retencion_PN_NPF
-      Retencion_PN_PF
-      Retencion_PJ_Loc_Loc
-      Retencion_PJ_Loc_NPF
-      Retencion_PJ_Loc_PF
-      Retencion_PJ_PF_Loc
-      Retencion_PJ_PF_NPF
-      Retencion_PJ_PF_PF
-      Retencion_PJ_NPF_Loc
-      Retencion_PJ_NPF_NPF
-      Retencion_PJ_NPF_PF
       modeloCartaCesion
       modeloCartaGerente
       modeloCartaInstrucciones
       modeloSolicitudDividendos
-      titulos_totales
+      reglasRetencion
       createdAt
       updatedAt
       __typename
@@ -1209,25 +1095,11 @@ export const onCreateAsamblea = /* GraphQL */ `
       capital
       acta
       votaciones
-      horaAperturaQuorum
       horaCierreQuorum
       cierreQuorum
       presentes
-      presentesCapital
-      presentesPorcentajePersona
-      presentesPorcentajeCapital
       ausentes
-      ausentesCapital
-      ausentesPorcentajePersona
-      ausentesPorcentajeCapital
       representados
-      representadosCapital
-      representadosPorcentajePersona
-      representadosPorcentajeCapital
-      totalpresentes
-      totalcapitalpresentes
-      totalporcentajePersona
-      totalporcentajeCapital
       votacionTema1
       votacionTema2
       votacionTema3
@@ -1243,21 +1115,6 @@ export const onCreateAsamblea = /* GraphQL */ `
       votacionTema13
       votacionTema14
       votacionTema15
-      votacionResultado1
-      votacionResultado2
-      votacionResultado3
-      votacionResultado4
-      votacionResultado5
-      votacionResultado6
-      votacionResultado7
-      votacionResultado8
-      votacionResultado9
-      votacionResultado10
-      votacionResultado11
-      votacionResultado12
-      votacionResultado13
-      votacionResultado14
-      votacionResultado15
       habilitanteTema1
       habilitanteTema2
       habilitanteTema3
@@ -1273,7 +1130,6 @@ export const onCreateAsamblea = /* GraphQL */ `
       habilitanteTema13
       habilitanteTema14
       habilitanteTema15
-      rutaGrabacion
       temaDividendo
       createdAt
       updatedAt
@@ -1301,25 +1157,11 @@ export const onUpdateAsamblea = /* GraphQL */ `
       capital
       acta
       votaciones
-      horaAperturaQuorum
       horaCierreQuorum
       cierreQuorum
       presentes
-      presentesCapital
-      presentesPorcentajePersona
-      presentesPorcentajeCapital
       ausentes
-      ausentesCapital
-      ausentesPorcentajePersona
-      ausentesPorcentajeCapital
       representados
-      representadosCapital
-      representadosPorcentajePersona
-      representadosPorcentajeCapital
-      totalpresentes
-      totalcapitalpresentes
-      totalporcentajePersona
-      totalporcentajeCapital
       votacionTema1
       votacionTema2
       votacionTema3
@@ -1335,21 +1177,6 @@ export const onUpdateAsamblea = /* GraphQL */ `
       votacionTema13
       votacionTema14
       votacionTema15
-      votacionResultado1
-      votacionResultado2
-      votacionResultado3
-      votacionResultado4
-      votacionResultado5
-      votacionResultado6
-      votacionResultado7
-      votacionResultado8
-      votacionResultado9
-      votacionResultado10
-      votacionResultado11
-      votacionResultado12
-      votacionResultado13
-      votacionResultado14
-      votacionResultado15
       habilitanteTema1
       habilitanteTema2
       habilitanteTema3
@@ -1365,7 +1192,6 @@ export const onUpdateAsamblea = /* GraphQL */ `
       habilitanteTema13
       habilitanteTema14
       habilitanteTema15
-      rutaGrabacion
       temaDividendo
       createdAt
       updatedAt
@@ -1393,25 +1219,11 @@ export const onDeleteAsamblea = /* GraphQL */ `
       capital
       acta
       votaciones
-      horaAperturaQuorum
       horaCierreQuorum
       cierreQuorum
       presentes
-      presentesCapital
-      presentesPorcentajePersona
-      presentesPorcentajeCapital
       ausentes
-      ausentesCapital
-      ausentesPorcentajePersona
-      ausentesPorcentajeCapital
       representados
-      representadosCapital
-      representadosPorcentajePersona
-      representadosPorcentajeCapital
-      totalpresentes
-      totalcapitalpresentes
-      totalporcentajePersona
-      totalporcentajeCapital
       votacionTema1
       votacionTema2
       votacionTema3
@@ -1427,21 +1239,6 @@ export const onDeleteAsamblea = /* GraphQL */ `
       votacionTema13
       votacionTema14
       votacionTema15
-      votacionResultado1
-      votacionResultado2
-      votacionResultado3
-      votacionResultado4
-      votacionResultado5
-      votacionResultado6
-      votacionResultado7
-      votacionResultado8
-      votacionResultado9
-      votacionResultado10
-      votacionResultado11
-      votacionResultado12
-      votacionResultado13
-      votacionResultado14
-      votacionResultado15
       habilitanteTema1
       habilitanteTema2
       habilitanteTema3
@@ -1457,7 +1254,6 @@ export const onDeleteAsamblea = /* GraphQL */ `
       habilitanteTema13
       habilitanteTema14
       habilitanteTema15
-      rutaGrabacion
       temaDividendo
       createdAt
       updatedAt
@@ -1627,189 +1423,6 @@ export const onDeleteAccionistasxJunta = /* GraphQL */ `
     }
   }
 `;
-export const onCreateDividendosAccionista = /* GraphQL */ `
-  subscription OnCreateDividendosAccionista {
-    onCreateDividendosAccionista {
-      id
-      idAccionista
-      tipoIdentificacion
-      identificacion
-      nombre
-      direccionPais
-      paisNacionalidad
-      cantidadAcciones
-      participacion
-      tipoAcciones
-      estado
-      tipoPersona
-      decevale
-      idDividendo
-      periodo
-      dividendo
-      baseImponible
-      retencion
-      dividendoRecibido
-      estadoDividendo
-      documento
-      solicitado
-      fechaSolicitud
-      HoraSolicitud
-      fechaPago
-      createdAt
-      updatedAt
-      __typename
-    }
-  }
-`;
-export const onUpdateDividendosAccionista = /* GraphQL */ `
-  subscription OnUpdateDividendosAccionista {
-    onUpdateDividendosAccionista {
-      id
-      idAccionista
-      tipoIdentificacion
-      identificacion
-      nombre
-      direccionPais
-      paisNacionalidad
-      cantidadAcciones
-      participacion
-      tipoAcciones
-      estado
-      tipoPersona
-      decevale
-      idDividendo
-      periodo
-      dividendo
-      baseImponible
-      retencion
-      dividendoRecibido
-      estadoDividendo
-      documento
-      solicitado
-      fechaSolicitud
-      HoraSolicitud
-      fechaPago
-      createdAt
-      updatedAt
-      __typename
-    }
-  }
-`;
-export const onDeleteDividendosAccionista = /* GraphQL */ `
-  subscription OnDeleteDividendosAccionista {
-    onDeleteDividendosAccionista {
-      id
-      idAccionista
-      tipoIdentificacion
-      identificacion
-      nombre
-      direccionPais
-      paisNacionalidad
-      cantidadAcciones
-      participacion
-      tipoAcciones
-      estado
-      tipoPersona
-      decevale
-      idDividendo
-      periodo
-      dividendo
-      baseImponible
-      retencion
-      dividendoRecibido
-      estadoDividendo
-      documento
-      solicitado
-      fechaSolicitud
-      HoraSolicitud
-      fechaPago
-      createdAt
-      updatedAt
-      __typename
-    }
-  }
-`;
-export const onCreateSolicitudes = /* GraphQL */ `
-  subscription OnCreateSolicitudes {
-    onCreateSolicitudes {
-      id
-      fecha
-      operacion
-      idCedente
-      cedente
-      cedenteIdentificacion
-      acciones
-      valorVenta
-      totalVenta
-      cesionarioIdentificacion
-      cesionarioNombre
-      cesionarioDireccion
-      cesionarioEmail
-      cesionarioTelefono
-      estado
-      cs
-      ci
-      docIdentidad
-      createdAt
-      updatedAt
-      __typename
-    }
-  }
-`;
-export const onUpdateSolicitudes = /* GraphQL */ `
-  subscription OnUpdateSolicitudes {
-    onUpdateSolicitudes {
-      id
-      fecha
-      operacion
-      idCedente
-      cedente
-      cedenteIdentificacion
-      acciones
-      valorVenta
-      totalVenta
-      cesionarioIdentificacion
-      cesionarioNombre
-      cesionarioDireccion
-      cesionarioEmail
-      cesionarioTelefono
-      estado
-      cs
-      ci
-      docIdentidad
-      createdAt
-      updatedAt
-      __typename
-    }
-  }
-`;
-export const onDeleteSolicitudes = /* GraphQL */ `
-  subscription OnDeleteSolicitudes {
-    onDeleteSolicitudes {
-      id
-      fecha
-      operacion
-      idCedente
-      cedente
-      cedenteIdentificacion
-      acciones
-      valorVenta
-      totalVenta
-      cesionarioIdentificacion
-      cesionarioNombre
-      cesionarioDireccion
-      cesionarioEmail
-      cesionarioTelefono
-      estado
-      cs
-      ci
-      docIdentidad
-      createdAt
-      updatedAt
-      __typename
-    }
-  }
-`;
 export const onCreateAccionistaArchive = /* GraphQL */ `
   subscription OnCreateAccionistaArchive {
     onCreateAccionistaArchive {
@@ -1888,60 +1501,60 @@ export const onDeleteAccionistaArchive = /* GraphQL */ `
     }
   }
 `;
-export const onCreateTituloArchive = /* GraphQL */ `
-  subscription OnCreateTituloArchive {
-    onCreateTituloArchive {
-      fecha
+export const onCreateCertificado = /* GraphQL */ `
+  subscription OnCreateCertificado {
+    onCreateCertificado {
       id
-      accionistaID
-      titulo
-      acciones
-      fechaCompra
-      estado
-      idCedenteHereda
-      nombreCedenteHereda
-      desde
-      hasta
+      cer_accionista_id
+      cer_nombre
+      cer_identificacion
+      cer_acciones
+      cer_valor_nominal
+      cer_fecha_emision
+      cer_emisor
+      cer_estado
+      cer_fecha_baja
+      cer_motivo_baja
       createdAt
       updatedAt
       __typename
     }
   }
 `;
-export const onUpdateTituloArchive = /* GraphQL */ `
-  subscription OnUpdateTituloArchive {
-    onUpdateTituloArchive {
-      fecha
+export const onUpdateCertificado = /* GraphQL */ `
+  subscription OnUpdateCertificado {
+    onUpdateCertificado {
       id
-      accionistaID
-      titulo
-      acciones
-      fechaCompra
-      estado
-      idCedenteHereda
-      nombreCedenteHereda
-      desde
-      hasta
+      cer_accionista_id
+      cer_nombre
+      cer_identificacion
+      cer_acciones
+      cer_valor_nominal
+      cer_fecha_emision
+      cer_emisor
+      cer_estado
+      cer_fecha_baja
+      cer_motivo_baja
       createdAt
       updatedAt
       __typename
     }
   }
 `;
-export const onDeleteTituloArchive = /* GraphQL */ `
-  subscription OnDeleteTituloArchive {
-    onDeleteTituloArchive {
-      fecha
+export const onDeleteCertificado = /* GraphQL */ `
+  subscription OnDeleteCertificado {
+    onDeleteCertificado {
       id
-      accionistaID
-      titulo
-      acciones
-      fechaCompra
-      estado
-      idCedenteHereda
-      nombreCedenteHereda
-      desde
-      hasta
+      cer_accionista_id
+      cer_nombre
+      cer_identificacion
+      cer_acciones
+      cer_valor_nominal
+      cer_fecha_emision
+      cer_emisor
+      cer_estado
+      cer_fecha_baja
+      cer_motivo_baja
       createdAt
       updatedAt
       __typename

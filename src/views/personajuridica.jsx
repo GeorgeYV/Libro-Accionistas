@@ -2,7 +2,7 @@ import React from 'react';
 import { Grid } from '@material-ui/core';
 import {
   useFormularioAccionista, PaginaFormulario, Seccion, SeccionDireccion, SeccionBanco, SeccionContacto, SeccionDocumentos,
-  camposBaseAccionista, PAISES, TIPOS_ACCIONES, TIPOS_IDENTIFICACION_PERSONA,
+  camposBaseAccionista, TIPOS_ACCIONES, TIPOS_IDENTIFICACION_PERSONA,
 } from '../components/formularioAccionista';
 import { guardarPersonaJuridica } from '../services/personaJuridica';
 
@@ -42,7 +42,7 @@ export default function PersonaJuridica() {
           {f.seleccion('acc_tipo_identificacion', 'Tipo de identificación', [{ valor: 1, etiqueta: 'RUC' }], { sm: 3 })}
           {/* El RUC es el id del accionista: no se cambia al editar. */}
           {f.campo('acc_identificacion', 'RUC', { sm: 3, disabled: f.edicion, ayuda: f.edicion ? 'No editable' : undefined })}
-          {f.seleccion('acc_nacionalidad', 'Nacionalidad', PAISES, { sm: 3 })}
+          {f.pais('acc_nacionalidad', 'Nacionalidad', { sm: 3 })}
           {f.campo('pj_razon_social', 'Razón social', { sm: 9 })}
           {f.seleccion('acc_tipo_acciones', 'Tipo de acciones', TIPOS_ACCIONES, { sm: 3 })}
         </Seccion>
@@ -53,7 +53,7 @@ export default function PersonaJuridica() {
           {f.seleccion('pj_rl_tipo_identificacion', 'Tipo de identificación', TIPOS_IDENTIFICACION_PERSONA)}
           {f.campo('pj_rl_identificacion', 'Identificación')}
           {f.campo('pj_rl_nombre', 'Nombre completo', { sm: 12 })}
-          {f.seleccion('pj_rl_nacionalidad', 'Nacionalidad', PAISES)}
+          {f.pais('pj_rl_nacionalidad', 'Nacionalidad')}
           {f.campo('pj_rl_telefono', 'Teléfono')}
           {f.campo('pj_rl_email', 'Correo electrónico', { sm: 12, type: 'email' })}
         </Seccion>

@@ -1,4 +1,4 @@
-import { calcularReparto, calcularRetencion, resultadoVotacion, coberturaPeriodo } from './dividendos';
+import { calcularReparto, resultadoVotacion, coberturaPeriodo } from './dividendos';
 import { segmentarCobertura } from './rangos';
 
 describe('segmentarCobertura', () => {
@@ -103,7 +103,7 @@ describe('calcularReparto', () => {
 
   test('retención anual: se descuenta lo ya retenido en el año', () => {
     const r = calcularReparto({
-      ...base, accionistas: new Map([['A', { acc_tipo_identificacion: 3 }]]), // 14% fijo
+      ...base, accionistas: new Map([['A', { acc_tipo_persona: 0, acc_residencia: 'Estados Unidos', acc_nacionalidad: 'Ecuador' }]]), // 14% fijo
       foto: [foto('A', 'T1', 1, 100)],
       pagadosPeriodo: [pagado('A', 1, 100, 50, 500, 70)],
       periodo: { ...periodo, porcentajeDeclarado: 50 }, porcentajeReparto: 50,
@@ -126,11 +126,6 @@ test('coberturaPeriodo', () => {
   expect(coberturaPeriodo([pagado('A', 1, 60, 50, 0), pagado('C', 61, 100, 100, 0)], 100)).toBeCloseTo(0.7);
 });
 
-test('calcularRetencion conserva la regla existente', () => {
-  expect(calcularRetencion(1000, 1, 'Ecuador', 'Ecuador', 460)).toBe(0);
-  expect(calcularRetencion(1000, 1, 'Peru', 'Peru', 460)).toBe(100);
-});
-
 test('resultadoVotacion por mayoría de acciones presentes', () => {
   const junta = [
     { presente: true, acciones: 60, votacion2: true },
@@ -144,7 +139,7 @@ describe('reasignarPendientes', () => {
   const { reasignarPendientes } = require('./dividendos');
   const acc = new Map([
     ['A', { acc_estado: 1, acc_tipo_identificacion: 1, acc_residencia: 'Ecuador', acc_nacionalidad: 'Ecuador' }],
-    ['B', { acc_estado: 1, acc_tipo_identificacion: 3 }], // 14% fijo
+    ['B', { acc_estado: 1, acc_tipo_persona: 0, acc_residencia: 'Estados Unidos', acc_nacionalidad: 'Ecuador' }], // 14% fijo
     ['H', { acc_estado: 3, acc_tipo_identificacion: 1, acc_residencia: 'Ecuador', acc_nacionalidad: 'Ecuador' }],
   ]);
   const tramo = (id, accionista, desde, hasta, dividendo, extra = {}) => ({
@@ -235,4 +230,78 @@ describe('dividendosDeAccionista', () => {
   test('sin tramos', () => {
     expect(dividendosDeAccionista([], repartos).totales.Pendiente.neto).toBe(0);
   });
+});
+
+describe('cuadre al centavo', () => {
+  const { repartirExacto, calcularReparto } = require('./dividendos');
+  const sinRet = (ids) => new Map(ids.map((id) => [id, { acc_tipo_identificacion: 1, acc_residencia: 'Ecuador', acc_nacionalidad: 'Ecuador' }]));
+  const fotoDe = (cantidades) => {
+    let desde = 1;
+    return cantidades.map((n, i) => {
+      const f = { accionistaID: `A${i}`, tituloID: `T${i}`, desde, hasta: desde + n - 1, acciones: n, accionistaEstado: 1, tituloEstado: 1 };
+      desde += n;
+      return f;
+    });
+  };
+  const centavos = (tramos) => Math.round(tramos.reduce((s, t) => s + t.dividendo, 0) * 100);
+
+  test('repartirExacto suma exactamente el total y no deja negativos', () => {
+    expect(repartirExacto(10000, [100 / 3, 100 / 3, 100 / 3])).toEqual([33.34, 33.33, 33.33]);
+    expect(repartirExacto(1, [0.004, 0.004, 0.004]).reduce((s, x) => s + x, 0)).toBeCloseTo(0.01, 10);
+    expect(repartirExacto(0, [0.001, 0.002])).toEqual([0, 0]);
+  });
+
+  test('370 tramos con fracciones suman exactamente el monto declarado', () => {
+    // Cantidades que dejan fracciones de centavo en cada tramo (antes la suma se desviaba).
+    const cantidades = Array(370).fill(3); // con redondeo por tramo sumaba 9,892,952.70
+    const base = cantidades.reduce((s, n) => s + n, 0);
+    const r = calcularReparto({
+      foto: fotoDe(cantidades), pagadosPeriodo: [], accionistas: sinRet(cantidades.map((_, i) => `A${i}`)),
+      periodo: { dividendoTotal: 9892953.6, accionesBase: base, porcentajeDeclarado: 0 }, porcentajeReparto: 100, sbu: 0,
+    });
+    expect(centavos(r.tramos)).toBe(989295360);
+    expect(r.montoReparto).toBe(9892953.6);
+  });
+
+  test('el último reparto compensa el redondeo de los anteriores y el año cuadra', () => {
+    const cantidades = [3, 3, 3];
+    const foto = fotoDe(cantidades);
+    // Reparto anterior al 50% que quedó 0.01 por encima de lo exacto (50.00 → 50.01).
+    const previos = foto.map((f, i) => ({
+      div_tit_accionista_id: f.accionistaID, div_tit_desde: f.desde, div_tit_hasta: f.hasta, div_tit_acciones: 3,
+      div_tit_porcentaje: 50, div_tit_dividendo: [16.67, 16.67, 16.67][i], div_tit_retencion: 0,
+    }));
+    const r = calcularReparto({
+      foto, pagadosPeriodo: previos, accionistas: sinRet(['A0', 'A1', 'A2']),
+      periodo: { dividendoTotal: 100, accionesBase: 9, porcentajeDeclarado: 50 }, porcentajeReparto: 50, sbu: 0,
+    });
+    expect(centavos(r.tramos) + 5001).toBe(10000);
+  });
+});
+
+describe('cuadreReparto', () => {
+  const { cuadreReparto } = require('./dividendos');
+  const reparto = { id: 'R2', ddiv_secuencial: 2, ddiv_porcentaje: 50, monto: 150, ddiv_dividendo: 100, ddiv_acciones: 30, div_dividendo: 400 };
+  const periodo = [{ id: 'R1', ddiv_secuencial: 1, ddiv_porcentaje: 25, monto: 100 }, reparto, { id: 'R3', ddiv_secuencial: 3, ddiv_porcentaje: 25, monto: 1 }];
+  const filas = [
+    { acciones: 20, dividendo: 100, retencion: 10, neto: 90, dividendoPendiente: 0 },
+    { acciones: 10, dividendo: 50, retencion: 0, neto: 50, dividendoPendiente: 50 },
+  ];
+
+  test('todo cuadra', () => {
+    const r = cuadreReparto(reparto, filas, periodo);
+    expect(r.controles.every((c) => c.ok)).toBe(true);
+    expect(r.totales).toMatchObject({ dividendo: 150, pagado: 100, pendiente: 50, retencion: 10, neto: 140, acciones: 30 });
+    // Repartos 1 y 2: 75% de 400 = 300 declarado; asignado 250 → faltan 50 por cubrir.
+    expect(r).toMatchObject({ declarado: 75, asignado: 250, tope: 300, porCubrir: 50 });
+  });
+
+  test('detecta descuadres', () => {
+    const r = cuadreReparto({ ...reparto, monto: 150.05 }, filas, periodo);
+    const monto = r.controles.find((c) => c.concepto === 'Monto del reparto');
+    expect(monto).toMatchObject({ ok: false, diferencia: -0.05 });
+    const excedido = cuadreReparto(reparto, filas, [{ ...periodo[0], monto: 160 }, reparto]);
+    expect(excedido.controles.find((c) => c.concepto === 'Período (acumulado)').ok).toBe(false);
+  });
+
 });

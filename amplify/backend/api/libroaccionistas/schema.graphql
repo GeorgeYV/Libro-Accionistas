@@ -116,6 +116,8 @@ type DetalleDividendo @model @auth(rules: [{allow: public}]) {
   ddiv_acciones: Int
   # Monto total del reparto (incluye lo que se pone al día de repartos anteriores).
   ddiv_monto: Float
+  # Copia de las reglas de retención con que se calculó el reparto.
+  ddiv_reglas_retencion: AWSJSON
 }
 
 type DividendoNuevo @model @auth(rules: [{allow: public}]) {
@@ -135,6 +137,8 @@ type Pais @model @auth(rules: [{allow: public}]) {
   nacionalidad: String!
   codigoTelefono: String
   estado: String!
+  # Paraíso fiscal / régimen de menor imposición (para las reglas de retención de dividendos).
+  paraisoFiscal: Boolean
 }
 
 type Provincia @model @auth(rules: [{allow: public}]) {
@@ -192,54 +196,15 @@ type Heredero @model @auth(rules: [{allow: public}]) {
 
 type Parametro @model @auth(rules: [{allow: public}]) {
   id: ID!
-  moneda: String
   cantidadEmitida: Int
   valorNominal: Float
   baseImponible: Float
-  noResidente: Float
-  IGdesde1: Float
-  IGhasta1: Float
-  FBretencion1: Float
-  FEretencion1: Float
-  IGdesde2: Float
-  IGhasta2: Float
-  FBretencion2: Float
-  FEretencion2: Float
-  IGdesde3: Float
-  IGhasta3: Float
-  FBretencion3: Float
-  FEretencion3: Float
-  IGdesde4: Float
-  IGhasta4: Float
-  FBretencion4: Float
-  FEretencion4: Float
-  IGdesde5: Float
-  IGhasta5: Float
-  FBretencion5: Float
-  FEretencion5: Float
-  IGdesde6: Float
-  IGhasta6: Float
-  FBretencion6: Float
-  FEretencion6: Float
-  Retencion_Minima: Float
-  Retencion_Maxima: Float
-  Retencion_PN_Loc: Int
-  Retencion_PN_NPF: Int
-  Retencion_PN_PF: Int
-  Retencion_PJ_Loc_Loc: Int
-  Retencion_PJ_Loc_NPF: Int
-  Retencion_PJ_Loc_PF: Int
-  Retencion_PJ_PF_Loc: Int
-  Retencion_PJ_PF_NPF: Int
-  Retencion_PJ_PF_PF: Int
-  Retencion_PJ_NPF_Loc: Int
-  Retencion_PJ_NPF_NPF: Int
-  Retencion_PJ_NPF_PF: Int
   modeloCartaCesion: String
   modeloCartaGerente: String
   modeloCartaInstrucciones: String
   modeloSolicitudDividendos: String
-  titulos_totales: Int
+  # Reglas de retención de dividendos (lista ordenada, se aplica la primera que coincide). Ver src/utils/retencion.js.
+  reglasRetencion: AWSJSON
 }
 
 type ParametroArchive @model @auth(rules: [{allow: public}]) {
@@ -311,25 +276,11 @@ type Asamblea @model @auth(rules: [{allow: public}]) {
   capital: Float
   acta: String
   votaciones: Int
-  horaAperturaQuorum: String
   horaCierreQuorum: String
   cierreQuorum: Boolean
   presentes: Int
-  presentesCapital: Float
-  presentesPorcentajePersona: Float
-  presentesPorcentajeCapital: Float
   ausentes: Int
-  ausentesCapital: Float
-  ausentesPorcentajePersona: Float
-  ausentesPorcentajeCapital: Float
   representados: Int
-  representadosCapital: Float
-  representadosPorcentajePersona: Float
-  representadosPorcentajeCapital: Float
-  totalpresentes: Int
-  totalcapitalpresentes: Float
-  totalporcentajePersona: Float
-  totalporcentajeCapital: Float
   votacionTema1: String
   votacionTema2: String
   votacionTema3: String
@@ -345,21 +296,6 @@ type Asamblea @model @auth(rules: [{allow: public}]) {
   votacionTema13: String
   votacionTema14: String
   votacionTema15: String
-  votacionResultado1: Boolean
-  votacionResultado2: Boolean
-  votacionResultado3: Boolean
-  votacionResultado4: Boolean
-  votacionResultado5: Boolean
-  votacionResultado6: Boolean
-  votacionResultado7: Boolean
-  votacionResultado8: Boolean
-  votacionResultado9: Boolean
-  votacionResultado10: Boolean
-  votacionResultado11: Boolean
-  votacionResultado12: Boolean
-  votacionResultado13: Boolean
-  votacionResultado14: Boolean
-  votacionResultado15: Boolean
   habilitanteTema1: String
   habilitanteTema2: String
   habilitanteTema3: String
@@ -375,7 +311,6 @@ type Asamblea @model @auth(rules: [{allow: public}]) {
   habilitanteTema13: String
   habilitanteTema14: String
   habilitanteTema15: String
-  rutaGrabacion: String
   # Número del tema (1..15) cuya votación decide el reparto de dividendos; null si no aplica.
   temaDividendo: Int
 }
@@ -423,54 +358,7 @@ type AccionistasxJunta @model @key(name: "byAsamblea", fields: ["asambleaID"], q
   votacion15: Boolean
 }
 
-type DividendosAccionista @model @auth(rules: [{allow: public}]) {
-  id: ID!
-  idAccionista: ID!
-  tipoIdentificacion: String!
-  identificacion: String!
-  nombre: String!
-  direccionPais: String
-  paisNacionalidad: String
-  cantidadAcciones: Int
-  participacion: Float
-  tipoAcciones: String
-  estado: String!
-  tipoPersona: String!
-  decevale: String
-  idDividendo: ID!
-  periodo: String
-  dividendo: Float
-  baseImponible: Float
-  retencion: Float
-  dividendoRecibido: Float
-  estadoDividendo: String
-  documento: String
-  solicitado: Boolean
-  fechaSolicitud: String
-  HoraSolicitud: String
-  fechaPago: String
-}
 
-type Solicitudes @model @auth(rules: [{allow: public}]) {
-  id: ID!
-  fecha: String!
-  operacion: String!
-  idCedente: String!
-  cedente: String!
-  cedenteIdentificacion: String!
-  acciones: Int!
-  valorVenta: Float!
-  totalVenta: Float!
-  cesionarioIdentificacion: String!
-  cesionarioNombre: String!
-  cesionarioDireccion: String
-  cesionarioEmail: String
-  cesionarioTelefono: String
-  estado: String!
-  cs: String
-  ci: String
-  docIdentidad: String
-}
 
 type AccionistaArchive @model @key(name: "accionistaArchiveByFecha", fields: ["fecha", "estado"], queryField: "AccionistaArchiveByFecha") @auth(rules: [{allow: public}]) {
   fecha: String!
@@ -492,17 +380,20 @@ type AccionistaArchive @model @key(name: "accionistaArchiveByFecha", fields: ["f
   paisNacionalidad: String
 }
 
-type TituloArchive @model @auth(rules: [{allow: public}]) {
-  fecha: String!
-  id: ID!
-  accionistaID: ID!
-  titulo: String!
-  acciones: Int!
-  fechaCompra: String
-  estado: String
-  idCedenteHereda: ID
-  nombreCedenteHereda: String
-  desde: Int
-  hasta: Int
-}
  
+# Certificado de acciones emitido (PDF con QR). La página pública /verificar/<id> lo consulta por id (uuid aleatorio).
+# Guarda solo los datos que se muestran al verificar; la identificación va enmascarada.
+type Certificado @model @key(name: "byAccionista", fields: ["cer_accionista_id"], queryField: "certificadosByAccionista") @auth(rules: [{allow: public}]) {
+  id: ID!
+  cer_accionista_id: String!
+  cer_nombre: String!
+  cer_identificacion: String
+  cer_acciones: Int!
+  cer_valor_nominal: Float
+  cer_fecha_emision: String!
+  cer_emisor: String
+  # Vigente | SinVigencia (cambiaron las acciones o el estado del accionista después de emitirlo)
+  cer_estado: String!
+  cer_fecha_baja: String
+  cer_motivo_baja: String
+}

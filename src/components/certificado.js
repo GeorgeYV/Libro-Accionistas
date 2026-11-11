@@ -1,15 +1,40 @@
 // Certificado de acciones en PDF (vista de accionistas y dashboard del accionista).
-// Requiere en la página un <QRcode id="qrcode" value={URL_VERIFICACION} />.
+// Cada impresión registra un Certificado; el QR lleva a la página pública /verificar/<id>.
+import React from 'react';
+import ReactDOM from 'react-dom';
+import { Auth } from 'aws-amplify';
 import jsPDF from 'jspdf';
+import { QRCodeCanvas } from 'qrcode.react';
 import fondoUnacem from '../images/FondoCertificado.png';
+import { emitirCertificado, urlVerificacion } from '../services/certificados';
 
-export const URL_VERIFICACION = 'main.d1uap272r7bnzf.amplifyapp.com';
+// Dibuja el QR fuera de pantalla y devuelve la imagen (qrcode.react pinta el canvas después de montar).
+async function imagenQR(valor) {
+  const contenedor = document.createElement('div');
+  ReactDOM.render(<QRCodeCanvas value={valor} size={240} level="M" includeMargin />, contenedor);
+  const canvas = contenedor.querySelector('canvas');
+  const dibujado = () => {
+    const d = canvas.getContext('2d').getImageData(0, 0, canvas.width, canvas.height).data;
+    for (let i = 0; i < d.length; i += 4) if (d[i + 3] && d[i] < 128) return true;
+    return false;
+  };
+  for (let intento = 0; intento < 50 && !dibujado(); intento++) await new Promise((r) => setTimeout(r, 20));
+  const listo = dibujado();
+  const imagen = canvas.toDataURL('image/png');
+  ReactDOM.unmountComponentAtNode(contenedor);
+  if (!listo) throw new Error('No se pudo generar el código QR del certificado.');
+  return imagen;
+}
 
-export function exportarCertificado(accionista, parametro) {
+export async function exportarCertificado(accionista, parametro) {
+  const id = await emitirCertificado(accionista, parametro, Auth.user ? Auth.user.username : '');
+  const url = urlVerificacion(id);
+  const qr = await imagenQR(url);
+
   const capital = parametro.cantidadEmitida * parametro.valorNominal;
   const doc = new jsPDF('landscape', 'pt', 'A4');
   doc.addImage(fondoUnacem, 'JPEG', 0, 0, 845, 600);
-  doc.addImage(document.getElementById('qrcode').toDataURL(), 'png', 90, 460, 80, 80);
+  doc.addImage(qr, 'PNG', 90, 460, 80, 80);
 
   doc.setFont('helvetica', 'normal');
   doc.setTextColor(100);
@@ -33,7 +58,8 @@ export function exportarCertificado(accionista, parametro) {
   doc.setFontSize(8);
   doc.setTextColor(150);
   doc.text('Fuente de Información Plataforma de Accionistas Unacem', 200, 487);
-  doc.text(`${URL_VERIFICACION}/`, 200, 502);
-  doc.text('El código QR lo direccionará a la página de verificación', 200, 517);
+  doc.text(`${window.location.origin}/verificar`, 200, 502);
+  doc.text('Escanee el código QR para verificar la validez de este certificado.', 200, 517);
+  doc.text(`Código de verificación: ${id}`, 200, 532);
   doc.save('CertificadoAccionistas.pdf');
 }

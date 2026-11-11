@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { AmplifyAuthContainer, AmplifyAuthenticator, AmplifySignIn, AmplifySignOut } from '@aws-amplify/ui-react';
 import { AuthState, onAuthUIStateChange } from '@aws-amplify/ui-components';
-import { Switch, Route, Redirect } from 'react-router-dom';
+import { Switch, Route, Redirect, useLocation } from 'react-router-dom';
 import { Box, Paper, Typography } from '@material-ui/core';
 import { makeStyles } from '@material-ui/core/styles';
 import logo from './images/logoUNACEMmedMarco2.png';
@@ -26,6 +26,7 @@ import Asambleas from './views/asambleas';
 import Dividendos from './views/dividendos';
 import AccionistaDashboard from './views/accionista-dashboard';
 import AumentoCapital from './views/aumentocapital';
+import Verificacion from './views/verificacion';
 
 // Vista de cada ruta; qué rutas ve cada perfil se define en components/navegacion.js.
 const VISTAS = {
@@ -100,6 +101,7 @@ function SinPerfil() {
 }
 
 export default function App() {
+  const { pathname } = useLocation();
   const [authState, setAuthState] = useState();
   const [usuario, setUsuario] = useState();
 
@@ -107,6 +109,10 @@ export default function App() {
     setAuthState(estado);
     setUsuario(datos);
   }), []);
+
+  // Verificación pública de certificados (QR): no pasa por el inicio de sesión.
+  const publica = /^\/verificar\/([^/]+)\/?$/.exec(pathname);
+  if (publica) return <Verificacion id={publica[1]} />;
 
   if (authState !== AuthState.SignedIn || !usuario) return <Ingreso />;
 

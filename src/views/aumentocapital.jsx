@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { API, Auth } from 'aws-amplify';
 import {
-  Paper, Grid, Typography, TextField, Button, Snackbar, CircularProgress, Avatar, Box, Divider, InputAdornment,
+  Paper, Grid, Typography, TextField, Button, Snackbar, Avatar, Box, Divider, InputAdornment,
   Stepper, Step, StepLabel,
 } from '@material-ui/core';
 import { makeStyles } from '@material-ui/core/styles';
@@ -17,6 +17,7 @@ import { listAccionistas, getParametro } from '../graphql/queries';
 import { listarTodos } from '../services/listarTodos';
 import { solicitarAumentoCapital } from '../services/operaciones';
 import { subirArchivo, abrirArchivo } from '../services/archivos';
+import Cargando from '../components/cargando';
 
 const useStyles = makeStyles((theme) => ({
   appBarSpacer: { ...theme.mixins.toolbar },
@@ -195,7 +196,7 @@ export default function AumentoCapital() {
       </Grid>
 
       <Box display="flex" justifyContent="flex-end" alignItems="center" mt={2} style={{ gap: 8 }}>
-        {cargando && <CircularProgress size={24} />}
+        <Cargando abierto={cargando} />
         <Button variant="contained" color="primary" startIcon={<SendIcon />} onClick={solicitar} disabled={cargando || !accionista || acciones <= 0}>
           Solicitar aprobación
         </Button>

@@ -1,25 +1,8 @@
 // Cálculo puro de un reparto de dividendos por rango de acciones (sin llamadas al API).
 import { segmentarCobertura, accionesDeRango } from './rangos';
+import { calcularRetencion, leerReglas } from './retencion';
 
 export const redondear2 = (x) => Math.round(x * 100) / 100;
-
-// Misma regla que tenía dividendos.jsx (getRetencion1), sin cambios de negocio.
-// persona: acc_tipo_identificacion; residente: acc_residencia; beneficiario: acc_nacionalidad; sbu: salario básico.
-export function calcularRetencion(base, persona, residente, beneficiario, sbu) {
-  let num = 0, reduccion = 0;
-  const tipo = parseInt(persona, 10);
-  const res = (residente || '').trim();
-  const ben = (beneficiario || '').trim();
-  if (tipo === 3) return redondear2(base * 14 / 100);
-  if (tipo === 0 && res === 'Ecuador') { num = 12; reduccion = 3 * sbu; }
-  if (tipo === 1 && res !== 'Ecuador') num = 10;
-  if (tipo === 0 && res !== 'Ecuador') num = 10;
-  if (tipo === 1 && res === 'Ecuador' && ben === 'Ecuador') num = 0;
-  if (tipo === 1 && res !== 'Ecuador' && ben === 'Ecuador') { num = 12; reduccion = 3 * sbu; }
-  if (tipo === 0 && res !== 'Panama' && ben === 'Ecuador') num = 14;
-  const retencion = redondear2(base * num / 100 - reduccion);
-  return retencion < 0 ? 0 : retencion;
-}
 
 // Resultado de la votación de un tema por mayoría de acciones presentes.
 export function resultadoVotacion(registrosJunta, tema) {
@@ -42,6 +25,28 @@ function repartirCentavos(total, pesos) {
   });
 }
 
+/**
+ * Convierte montos exactos (sin redondear) a centavos de modo que sumen exactamente `totalCentavos`
+ * (método del mayor residuo): cada uno recibe su parte entera y los centavos que faltan o sobran se ajustan
+ * en los de mayor (o menor) fracción. Ninguno queda negativo.
+ */
+export function repartirExacto(totalCentavos, exactos) {
+  const base = exactos.map((x) => Math.floor(x * 100 + 1e-7));
+  const fraccion = exactos.map((x, i) => x * 100 - base[i]);
+  let diferencia = totalCentavos - base.reduce((s, c) => s + c, 0);
+  const orden = exactos.map((_, i) => i);
+  if (diferencia > 0) {
+    orden.sort((a, b) => fraccion[b] - fraccion[a]);
+    for (let k = 0; diferencia > 0; k = (k + 1) % orden.length) { base[orden[k]]++; diferencia--; }
+  } else if (diferencia < 0) {
+    orden.sort((a, b) => fraccion[a] - fraccion[b]);
+    for (let k = 0, sinCambio = 0; diferencia < 0 && sinCambio < orden.length; k = (k + 1) % orden.length) {
+      if (base[orden[k]] > 0) { base[orden[k]]--; diferencia++; sinCambio = 0; } else sinCambio++;
+    }
+  }
+  return base.map((c) => c / 100);
+}
+
 const EPS = 1e-9;
 // % del dividendo del período que ya cobró un tramo (null = 100: tramos generados antes de existir el porcentaje).
 export const porcentajePagado = (p) => (p.div_tit_porcentaje == null ? 100 : p.div_tit_porcentaje);
@@ -52,11 +57,13 @@ export const porcentajePagado = (p) => (p.div_tit_porcentaje == null ? 100 : p.d
  * accionistas: Map id -> { acc_tipo_identificacion, acc_residencia, acc_nacionalidad, acc_nombre_completo, acc_identificacion }
  * periodo: { dividendoTotal, accionesBase, porcentajeDeclarado } (porcentajeDeclarado: suma de % de repartos anteriores)
  * porcentajeReparto: % del dividendo del año que declara este reparto (puede ser 0 para solo poner al día).
+ * reglas: reglas de retención (Parametro.reglasRetencion); sin ellas, las iniciales.
  * sbu: salario básico unificado (Parametro.baseImponible). valorNominal: Parametro.valorNominal (para mostrar capital).
  *
  * Cada acción de la foto cobra lo que le falta para llegar al % acumulado declarado (anteriores + este).
  */
-export function calcularReparto({ foto, pagadosPeriodo, accionistas, periodo, porcentajeReparto, sbu, valorNominal = 0 }) {
+export function calcularReparto({ foto, pagadosPeriodo, accionistas, periodo, porcentajeReparto, sbu, valorNominal = 0, reglas: reglasDadas }) {
+  const reglas = leerReglas(reglasDadas);
   if (!(porcentajeReparto >= 0)) throw new Error('El porcentaje a repartir no es válido.');
   const declarado = (periodo.porcentajeDeclarado || 0) + porcentajeReparto;
   if (declarado <= 0) throw new Error('Indique el porcentaje a repartir.');
@@ -95,10 +102,19 @@ export function calcularReparto({ foto, pagadosPeriodo, accionistas, periodo, po
         hasta: s.hasta,
         acciones,
         porcentaje: Math.round(porcentaje * 1e6) / 1e6,
-        dividendo: redondear2(acciones * porcentaje / 100 * valorAccion),
+        exacto: acciones * porcentaje / 100 * valorAccion,
         estado: f.accionistaEstado === 3 || f.tituloEstado === 0 ? 'Retenido' : 'Pendiente',
       });
     });
+  });
+
+  // Centavos: el total del reparto lleva lo asignado en el año a su valor exacto (absorbe los redondeos de
+  // repartos anteriores) y se reparte por mayor residuo, así la suma de los tramos cuadra al centavo.
+  const exactoReparto = tramos.reduce((s, t) => s + t.exacto, 0);
+  const totalCentavos = Math.round((montoAsignado + exactoReparto) * 100) - Math.round(montoAsignado * 100);
+  repartirExacto(Math.max(0, totalCentavos), tramos.map((t) => t.exacto)).forEach((d, i) => {
+    tramos[i].dividendo = d;
+    delete tramos[i].exacto;
   });
 
   // Retención sobre lo acumulado del año por beneficiario, menos lo ya retenido.
@@ -114,7 +130,7 @@ export function calcularReparto({ foto, pagadosPeriodo, accionistas, periodo, po
     const dividendoPrevio = redondear2(previos.reduce((s, p) => s + (p.div_tit_dividendo || 0), 0));
     const retencionPrevia = redondear2(previos.reduce((s, p) => s + (p.div_tit_retencion || 0), 0));
     const dividendo = redondear2(susTramos.reduce((s, t) => s + t.dividendo, 0));
-    const retencionAnual = calcularRetencion(dividendoPrevio + dividendo, acc.acc_tipo_identificacion, acc.acc_residencia, acc.acc_nacionalidad, sbu);
+    const retencionAnual = calcularRetencion(dividendoPrevio + dividendo, acc, reglas, sbu);
     const retencion = Math.max(0, redondear2(retencionAnual - retencionPrevia));
     repartirCentavos(retencion, susTramos.map((t) => t.dividendo)).forEach((r, i) => { susTramos[i].retencion = r; });
     const accionesAcc = susTramos.reduce((s, t) => s + t.acciones, 0);
@@ -142,6 +158,7 @@ export function calcularReparto({ foto, pagadosPeriodo, accionistas, periodo, po
     capitalReparto: redondear2(accionesReparto * valorNominal),
     montoReparto: redondear2(tramos.reduce((s, t) => s + t.dividendo, 0)),
     pagadosConsiderados: pagadosPeriodo.length,
+    reglas, // se guardan con el reparto
     // Fracción del dividendo anual (acciones × %) cubierta después de este reparto.
     coberturaFinal: (unidadesPagadas + unidadesReparto) / periodo.accionesBase,
   };
@@ -169,7 +186,8 @@ const CAMPOS_COMPARAR = ['div_tit_accionista_id', 'div_tit_titulo_id', 'div_tit_
  * secuencialDetalle: Map div_tit_ddiv_id -> secuencial del reparto dentro del período.
  * Devuelve { actualizar: [{ id, ...campos }], crear: [input], nuevosPorDetalle: Map ddivId -> cantidad }.
  */
-export function reasignarPendientes({ tramos, transferencias, accionistas, secuencialDetalle, sbu }) {
+export function reasignarPendientes({ tramos, transferencias, accionistas, secuencialDetalle, sbu, reglas: reglasDadas }) {
+  const reglas = leerReglas(reglasDadas);
   let trabajo = tramos.map((t) => ({ ...t }));
 
   transferencias.forEach((tr) => {
@@ -235,7 +253,7 @@ export function reasignarPendientes({ tramos, transferencias, accionistas, secue
       const divPendiente = pendientes.reduce((s, t) => s + (t.div_tit_dividendo || 0), 0);
       if (pendientes.length) {
         const total = redondear2(divAcum + divPagado + divPendiente);
-        const retencion = Math.max(0, redondear2(calcularRetencion(total, acc.acc_tipo_identificacion, acc.acc_residencia, acc.acc_nacionalidad, sbu) - retAcum - retPagada));
+        const retencion = Math.max(0, redondear2(calcularRetencion(total, acc, reglas, sbu) - retAcum - retPagada));
         repartirCentavos(retencion, pendientes.map((t) => t.div_tit_dividendo || 0)).forEach((r, i) => { pendientes[i].div_tit_retencion = r; });
       }
       divAcum = redondear2(divAcum + divPagado + divPendiente);
@@ -321,4 +339,48 @@ export function dividendosDeAccionista(tramos, repartos) {
     };
   });
   return { filas, totales };
+}
+
+// ---- Cuadre contable de un reparto ------------------------------------------------------------
+
+/**
+ * Verificaciones del reparto a partir de sus beneficiarios (filas de detalleReparto) y los repartos del período.
+ * Cada control: { concepto, detalle, esperado, calculado, diferencia, ok }.
+ */
+export function cuadreReparto(reparto, filas, repartosPeriodo) {
+  const suma = (campo) => redondear2(filas.reduce((s, f) => s + (f[campo] || 0), 0));
+  const totales = {
+    beneficiarios: filas.length,
+    acciones: filas.reduce((s, f) => s + (f.acciones || 0), 0),
+    dividendo: suma('dividendo'),
+    retencion: suma('retencion'),
+    neto: suma('neto'),
+    pendiente: suma('dividendoPendiente'),
+  };
+  totales.pagado = redondear2(totales.dividendo - totales.pendiente);
+
+  const anteriores = repartosPeriodo.filter((r) => r.ddiv_secuencial <= reparto.ddiv_secuencial);
+  const declarado = anteriores.reduce((s, r) => s + (r.ddiv_porcentaje || 0), 0);
+  const asignado = redondear2(anteriores.reduce((s, r) => s + (r.monto || 0), 0));
+  const tope = redondear2((reparto.div_dividendo || 0) * declarado / 100);
+
+  const control = (concepto, detalle, esperado, calculado, ok) => {
+    const diferencia = redondear2(calculado - esperado);
+    return { concepto, detalle, esperado, calculado, diferencia, ok: ok != null ? ok : Math.abs(diferencia) < 0.005 };
+  };
+  const controles = [
+    control('Monto del reparto', 'Suma del dividendo de todos los beneficiarios = monto registrado del reparto.', reparto.monto, totales.dividendo),
+    control('Pagado', 'Dividendo de los beneficiarios pagados = pagado registrado en el reparto.', reparto.ddiv_dividendo || 0, totales.pagado),
+    control('Saldo', 'Monto − pagado = dividendo pendiente o retenido de los beneficiarios.', redondear2(reparto.monto - (reparto.ddiv_dividendo || 0)), totales.pendiente),
+    control('Neto', 'Dividendo − retención = neto de los beneficiarios.', redondear2(totales.dividendo - totales.retencion), totales.neto),
+  ];
+  if (reparto.ddiv_acciones != null) {
+    controles.push(control('Acciones', 'Acciones de los beneficiarios = acciones registradas en el reparto.', reparto.ddiv_acciones, totales.acciones));
+  }
+  // Lo asignado nunca puede superar lo declarado; si es menor, falta cubrir acciones (ausentes en las asambleas).
+  const periodo = control('Período (acumulado)',
+    `Repartos 1 a ${reparto.ddiv_secuencial} del período: asignado ≤ dividendo del período × ${redondear2(declarado)}% declarado.`,
+    tope, asignado, asignado <= tope + 0.005);
+  controles.push(periodo);
+  return { totales, controles, declarado, asignado, tope, porCubrir: redondear2(Math.max(0, tope - asignado)) };
 }

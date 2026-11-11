@@ -3,7 +3,7 @@
 import React, { useState, useEffect, useMemo } from 'react';
 import { Auth } from 'aws-amplify';
 import {
-  Paper, Grid, Typography, TextField, Button, Snackbar, CircularProgress, Avatar, Box, Chip, Checkbox, IconButton,
+  Paper, Grid, Typography, TextField, Button, Snackbar, Avatar, Box, Chip, Checkbox, IconButton,
   Table, TableHead, TableBody, TableRow, TableCell, Stepper, Step, StepLabel,
 } from '@material-ui/core';
 import { makeStyles } from '@material-ui/core/styles';
@@ -18,6 +18,7 @@ import ArrowForwardIcon from '@material-ui/icons/ArrowForward';
 import { listarAccionistasPorEstado, listarTitulosVigentes, titulosEnOperacionPendiente, solicitarOperacion } from '../services/operaciones';
 import { subirArchivo, abrirArchivo } from '../services/archivos';
 import { validarSeleccion } from '../utils/operaciones';
+import Cargando from './cargando';
 
 const useStyles = makeStyles((theme) => ({
   appBarSpacer: { ...theme.mixins.toolbar },
@@ -80,7 +81,8 @@ export default function OperacionTransferencia({ config }) {
 
   useEffect(() => {
     ejecutar(async () => {
-      const lista = await listarAccionistasPorEstado(1);
+      // Activos (cedentes y cesionarios) e inactivos sin acciones (pueden volver a recibir como cesionarios).
+      const lista = [...(await listarAccionistasPorEstado(1)), ...(await listarAccionistasPorEstado(2))];
       setAccionistas(lista.sort((a, b) => (a.acc_nombre_completo || '').localeCompare(b.acc_nombre_completo || '')));
     });
   }, []); // eslint-disable-line react-hooks/exhaustive-deps
@@ -160,7 +162,7 @@ export default function OperacionTransferencia({ config }) {
           <Paper variant="outlined" className={classes.tarjeta}>
             <Grid container spacing={2} alignItems="center">
               <Grid item xs={12} md={5}>
-                <SelectorAccionista etiqueta={config.etiquetaCedente} opciones={accionistas} valor={cedente} onChange={elegirCedente} />
+                <SelectorAccionista etiqueta={config.etiquetaCedente} opciones={accionistas.filter((a) => a.acc_estado === 1)} valor={cedente} onChange={elegirCedente} />
               </Grid>
               <Grid item xs={12} md={2} style={{ textAlign: 'center' }}><ArrowForwardIcon color="action" /></Grid>
               <Grid item xs={12} md={5}>
@@ -242,7 +244,7 @@ export default function OperacionTransferencia({ config }) {
       </Grid>
 
       <Box display="flex" justifyContent="flex-end" alignItems="center" mt={2} style={{ gap: 8 }}>
-        {cargando && <CircularProgress size={24} />}
+        <Cargando abierto={cargando} />
         <Button variant="contained" color="primary" startIcon={<SendIcon />} onClick={solicitar}
           disabled={cargando || !cedente || !cesionario || !!validacion.error}>
           Solicitar aprobación

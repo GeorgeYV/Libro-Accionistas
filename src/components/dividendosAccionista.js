@@ -11,9 +11,11 @@ import { DataGrid } from '@mui/x-data-grid';
 import CheckIcon from '@material-ui/icons/Check';
 import DescriptionIcon from '@material-ui/icons/Description';
 import GetAppIcon from '@material-ui/icons/GetApp';
-import { dividendosAccionista, pagarTodoAccionista, urlDocumento } from '../services/repartoDividendos';
+import { dividendosAccionista, pagarTodoAccionista } from '../services/repartoDividendos';
 import { descargarExcel } from '../services/reportes';
+import { validarPdf, abrirArchivo } from '../services/archivos';
 import { formato, enteros } from './repartoDesdeAsamblea';
+import Cargando from './cargando';
 
 const COLOR_ESTADO = { Pendiente: 'primary', Retenido: 'default', Pagado: 'secondary' };
 
@@ -71,6 +73,13 @@ export default function DividendosAccionista({ open, onClose, accionistas, repar
     onClose();
   };
 
+  const elegirComprobante = (e) => {
+    const elegido = e.target.files[0] || null;
+    e.target.value = '';
+    setArchivo(null);
+    if (elegido) ejecutar(async () => { await validarPdf(elegido); setArchivo(elegido); });
+  };
+
   const pagarTodo = () => ejecutar(async () => {
     const total = datos.totales.Pendiente;
     await pagarTodoAccionista(datos.filas, archivo, fecha);
@@ -107,7 +116,7 @@ export default function DividendosAccionista({ open, onClose, accionistas, repar
     {
       field: 'documento', headerName: '', width: 60, sortable: false,
       renderCell: (p) => (p.value
-        ? <IconButton size="small" title="Ver comprobante" onClick={() => ejecutar(async () => { window.open(await urlDocumento(p.value)); })}><CheckIcon /></IconButton>
+        ? <IconButton size="small" title="Ver comprobante" onClick={() => ejecutar(() => abrirArchivo(p.value))}><CheckIcon /></IconButton>
         : null),
     },
   ];
@@ -132,7 +141,7 @@ export default function DividendosAccionista({ open, onClose, accionistas, repar
         {error && <MuiAlert severity="error" style={{ marginTop: 12 }}>{error}</MuiAlert>}
         {aviso && <MuiAlert severity="success" style={{ marginTop: 12 }} onClose={() => setAviso('')}>{aviso}</MuiAlert>}
 
-        {cargando && !datos && <Box display="flex" justifyContent="center" mt={4}><CircularProgress /></Box>}
+        <Cargando abierto={cargando} />
 
         {datos && (
           <>
@@ -163,7 +172,7 @@ export default function DividendosAccionista({ open, onClose, accionistas, repar
                 <Box display="flex" alignItems="center" flexWrap="wrap" style={{ gap: 8 }}>
                   <label>
                     <input style={{ display: 'none' }} type="file" accept="application/pdf"
-                      onChange={(e) => { setArchivo(e.target.files[0] || null); e.target.value = ''; }} />
+                      onChange={elegirComprobante} />
                     <Button component="span" variant="outlined" color="primary" size="small" startIcon={<DescriptionIcon />} disabled={cargando} style={{ textTransform: 'none' }}>
                       {archivo ? 'Cambiar comprobante' : 'Cargar comprobante (PDF)'}
                     </Button>

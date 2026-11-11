@@ -2,7 +2,7 @@ import React, { useState, useEffect, useMemo } from 'react';
 import { Link } from 'react-router-dom';
 import {
   Grid, Typography, Button, Chip, TextField, IconButton, Tooltip, Paper, Box, Tabs, Tab, Divider,
-  Dialog, DialogActions, DialogContent, DialogTitle, CircularProgress, Snackbar, InputAdornment,
+  Dialog, DialogActions, DialogContent, DialogTitle, Snackbar, InputAdornment,
 } from '@material-ui/core';
 import { makeStyles } from '@material-ui/core/styles';
 import { ToggleButton, ToggleButtonGroup } from '@material-ui/lab';
@@ -15,13 +15,13 @@ import PageviewIcon from '@material-ui/icons/Pageview';
 import DevicesOutlinedIcon from '@material-ui/icons/DevicesOutlined';
 import DescriptionOutlinedIcon from '@material-ui/icons/DescriptionOutlined';
 import PrintIcon from '@material-ui/icons/Print';
-import QRcode from 'qrcode.react';
-import { exportarCertificado, URL_VERIFICACION } from '../components/certificado';
+import { exportarCertificado } from '../components/certificado';
 import { cargarAccionistas, cargarDetalle } from '../services/accionistas';
 import { abrirArchivo } from '../services/archivos';
 import {
   ESTADOS_ACCIONISTA, TIPOS_IDENTIFICACION, ESTADOS_CIVILES, TIPOS_TITULO, separar, buscarAccionistas, filasContacto,
 } from '../utils/accionistas';
+import Cargando from '../components/cargando';
 
 const useStyles = makeStyles((theme) => ({
   appBarSpacer: { ...theme.mixins.toolbar },
@@ -327,9 +327,12 @@ export default function Accionistas() {
 
               {tab === 3 && (
                 <Box mt={4} display="flex" flexDirection="column" alignItems="center">
-                  <QRcode value={URL_VERIFICACION} id="qrcode" size={100} />
+                  <Typography variant="body2" color="textSecondary" align="center" style={{ maxWidth: 420 }}>
+                    Cada impresión registra un certificado con su propio código QR, verificable en línea mientras las
+                    acciones y el estado del accionista no cambien.
+                  </Typography>
                   <Button startIcon={<PrintIcon />} variant="contained" color="primary" style={{ textTransform: 'none', marginTop: 16 }}
-                    onClick={() => exportarCertificado(s, parametro)}>
+                    disabled={cargando} onClick={() => ejecutar(() => exportarCertificado(s, parametro))}>
                     Imprimir certificado de acciones
                   </Button>
                 </Box>
@@ -342,7 +345,7 @@ export default function Accionistas() {
         )}
       </Dialog>
 
-      {cargando && <CircularProgress style={{ position: 'fixed', top: '50%', left: '50%', zIndex: 2000 }} />}
+      <Cargando abierto={cargando} />
       <Snackbar open={!!error} autoHideDuration={8000} onClose={() => setError('')}>
         <MuiAlert elevation={6} variant="filled" severity="error" onClose={() => setError('')}>{error}</MuiAlert>
       </Snackbar>
