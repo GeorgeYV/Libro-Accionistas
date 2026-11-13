@@ -27,6 +27,7 @@ import Dividendos from './views/dividendos';
 import AccionistaDashboard from './views/accionista-dashboard';
 import AumentoCapital from './views/aumentocapital';
 import Verificacion from './views/verificacion';
+import Ayuda from './views/ayuda';
 
 // Vista de cada ruta; qué rutas ve cada perfil se define en components/navegacion.js.
 const VISTAS = {
@@ -47,6 +48,7 @@ const VISTAS = {
   '/personanatural': PersonaNatural,
   '/personajuridica': PersonaJuridica,
   '/accionistadashboard': AccionistaDashboard,
+  '/ayuda': Ayuda,
 };
 
 const PARRAFOS = [

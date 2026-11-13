@@ -7,9 +7,11 @@ import clsx from 'clsx';
 import MenuIcon from '@material-ui/icons/Menu';
 import AccountCircle from '@material-ui/icons/AccountCircle';
 import ArrowDropDownIcon from '@material-ui/icons/ArrowDropDown';
+import HelpOutlineIcon from '@material-ui/icons/HelpOutline';
 import { AmplifySignOut } from '@aws-amplify/ui-react';
 import logo from '../images/Unacem2.png';
-import { OPERACIONES, ALTAS, etiquetaRuta } from './navegacion';
+import { OPERACIONES, ALTAS, AYUDA, etiquetaRuta } from './navegacion';
+import { seccionDeRuta } from '../ayuda/contenido';
 
 const drawerWidth = 240;
 const CESION = OPERACIONES[0];
@@ -99,6 +101,10 @@ export default function Header({ acceso, usuario, conMenu, open, handleDrawer })
           )}
 
           {conMenu && <Typography variant="caption" className={classes.usuario}>{usuario}</Typography>}
+          <IconButton aria-label="Ayuda de esta pantalla" title="Ayuda de esta pantalla" color="primary"
+            onClick={() => history.push(pathname === AYUDA.path ? AYUDA.path : `${AYUDA.path}#${seccionDeRuta(pathname) || 'inicio'}`)}>
+            <HelpOutlineIcon />
+          </IconButton>
           <IconButton aria-label="Cuenta del usuario" aria-haspopup="true" color="primary" onClick={(e) => setAnchorCuenta(e.currentTarget)}>
             <AccountCircle />
           </IconButton>

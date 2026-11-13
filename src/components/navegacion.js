@@ -17,6 +17,7 @@ import PersonAddOutlinedIcon from '@material-ui/icons/PersonAddOutlined';
 import BusinessOutlinedIcon from '@material-ui/icons/BusinessOutlined';
 import FunctionsIcon from '@material-ui/icons/Functions';
 import SwapHorizIcon from '@material-ui/icons/SwapHoriz';
+import HelpOutlineIcon from '@material-ui/icons/HelpOutline';
 
 // Primer grupo Cognito del usuario autenticado (o null si no tiene).
 export function perfilDe(usuario) {
@@ -25,7 +26,7 @@ export function perfilDe(usuario) {
   return (grupos && grupos[0]) || null;
 }
 
-const SECCIONES = {
+export const SECCIONES = {
   blotter: { label: 'Blotter', path: '/blotter', icon: <AssignmentTurnedInIcon /> },
   accionistas: { label: 'Accionistas', path: '/accionistas', icon: <PeopleIcon /> },
   dividendos: { label: 'Dividendos', path: '/dividendos', icon: <AttachMoneyIcon /> },
@@ -33,6 +34,7 @@ const SECCIONES = {
   asambleas: { label: 'Asambleas', path: '/asambleas', icon: <GroupWorkIcon /> },
 };
 export const CONFIGURACION = { label: 'Configuración', path: '/parametros', icon: <SettingsIcon /> };
+export const AYUDA = { label: 'Ayuda', path: '/ayuda', icon: <HelpOutlineIcon /> };
 
 export const OPERACIONES = [
   { label: 'Cesión', path: '/cesion', icon: <SwapHorizIcon color="primary" /> },
@@ -53,6 +55,7 @@ export const ALTAS = [
 const ETIQUETAS = {
   '/accionistadashboard': 'Mis acciones',
   [CONFIGURACION.path]: CONFIGURACION.label,
+  [AYUDA.path]: AYUDA.label,
   ...Object.fromEntries([...Object.values(SECCIONES), ...OPERACIONES, ...ALTAS].map((s) => [s.path, s.label])),
 };
 export const etiquetaRuta = (path) => ETIQUETAS[path] || '';
@@ -82,5 +85,8 @@ export const ACCESO = {
   },
   Accionista: { menu: [], rutas: ['/accionistadashboard'], inicio: '/accionistadashboard' },
 };
+
+// Todos los perfiles pueden abrir la ayuda.
+Object.values(ACCESO).forEach((a) => a.rutas.push(AYUDA.path));
 
 export const accesoDe = (perfil) => ACCESO[perfil] || null;

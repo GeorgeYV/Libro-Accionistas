@@ -3,7 +3,7 @@ import { ListItem, ListItemIcon, ListItemText, makeStyles, Drawer, List, Divider
 import clsx from 'clsx';
 import { useHistory, useLocation } from 'react-router';
 import logo from '../images/Unacem2.png';
-import { CONFIGURACION } from './navegacion';
+import { CONFIGURACION, AYUDA } from './navegacion';
 
 const drawerWidth = 240;
 
@@ -49,12 +49,11 @@ export default function Sidebar({ acceso, open }) {
       <List>
         {acceso.menu.map((item) => <Opcion key={item.path} item={item} open={open} />)}
       </List>
-      {acceso.configuracion && (
-        <>
-          <Divider />
-          <List><Opcion item={CONFIGURACION} open={open} /></List>
-        </>
-      )}
+      <Divider />
+      <List>
+        {acceso.configuracion && <Opcion item={CONFIGURACION} open={open} />}
+        <Opcion item={AYUDA} open={open} />
+      </List>
     </Drawer>
   );
 }

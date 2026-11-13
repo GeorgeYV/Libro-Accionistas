@@ -66,7 +66,8 @@ El perfil se lee con `perfilDe(usuario)` (`cognito:groups[0]`) en `App.js`; men�
 | `Accionista` | Solo `accionista-dashboard` (sus acciones, certificado y registro en asambleas) |
 
 El control de acceso es **solo en el frontend**; el API usa `@auth(rules: [{allow: public}])` (API_KEY).
-Al agregar pantallas: registrar la vista en `VISTAS` (`App.js`) y su ruta/menú en `ACCESO` de `navegacion.js` para cada perfil que la use. Un usuario sin grupo ve "Usuario sin perfil asignado".
+Al agregar pantallas: registrar la vista en `VISTAS` (`App.js`) y su ruta/menú en `ACCESO` de `navegacion.js` para cada perfil que la use.
+Cada pantalla tiene su manual en `src/ayuda/contenido.js` (vista `/ayuda`, botón ? del header); el test `contenido.test.js` falla si una ruta de `ACCESO` no tiene sección de ayuda. Los perfiles de cada sección y la matriz de permisos se calculan desde `ACCESO`. Un usuario sin grupo ve "Usuario sin perfil asignado".
 
 ---
 
