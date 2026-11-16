@@ -1,4 +1,4 @@
-import { textoAnulacion, MOTIVOS_ANULACION } from './aprobacion';
+import { textoAnulacion, MOTIVOS_ANULACION, esHistorica, INGRESADOR_HISTORICO } from './aprobacion';
 
 test('motivo de anulación: obligatorio, "Otro" exige detalle y se guarda con el detalle', () => {
   expect(textoAnulacion('Operación duplicada', '  ')).toBe('Operación duplicada');
@@ -8,4 +8,10 @@ test('motivo de anulación: obligatorio, "Otro" exige detalle y se guarda con el
   expect(() => textoAnulacion('Inventado', 'x')).toThrow('Seleccione el motivo');
   expect(() => textoAnulacion('Otro', ' ')).toThrow('Describa el motivo');
   expect(MOTIVOS_ANULACION).toContain('Otro');
+});
+
+test('operaciones históricas del Kárdex: solo consulta', () => {
+  expect(esHistorica({ ope_ingresador: INGRESADOR_HISTORICO })).toBe(true);
+  expect(esHistorica({ ope_ingresador: 'alexander' })).toBe(false);
+  expect(esHistorica(null)).toBe(false);
 });

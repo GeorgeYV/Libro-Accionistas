@@ -29,6 +29,11 @@ export const MOTIVOS_RECHAZO = [
   { valor: 4, etiqueta: 'Error en acciones' },
   { valor: 5, etiqueta: 'Error en valor' },
 ];
+// Operaciones cargadas desde el Kárdex de la Superintendencia (scripts/cargar-kardex.js): solo historial. No tienen
+// títulos asociados porque el libro actual ya refleja su resultado; no se pueden anular.
+export const INGRESADOR_HISTORICO = 'Carga histórica Kardex';
+export const esHistorica = (op) => !!op && op.ope_ingresador === INGRESADOR_HISTORICO;
+
 export const MOTIVOS_ANULACION = [
   'Error en el ingreso de datos',
   'Documentación inválida o incompleta',
@@ -314,6 +319,8 @@ async function anularAumento(op, { principal }, usuario, extra) {
 
 async function anularTransferencia(op, { principal, cesionario, titulos }, usuario, extra) {
   exigir(principal && cesionario, 'No se encontraron el cedente y el cesionario de la operación.');
+  // Sin títulos no hay qué devolver: cambiar solo las acciones descuadraría el libro.
+  exigir(titulos.length > 0, 'La operación no tiene títulos asociados; no se puede anular automáticamente.');
   const actuales = await titulosActuales(titulos);
   // En la parcial, al aprobar se agrega el título hijo: lo registrado suma más que la operación.
   const parcial = titulos.reduce((s, t) => s + t.tit_ope_acciones, 0) > op.ope_acciones;
@@ -385,6 +392,7 @@ async function anularPosesion(op, { principal, titulos }, usuario, extra) {
 export async function anular(op, detalle, usuario, motivo) {
   exigir(op.ope_estado === 1, 'Solo se pueden anular operaciones aprobadas.');
   exigir(motivo, 'Seleccione el motivo de la anulación.');
+  exigir(!esHistorica(op), 'Las operaciones históricas (Kárdex) son solo de consulta: no se pueden anular.');
   const extra = { ope_motivo_anulacion: motivo };
   exigir(detalle.principal, 'No se encontró el accionista de la operación.');
   let aviso = null;

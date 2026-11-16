@@ -120,6 +120,8 @@ Prefijos de campos por entidad: `acc_` Accionista, `tit_` Titulo, `ope_` Operaci
 4. **Anulación** (`ope_estado: 3`): revierte exactamente los efectos de la aprobación (`anular` en `services/aprobacion.js`;
    todos los tipos, incluida la posesión efectiva). Si los títulos cambiaron después, se rechaza con un mensaje en vez de forzarla.
    Exige un motivo (`MOTIVOS_ANULACION` + detalle, `textoAnulacion`) que se guarda en `ope_motivo_anulacion`.
+5. **Históricas** (`ope_ingresador = 'Carga histórica Kardex'`, `esHistorica`): cargadas del Kárdex de la Superintendencia
+   con `scripts/cargar-kardex.js` como aprobadas, sin títulos ni movimiento de acciones; solo consulta, no se anulan.
 
 Al agregar o modificar un tipo de operación, tocar siempre: vista de ingreso, `ope_tipo_letras` y los `switch` de
 aprobar/anular en `blotter.jsx`, documentos requeridos mostrados en el diálogo de revisión, y el sidebar.

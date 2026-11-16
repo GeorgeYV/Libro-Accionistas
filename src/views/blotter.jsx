@@ -16,7 +16,7 @@ import CheckCircleIcon from '@material-ui/icons/CheckCircle';
 import ArrowForwardIcon from '@material-ui/icons/ArrowForward';
 import {
   cargarOperaciones, cargarDetalle, aprobar, anular, rechazar, reenviar, guardarDocumentos,
-  ESTADOS_OPERACION, MOTIVOS_RECHAZO, DOCUMENTOS_POR_TIPO, MOTIVOS_ANULACION, textoAnulacion,
+  ESTADOS_OPERACION, MOTIVOS_RECHAZO, DOCUMENTOS_POR_TIPO, MOTIVOS_ANULACION, textoAnulacion, esHistorica,
 } from '../services/aprobacion';
 import { subirArchivo, abrirArchivo } from '../services/archivos';
 import { valorFecha } from '../utils/libro'; // entiende d-m-aaaa y aaaammdd (registros antiguos)
@@ -192,7 +192,10 @@ export default function Operaciones() {
             <DialogTitle>
               <Box display="flex" alignItems="center" justifyContent="space-between">
                 <span>{op.tipo}</span>
-                <Chip label={ESTADOS_OPERACION[op.ope_estado]} color={COLOR_ESTADO[op.ope_estado]} />
+                <Box display="flex" style={{ gap: 8 }}>
+                  {esHistorica(op) && <Chip variant="outlined" label="Histórica (Kárdex)" />}
+                  <Chip label={ESTADOS_OPERACION[op.ope_estado]} color={COLOR_ESTADO[op.ope_estado]} />
+                </Box>
               </Box>
             </DialogTitle>
             <DialogContent dividers>
@@ -296,7 +299,7 @@ export default function Operaciones() {
             <DialogActions>
               {op.ope_estado === 0 && <Button color="secondary" disabled={cargando || motivos.length === 0} onClick={() => setConfirmar('rechazar')}>Rechazar</Button>}
               {op.ope_estado === 0 && <Button variant="contained" color="primary" disabled={cargando || (!detalle.principal && op.ope_tipo !== 6)} onClick={() => setConfirmar('aprobar')}>Aprobar</Button>}
-              {op.ope_estado === 1 && <Button variant="contained" className={classes.peligro} disabled={cargando} onClick={() => setConfirmar('anular')}>Anular</Button>}
+              {op.ope_estado === 1 && !esHistorica(op) && <Button variant="contained" className={classes.peligro} disabled={cargando} onClick={() => setConfirmar('anular')}>Anular</Button>}
               {op.ope_estado === 2 && <Button variant="contained" color="primary" disabled={cargando} onClick={() => setConfirmar('reenviar')}>Volver a solicitar aprobación</Button>}
               <Button onClick={cerrar}>Salir</Button>
             </DialogActions>
