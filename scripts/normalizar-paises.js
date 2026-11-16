@@ -1,6 +1,8 @@
 /*
  * Normaliza los nombres de país guardados en accionistas, personas jurídicas y cónyuges: quita espacios sobrantes y
  * usa el nombre exacto del catálogo (scripts/datos/paises.json) cuando coincide sin mayúsculas/tildes ("Ecuador " -> "Ecuador").
+ * En los campos de nacionalidad también reconoce el gentilicio del catálogo ("ECUATORIANA" -> "Ecuador"): la app guarda el
+ * país, y las reglas de retención comparan la nacionalidad con "Ecuador".
  * Solo cambia esos campos de texto; no toca valores que no correspondan a un país del catálogo.
  *
  *   node scripts/normalizar-paises.js            -> SIMULACIÓN
@@ -18,7 +20,11 @@ const leer = (clave) => (new RegExp(`"${clave}":\\s*"([^"]+)"`).exec(exportsTxt)
 const ENDPOINT = leer('aws_appsync_graphqlEndpoint');
 const API_KEY = leer('aws_appsync_apiKey');
 const normal = (t) => String(t || '').trim().toLowerCase().normalize('NFD').replace(/[̀-ͯ]/g, '');
-const catalogo = new Map(JSON.parse(fs.readFileSync(path.join(__dirname, 'datos', 'paises.json'), 'utf8')).map(([n]) => [normal(n), n]));
+const PAISES = JSON.parse(fs.readFileSync(path.join(__dirname, 'datos', 'paises.json'), 'utf8'));
+const catalogo = new Map(PAISES.map(([n]) => [normal(n), n]));
+// Gentilicio -> país (solo para campos de nacionalidad), con erratas vistas en los datos.
+const gentilicios = new Map([...PAISES.map(([n, , g]) => [normal(g), n]), ['estadoudinense', 'Estados Unidos']]);
+const canonicoDe = (campo, valor) => catalogo.get(normal(valor)) || (/nacionalidad$/.test(campo) ? gentilicios.get(normal(valor)) : null);
 
 const TABLAS = [
   { lista: 'listAccionistas', mutacion: 'updateAccionista', input: 'UpdateAccionistaInput', campos: ['acc_pais', 'acc_residencia', 'acc_nacionalidad'] },
@@ -65,7 +71,7 @@ async function todos(campo, campos) {
       const input = { id: r.id };
       const antes = {};
       t.campos.forEach((c) => {
-        const canonico = r[c] != null ? catalogo.get(normal(r[c])) : null;
+        const canonico = r[c] != null ? canonicoDe(c, r[c]) : null;
         if (canonico && canonico !== r[c]) { input[c] = canonico; antes[c] = r[c]; }
       });
       if (Object.keys(antes).length) cambios.push({ tabla: t, input, antes });
