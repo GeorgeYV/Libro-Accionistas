@@ -16,7 +16,7 @@ import CheckCircleIcon from '@material-ui/icons/CheckCircle';
 import ArrowForwardIcon from '@material-ui/icons/ArrowForward';
 import {
   cargarOperaciones, cargarDetalle, aprobar, anular, rechazar, reenviar, guardarDocumentos,
-  ESTADOS_OPERACION, MOTIVOS_RECHAZO, DOCUMENTOS_POR_TIPO,
+  ESTADOS_OPERACION, MOTIVOS_RECHAZO, DOCUMENTOS_POR_TIPO, MOTIVOS_ANULACION, textoAnulacion,
 } from '../services/aprobacion';
 import { subirArchivo, abrirArchivo } from '../services/archivos';
 import { valorFecha } from '../utils/libro'; // entiende d-m-aaaa y aaaammdd (registros antiguos)
@@ -69,6 +69,7 @@ export default function Operaciones() {
   const [detalle, setDetalle] = useState(null);
   const [documentos, setDocumentos] = useState([]);
   const [motivos, setMotivos] = useState([]);
+  const [anulacion, setAnulacion] = useState({ motivo: '', detalle: '' });
   const [confirmar, setConfirmar] = useState(null); // 'aprobar' | 'anular' | 'rechazar' | 'reenviar'
   const [cargando, setCargando] = useState(true);
   const [mensaje, setMensaje] = useState(null); // { tipo, texto }
@@ -93,7 +94,7 @@ export default function Operaciones() {
     const t = busqueda.trim().toLowerCase();
     return operaciones
       .filter((o) => o.ope_estado === estado)
-      .filter((o) => !t || [o.tipo, o.ope_fecha, o.ope_ingresador, o.ope_aprobador, o.ope_acciones, o.ope_observacion]
+      .filter((o) => !t || [o.tipo, o.ope_fecha, o.ope_ingresador, o.ope_aprobador, o.ope_acciones, o.ope_observacion, o.ope_motivo_anulacion]
         .some((v) => v != null && String(v).toLowerCase().includes(t)))
       .sort((a, b) => valorFecha(b.ope_fecha) - valorFecha(a.ope_fecha));
   }, [operaciones, estado, busqueda]);
@@ -104,6 +105,7 @@ export default function Operaciones() {
     const guardados = String(op.ope_documento || '').split('&');
     setDocumentos(etiquetas.map((_, i) => guardados[i] || ''));
     setMotivos([]);
+    setAnulacion({ motivo: '', detalle: '' });
     setDetalle(d);
     setSeleccionada(op);
   });
@@ -113,7 +115,7 @@ export default function Operaciones() {
   // Acciones que cambian datos: siempre tras confirmar.
   const ACCIONES = {
     aprobar: { titulo: 'Aprobar operación', texto: 'Se aplicarán los cambios sobre accionistas y títulos.', boton: 'Aprobar', fn: () => aprobar(seleccionada, detalle, usuario), exito: 'La operación se aprobó correctamente.' },
-    anular: { titulo: 'Anular operación', texto: 'Se revertirán los cambios que hizo la aprobación.', boton: 'Anular', fn: () => anular(seleccionada, detalle, usuario), exito: 'La operación se anuló correctamente.' },
+    anular: { titulo: 'Anular operación', texto: 'Se revertirán los cambios que hizo la aprobación.', boton: 'Anular', fn: () => anular(seleccionada, detalle, usuario, textoAnulacion(anulacion.motivo, anulacion.detalle)), exito: 'La operación se anuló correctamente.' },
     rechazar: { titulo: 'Rechazar operación', texto: 'La operación quedará rechazada con los motivos indicados.', boton: 'Rechazar', fn: () => rechazar(seleccionada, motivos, usuario), exito: 'La operación se rechazó.' },
     reenviar: { titulo: 'Volver a solicitar aprobación', texto: 'La operación volverá a quedar pendiente.', boton: 'Reenviar', fn: () => reenviar(seleccionada), exito: 'La operación volvió a pendientes.' },
   };
@@ -150,6 +152,7 @@ export default function Operaciones() {
       { field: 'ope_fecha_aprobacion', headerName: 'Fecha revisión', width: 130, sortComparator: (a, b) => valorFecha(a) - valorFecha(b) },
     ]),
     ...(estado === 2 ? [{ field: 'ope_observacion', headerName: 'Motivo', flex: 1, minWidth: 180 }] : []),
+    ...(estado === 3 ? [{ field: 'ope_motivo_anulacion', headerName: 'Motivo de anulación', flex: 1, minWidth: 200 }] : []),
     {
       field: 'revisar', headerName: '', width: 120, sortable: false, disableExport: true,
       renderCell: (p) => <Button size="small" color="primary" startIcon={<PageviewIcon />} onClick={() => abrir(p.row)}>{estado === 0 ? 'Revisar' : 'Detalle'}</Button>,
@@ -157,6 +160,7 @@ export default function Operaciones() {
   ];
 
   const op = seleccionada;
+  const anulacionValida = !!anulacion.motivo && (anulacion.motivo !== 'Otro' || !!anulacion.detalle.trim());
   const etiquetas = op ? DOCUMENTOS_POR_TIPO[op.ope_tipo] || [] : [];
   const puedeEditarDocs = op && (op.ope_estado === 1 || op.ope_estado === 2);
 
@@ -200,6 +204,7 @@ export default function Operaciones() {
                     <Dato titulo="Solicitante" valor={op.ope_ingresador} />
                     {op.ope_estado !== 0 && <Dato titulo="Revisor / fecha" valor={`${op.ope_aprobador || '-'} — ${op.ope_fecha_aprobacion || '-'}`} />}
                     {op.ope_observacion && <Dato titulo="Motivos de rechazo" valor={op.ope_observacion} />}
+                    {op.ope_motivo_anulacion && <Dato titulo="Motivo de anulación" valor={op.ope_motivo_anulacion} />}
                     <Dato titulo="Acciones" valor={enteros(op.ope_acciones)} />
                     <Divider style={{ margin: '8px 0' }} />
                     <Dato titulo={ETIQUETA_PRINCIPAL[op.ope_tipo] || 'Accionista'} valor={detalle.principal ? `${detalle.principal.acc_nombre_completo} (${detalle.principal.id})` : 'No encontrado'} />
@@ -305,10 +310,21 @@ export default function Operaciones() {
             <DialogTitle>{ACCIONES[confirmar].titulo}</DialogTitle>
             <DialogContent>
               <Typography>{`${op.tipo} de ${enteros(op.ope_acciones)} acciones. ${ACCIONES[confirmar].texto}`}</Typography>
+              {confirmar === 'anular' && (
+                <Box mt={2} display="flex" flexDirection="column" style={{ gap: 12 }}>
+                  <TextField select required size="small" variant="outlined" label="Motivo de la anulación" value={anulacion.motivo}
+                    onChange={(e) => setAnulacion((a) => ({ ...a, motivo: e.target.value }))}>
+                    {MOTIVOS_ANULACION.map((m) => <MenuItem key={m} value={m}>{m}</MenuItem>)}
+                  </TextField>
+                  <TextField size="small" variant="outlined" multiline minRows={2} inputProps={{ maxLength: 300 }}
+                    label={anulacion.motivo === 'Otro' ? 'Detalle (obligatorio)' : 'Detalle (opcional)'} required={anulacion.motivo === 'Otro'}
+                    value={anulacion.detalle} onChange={(e) => setAnulacion((a) => ({ ...a, detalle: e.target.value }))} />
+                </Box>
+              )}
             </DialogContent>
             <DialogActions>
               <Button onClick={() => setConfirmar(null)}>Cancelar</Button>
-              <Button variant="contained" color={confirmar === 'anular' || confirmar === 'rechazar' ? 'secondary' : 'primary'} disabled={cargando} onClick={ejecutarAccion}>
+              <Button variant="contained" color={confirmar === 'anular' || confirmar === 'rechazar' ? 'secondary' : 'primary'} disabled={cargando || (confirmar === 'anular' && !anulacionValida)} onClick={ejecutarAccion}>
                 {ACCIONES[confirmar].boton}
               </Button>
             </DialogActions>

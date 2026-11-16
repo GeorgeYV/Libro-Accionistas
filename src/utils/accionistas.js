@@ -76,3 +76,24 @@ export function planHerederos(existentes, nuevos) {
   });
   return { crear, actualizar, eliminar: existentes.filter((e) => !usados.has(e.id)).map((e) => e.id), total: lista.length };
 }
+
+// ---- Formato de identificación y nombres (formularios de persona natural y jurídica) -------------------------
+// Cédula (tipo 0) y RUC (tipo 1): solo números. Pasaporte (tipo 2): letras y números.
+const soloNumeros = (tipo) => Number(tipo) === 0 || Number(tipo) === 1;
+const LETRAS = 'A-Za-zÁÉÍÓÚÜÑáéíóúüñ';
+
+// Filtros al escribir: quitan los caracteres no permitidos.
+export const limpiarIdentificacion = (valor, tipo) => String(valor).replace(soloNumeros(tipo) ? /[^0-9]/g : /[^A-Za-z0-9]/g, '');
+export const limpiarNombre = (valor) => String(valor).replace(new RegExp(`[^${LETRAS} ]`, 'g'), '').replace(/ {2,}/g, ' ');
+
+// Validación al guardar (datos pegados, cambio de tipo o registros antiguos). '' = correcto o vacío.
+export function problemaIdentificacion(valor, tipo) {
+  const v = String(valor == null ? '' : valor).trim();
+  if (!v) return '';
+  if (soloNumeros(tipo)) return /^[0-9]+$/.test(v) ? '' : `${Number(tipo) === 1 ? 'El RUC' : 'La cédula'} solo admite números`;
+  return /^[A-Za-z0-9]+$/.test(v) ? '' : 'El pasaporte solo admite letras y números';
+}
+export function problemaNombre(valor) {
+  const v = String(valor == null ? '' : valor).trim();
+  return !v || new RegExp(`^[${LETRAS}]+( [${LETRAS}]+)*$`).test(v) ? '' : 'Solo se admiten letras';
+}

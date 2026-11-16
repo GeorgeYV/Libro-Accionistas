@@ -29,6 +29,22 @@ export const MOTIVOS_RECHAZO = [
   { valor: 4, etiqueta: 'Error en acciones' },
   { valor: 5, etiqueta: 'Error en valor' },
 ];
+export const MOTIVOS_ANULACION = [
+  'Error en el ingreso de datos',
+  'Documentación inválida o incompleta',
+  'Operación duplicada',
+  'Solicitud del accionista',
+  'Orden judicial o de autoridad',
+  'Otro',
+];
+// Texto que se guarda en ope_motivo_anulacion: el motivo y, si hay, el detalle. "Otro" exige detalle.
+export function textoAnulacion(motivo, detalle) {
+  const extra = String(detalle || '').trim();
+  exigir(MOTIVOS_ANULACION.includes(motivo), 'Seleccione el motivo de la anulación.');
+  exigir(motivo !== 'Otro' || extra, 'Describa el motivo de la anulación.');
+  return extra ? `${motivo}: ${extra}` : motivo;
+}
+
 // Etiquetas de ope_documento por posición (cs, cg, ci, es, cp), iguales a las pantallas de ingreso.
 export const DOCUMENTOS_POR_TIPO = {
   0: ['Escrituras'],
@@ -275,7 +291,7 @@ export async function aprobar(op, detalle, usuario) {
 
 // ---- Anulación ---------------------------------------------------------------------------------
 
-async function anularAumento(op, { principal }, usuario) {
+async function anularAumento(op, { principal }, usuario, extra) {
   const raiz = await leerTitulo(ID_TITULO_RAIZ);
   const vinculos = await listarTodos(listTituloPorOperacions, 'listTituloPorOperacions', { filter: { tit_ope_operacion_id: { eq: op.id } } });
   exigir(vinculos.length === 1, 'La operación no tiene exactamente un título asociado; no se puede anular automáticamente.');
@@ -286,7 +302,7 @@ async function anularAumento(op, { principal }, usuario) {
   // Falla (sin escribir) si esas acciones ya cobraron dividendo; si no, quita las acciones de la base.
   await ajustarBasePeriodos(-op.ope_acciones, { desde: creado.tit_desde, hasta: creado.tit_hasta });
 
-  await cambiarEstado(op, 3, usuario);
+  await cambiarEstado(op, 3, usuario, extra);
   const emitido = raiz.tit_hasta - op.ope_acciones;
   await actualizarTitulo({ id: ID_TITULO_RAIZ, tit_hasta: emitido });
   await API.graphql({ query: updateParametro, variables: { input: { id: '1', cantidadEmitida: emitido } } });
@@ -296,7 +312,7 @@ async function anularAumento(op, { principal }, usuario) {
   await recalcularParticipaciones(emitido);
 }
 
-async function anularTransferencia(op, { principal, cesionario, titulos }, usuario) {
+async function anularTransferencia(op, { principal, cesionario, titulos }, usuario, extra) {
   exigir(principal && cesionario, 'No se encontraron el cedente y el cesionario de la operación.');
   const actuales = await titulosActuales(titulos);
   // En la parcial, al aprobar se agrega el título hijo: lo registrado suma más que la operación.
@@ -310,7 +326,7 @@ async function anularTransferencia(op, { principal, cesionario, titulos }, usuar
     exigir(padre.tit_accionista_id === principal.id, 'El título de origen ya no pertenece al cedente; no se puede anular automáticamente.');
     const union = unirRango(padre, hijo);
 
-    await cambiarEstado(op, 3, usuario);
+    await cambiarEstado(op, 3, usuario, extra);
     await actualizarAcciones(principal, op.ope_acciones, emitido);
     await actualizarAcciones(cesionario, -op.ope_acciones, emitido);
     await actualizarTitulo({ id: padre.id, ...union });
@@ -319,7 +335,7 @@ async function anularTransferencia(op, { principal, cesionario, titulos }, usuar
   }
   exigir(actuales.length === titulos.length && actuales.every((t) => t.tit_accionista_id === cesionario.id),
     'Alguno de los títulos ya no pertenece al cesionario; no se puede anular automáticamente.');
-  await cambiarEstado(op, 3, usuario);
+  await cambiarEstado(op, 3, usuario, extra);
   await actualizarAcciones(principal, op.ope_acciones, emitido);
   await actualizarAcciones(cesionario, -op.ope_acciones, emitido);
   await enLotes(actuales, 25, (t) => actualizarTitulo({ id: t.id, tit_accionista_id: principal.id }));
@@ -328,7 +344,7 @@ async function anularTransferencia(op, { principal, cesionario, titulos }, usuar
 
 // Revierte la posesión efectiva: vuelve a unir el título repartido entre los herederos y lo devuelve al causante.
 // Al aprobar, el último heredero quedó con el título original (tramo final) y los demás con títulos hijos del mismo.
-async function anularPosesion(op, { principal, titulos }, usuario) {
+async function anularPosesion(op, { principal, titulos }, usuario, extra) {
   exigir(principal, 'No se encontró el causante de la operación.');
   exigir(titulos.length === 1, 'La posesión efectiva no tiene exactamente un título asociado; no se puede anular automáticamente.');
   const original = await leerTitulo(titulos[0].tit_ope_titulo_id);
@@ -357,7 +373,7 @@ async function anularPosesion(op, { principal, titulos }, usuario) {
     `El heredero ${[...porHeredero.keys()][i]} ya no tiene las acciones recibidas; no se puede anular automáticamente.`));
   const emitido = await cantidadEmitida();
 
-  await cambiarEstado(op, 3, usuario);
+  await cambiarEstado(op, 3, usuario, extra);
   await actualizarAcciones(principal, op.ope_acciones, emitido);
   for (const h of herederos) await actualizarAcciones(h, -porHeredero.get(h.id), emitido);
   await enLotes(hijos, 25, (t) => API.graphql({ query: deleteTitulo, variables: { input: { id: t.id } } }));
@@ -365,30 +381,33 @@ async function anularPosesion(op, { principal, titulos }, usuario) {
   return moverDividendos(piezas.map((t) => ({ desde: t.tit_desde, hasta: t.tit_hasta, de: t.tit_accionista_id, a: principal.id, tituloID: original.id })));
 }
 
-export async function anular(op, detalle, usuario) {
+// motivo: texto de textoAnulacion (obligatorio); se guarda con el cambio de estado.
+export async function anular(op, detalle, usuario, motivo) {
   exigir(op.ope_estado === 1, 'Solo se pueden anular operaciones aprobadas.');
+  exigir(motivo, 'Seleccione el motivo de la anulación.');
+  const extra = { ope_motivo_anulacion: motivo };
   exigir(detalle.principal, 'No se encontró el accionista de la operación.');
   let aviso = null;
   switch (op.ope_tipo) {
-    case 0: await anularAumento(op, detalle, usuario); break;
+    case 0: await anularAumento(op, detalle, usuario, extra); break;
     case 1:
-      await cambiarEstado(op, 3, usuario);
+      await cambiarEstado(op, 3, usuario, extra);
       await actualizarAccionista({ id: detalle.principal.id, acc_estado: 1 });
       await enLotes(detalle.titulos, 25, (t) => actualizarTitulo({ id: t.tit_ope_titulo_id, tit_estado: 1 }));
       break;
     case 4:
-      await cambiarEstado(op, 3, usuario);
+      await cambiarEstado(op, 3, usuario, extra);
       await actualizarAccionista({ id: detalle.principal.id, acc_estado: 3 });
       await enLotes(detalle.titulos, 25, (t) => actualizarTitulo({ id: t.tit_ope_titulo_id, tit_estado: 0 }));
       break;
     case 2:
-      await cambiarEstado(op, 3, usuario);
+      await cambiarEstado(op, 3, usuario, extra);
       await actualizarAccionista({ id: detalle.principal.id, acc_tipo_acciones: 0 });
       break;
-    case 6: aviso = await anularPosesion(op, detalle, usuario); break;
+    case 6: aviso = await anularPosesion(op, detalle, usuario, extra); break;
     default:
       exigir(TRANSFERENCIAS.includes(op.ope_tipo), 'Este tipo de operación no se puede anular automáticamente.');
-      aviso = await anularTransferencia(op, detalle, usuario);
+      aviso = await anularTransferencia(op, detalle, usuario, extra);
   }
   return { aviso: await quitarVigencia(op, detalle, 'Anulación', aviso) };
 }

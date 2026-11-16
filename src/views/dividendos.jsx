@@ -103,6 +103,7 @@ export default function Dividendos() {
     { field: 'ddiv_fecha_pago', headerName: 'Pago', width: 100 },
     numero('div_dividendo', 'Dividendo período', 140),
     numero('ddiv_porcentaje', '% acordado', 100),
+    { field: 'ddiv_tipo', headerName: 'Tipo', width: 90, valueGetter: (p) => p.row.ddiv_tipo || 'General' },
     numero('monto', 'Monto reparto', 130),
     numero('ddiv_dividendo', 'Pagado', 120),
     numero('saldo', 'Saldo', 120),

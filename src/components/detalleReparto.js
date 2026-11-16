@@ -233,7 +233,7 @@ export default function DetalleReparto({ reparto, filas, repartos, valorNominal,
 
               <Typography variant="subtitle1" gutterBottom style={{ marginTop: 24 }}>Reglas de retención del reparto</Typography>
               <Typography variant="caption" color="textSecondary" component="p" gutterBottom>
-                {`Se aplica la primera regla que coincide, sobre el dividendo acumulado del beneficiario en el año. SBU actual (Parámetros) = USD ${formato(sbu)}. `}
+                {`Se aplica la primera regla que coincide: base imponible = dividendo acumulado del beneficiario en el año − rebaja (SBU); retención = base × tarifa. SBU actual (Parámetros) = USD ${formato(sbu)}. `}
                 {reglasGuardadas ? 'Copia guardada al generar el reparto.' : 'Este reparto se generó antes de parametrizar la retención: se muestran las reglas actuales de Parámetros.'}
               </Typography>
               <Table size="small">
@@ -253,7 +253,7 @@ export default function DetalleReparto({ reparto, filas, repartos, valorNominal,
                       <TableCell>{r.persona}</TableCell>
                       <TableCell>{r.residencia}</TableCell>
                       <TableCell>{r.nacionalidad}</TableCell>
-                      <TableCell align="right">{`${r.porcentaje}%${r.sbu ? ` − ${r.sbu} SBU` : ''}`}</TableCell>
+                      <TableCell align="right">{`${r.porcentaje}%${r.sbu ? ` (rebaja ${r.sbu} SBU)` : ''}`}</TableCell>
                     </TableRow>
                   ))}
                 </TableBody>
@@ -263,14 +263,14 @@ export default function DetalleReparto({ reparto, filas, repartos, valorNominal,
             <Grid item xs={12} md={5}>
               <Typography variant="subtitle1" gutterBottom>Fórmula de cálculo</Typography>
               <Formula paso={1} titulo="Valor por acción (100% del dividendo anual)"
-                explicacion="Si hubo aumento de capital en el año, la base crece y el valor se recalcula con lo que falta por repartir.">
-                {`V = (Dividendo período × % declarado − asignado antes) ÷ (Acciones base × % declarado − acciones ya cubiertas)`}<br />
-                {`  = (${formato(reparto.div_dividendo)} × ${formato(cuadre.declarado)}% − ${formato(asignadoPrevio)}) ÷ (${enteros(reparto.div_acciones_base)} × ${formato(cuadre.declarado)}% − cubiertas)`}<br />
+                explicacion="Sin aumentos de capital es dividendo ÷ acciones base. Si hubo aumento en el año, la base crece y lo que falta del dividendo se reparte entre lo que falta por cubrir. (Repartos generados antes de los repartos a grupos usaban el % declarado en lugar del 100%.)">
+                {`V = (Dividendo período − asignado antes) ÷ (Acciones base − acciones ya cubiertas)`}<br />
+                {`  = (${formato(reparto.div_dividendo)} − ${formato(asignadoPrevio)}) ÷ (${enteros(reparto.div_acciones_base)} − cubiertas)`}<br />
                 {`  = ${texto(reparto.ddiv_valor_accion, 6)}`}
               </Formula>
               <Formula paso={2} titulo="Dividendo de cada rango de acciones"
-                explicacion="Cada acción de la foto de la asamblea cobra lo que le falta para llegar al % declarado acumulado; quien faltó a un reparto anterior se pone al día y una acción nunca cobra dos veces.">
-                {`Dividendo = acciones × (${formato(cuadre.declarado)}% − % ya cobrado por ese rango) × V`}
+                explicacion={`${cuadre.general ? 'Reparto general: sube el nivel del año para todos.' : 'Reparto a un grupo: no cambia el nivel de los demás accionistas.'} Nivel = nivel general antes del reparto + % del reparto. Cada acción de los beneficiarios cobra lo que le falta para llegar a ese nivel: quien faltó se pone al día y quien ya cobró más en un reparto a un grupo no cobra.`}>
+                {`Dividendo = acciones × (${formato(cuadre.nivelReparto)}% − % ya cobrado por ese rango) × V`}
               </Formula>
               <Formula paso={3} titulo="Centavos"
                 explicacion="Así la suma de los beneficiarios es exactamente el monto del reparto y, al completar el 100%, el año suma lo declarado.">
@@ -278,12 +278,13 @@ export default function DetalleReparto({ reparto, filas, repartos, valorNominal,
                 {'Se reparte por mayor residuo (centavo a centavo).'}
               </Formula>
               <Formula paso={4} titulo="Retención y neto">
-                {'Retención = regla(dividendo acumulado del año) − retención de repartos anteriores'}<br />
+                {'Base imponible = dividendo acumulado del año − rebaja (SBU de la regla × SBU), mínimo 0'}<br />
+                {'Retención = base imponible × tarifa − retención de repartos anteriores'}<br />
                 {'Neto = dividendo − retención'}
               </Formula>
               <Formula paso={5} titulo="Período">
                 {`Asignado repartos 1–${reparto.ddiv_secuencial} = ${formato(cuadre.asignado)}`}<br />
-                {`Tope = ${formato(reparto.div_dividendo)} × ${formato(cuadre.declarado)}% = ${formato(cuadre.tope)}`}
+                {`Tope = ${formato(reparto.div_dividendo)} × ${formato(cuadre.declarado)}% (nivel más alto) = ${formato(cuadre.tope)}`}
               </Formula>
             </Grid>
           </Grid>

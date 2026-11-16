@@ -1,6 +1,7 @@
-import { REGLAS_INICIALES, calcularRetencion, leerReglas, validarReglas, indiceRegla } from './retencion';
+import { REGLAS_INICIALES, calcularRetencion, desgloseRetencion, leerReglas, validarReglas, indiceRegla } from './retencion';
 
-// Copia fija de la regla que estaba en el código antes de parametrizarla (referencia de equivalencia).
+// Copia fija de la regla que estaba en el código antes de parametrizarla (referencia de qué regla aplica a cada caso),
+// con la fórmula vigente: (dividendo − rebaja SBU) × tarifa.
 function retencionAnterior(base, persona, residente, beneficiario, sbu) {
   const r2 = (x) => Math.round(x * 100) / 100;
   let num = 0, reduccion = 0;
@@ -14,11 +15,10 @@ function retencionAnterior(base, persona, residente, beneficiario, sbu) {
   if (tipo === 1 && res === 'Ecuador' && ben === 'Ecuador') num = 0;
   if (tipo === 1 && res !== 'Ecuador' && ben === 'Ecuador') { num = 12; reduccion = 3 * sbu; }
   if (tipo === 0 && res !== 'Panama' && ben === 'Ecuador') num = 14;
-  const retencion = r2(base * num / 100 - reduccion);
-  return retencion < 0 ? 0 : retencion;
+  return r2(Math.max(0, r2(base - reduccion)) * num / 100);
 }
 
-test('las reglas iniciales dan exactamente lo mismo que la regla anterior', () => {
+test('las reglas iniciales aplican a cada caso la misma tarifa y rebaja que la regla anterior', () => {
   const residencias = ['Ecuador', 'Ecuador ', 'Panama', 'Estados Unidos', 'Perú', '', null];
   const nacionalidades = ['Ecuador', 'Ecuador ', 'Estados Unidos', 'Perú', '', null];
   let casos = 0;
@@ -62,3 +62,33 @@ test('residencia Paraíso fiscal según el catálogo de países', () => {
   // Sin marcar en el catálogo, la regla de paraíso fiscal no aplica.
   expect(calcularRetencion(1000, { acc_tipo_persona: 1, acc_residencia: 'Bahamas' }, reglas, 0)).toBe(100);
 });
+
+test('base imponible = dividendo − rebaja SBU; la tarifa se aplica sobre la base (ejemplo con SBU 470)', () => {
+  const reglas = [
+    { persona: 'Jurídica', residencia: 'Ecuador', nacionalidad: 'Cualquiera', porcentaje: 0, sbu: 0 },
+    { persona: 'Todas', residencia: 'Cualquiera', nacionalidad: 'Ecuatoriana', porcentaje: 12, sbu: 3 },
+    { persona: 'Todas', residencia: 'Cualquiera', nacionalidad: 'Cualquiera', porcentaje: 10, sbu: 0 },
+  ];
+  const ecuatoriano = (persona) => ({ acc_tipo_persona: persona, acc_residencia: 'Ecuador', acc_nacionalidad: 'Ecuador' });
+  // Daniel Vélez: 211,225.00 − 1,410.00 = 209,815.00 × 12% = 25,177.80
+  expect(desgloseRetencion(211225, ecuatoriano(0), reglas, 470))
+    .toEqual({ indice: 1, rebaja: 1410, baseImponible: 209815, porcentaje: 12, retencion: 25177.8 });
+  // Global Investments: 144,500.00 − 1,410.00 = 143,090.00 × 12% = 17,170.80
+  expect(calcularRetencion(144500, { acc_tipo_persona: 1, acc_residencia: 'USA', acc_nacionalidad: 'Ecuador' }, reglas, 470)).toBe(17170.8);
+  // Patricia Herrera: la rebaja supera el dividendo → base 0, sin retención.
+  expect(desgloseRetencion(1275, ecuatoriano(0), reglas, 470)).toMatchObject({ rebaja: 1410, baseImponible: 0, retencion: 0 });
+  // Luis Murillo (sin rebaja): 110,500.00 × 10% = 11,050.00; jurídica en Ecuador: 0%.
+  expect(calcularRetencion(110500, { acc_tipo_persona: 0, acc_residencia: 'Perú', acc_nacionalidad: 'Perú' }, reglas, 470)).toBe(11050);
+  expect(calcularRetencion(42500, ecuatoriano(1), reglas, 470)).toBe(0);
+});
+
+test('la rebaja se aplica una sola vez sobre lo acumulado del período', () => {
+  const reglas = [{ persona: 'Todas', residencia: 'Cualquiera', nacionalidad: 'Cualquiera', porcentaje: 12, sbu: 3 }];
+  const acc = { acc_tipo_persona: 0, acc_residencia: 'Ecuador', acc_nacionalidad: 'Ecuador' };
+  // Dos repartos de 1,000 en el año: el primero queda bajo la rebaja; el segundo retiene sobre el acumulado.
+  const primero = calcularRetencion(1000, acc, reglas, 470);
+  const anual = calcularRetencion(2000, acc, reglas, 470);
+  expect(primero).toBe(0);
+  expect(anual - primero).toBe(r2test((2000 - 1410) * 0.12));
+});
+const r2test = (x) => Math.round(x * 100) / 100;

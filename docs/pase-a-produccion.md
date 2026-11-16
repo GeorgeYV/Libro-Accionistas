@@ -57,6 +57,8 @@ Revisar que `amplify status` muestre **solo** `api libroaccionistas` en *Update*
 | Índice `byAccionista` en `DividendosTitulos` | GSI nuevo (backfill sobre datos existentes) |
 | `queryField` en `AccionistasxJunta.byAsamblea` | sin cambio de tabla |
 | `Parametro.reglasRetencion`, `DetalleDividendo.ddiv_reglas_retencion` (AWSJSON), `Pais.paraisoFiscal`, campos de dividendos por reparto | campos nuevos |
+| `Operacion.ope_motivo_anulacion` (motivo obligatorio al anular) | campo nuevo |
+| `Asamblea.dividendoPeriodos`, `Asamblea.dividendoBeneficiarios` (AWSJSON), `DetalleDividendo.ddiv_tipo` (repartos por año, beneficiarios y repartos a grupos) | campos nuevos |
 | 71 campos sin uso quitados de `Parametro` y `Asamblea` | solo del API; los datos quedan en DynamoDB |
 | Se eliminan `DividendosAccionista`, `Solicitudes`, `TituloArchive` | **destructivo** (ver paso 1) |
 

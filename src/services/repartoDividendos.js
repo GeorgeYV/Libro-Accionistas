@@ -12,7 +12,10 @@ import { conParaisoFiscal } from '../utils/retencion';
 import { subirArchivo } from './archivos';
 import { cargarRegistros } from './asambleas';
 import { obtenerFotoTitulos, enLotes } from './fotoTitulos';
-import { resultadoVotacion, redondear2, coberturaPeriodo, reasignarPendientes, dividendosDeAccionista } from '../utils/dividendos';
+import {
+  resultadoVotacion, redondear2, coberturaPeriodo, reasignarPendientes, dividendosDeAccionista, nivelGeneral, resumenPeriodos, TIPO_GRUPO,
+} from '../utils/dividendos';
+import { leerBeneficiarios } from '../utils/asambleas';
 import { ID_TITULO_RAIZ } from '../utils/rangos';
 
 const listarDividendos = (filter) => listarTodos(listDividendoNuevos, 'listDividendoNuevos', filter ? { filter } : {});
@@ -161,29 +164,53 @@ export async function pagarTodoAccionista(filas, archivo, fecha) {
 
 // ---- Generación de repartos desde asamblea ----------------------------------------------------
 
-// Asambleas realizadas con tema de dividendos y que todavía no generaron un reparto.
-export async function asambleasDisponibles() {
-  const [asambleas, detalles] = await Promise.all([
-    listarTodos(listAsambleas, 'listAsambleas', { filter: { estado: { eq: 'Realizada' } } }),
-    listarDetalles(),
-  ]);
-  const usadas = new Set(detalles.map((d) => d.ddiv_asamblea_id).filter(Boolean));
-  return asambleas.filter((a) => a.temaDividendo && !usadas.has(a.id));
+// Años de una asamblea que ya tienen su reparto (por asamblea y período).
+function aniosRepartidos(asambleaId, detalles, periodoDe) {
+  return new Set(detalles.filter((d) => d.ddiv_asamblea_id === asambleaId).map((d) => periodoDe.get(d.ddiv_dividendo_id)));
 }
 
-// Votación y foto de la asamblea.
+// Asambleas realizadas con tema de dividendos que tienen años sin repartir. Cada una trae periodosPendientes
+// (años elegidos en la asamblea sin reparto); si la asamblea no eligió años (asambleas anteriores), periodosPendientes
+// es null y se admite un solo reparto en cualquier año, como antes.
+export async function asambleasDisponibles() {
+  const [asambleas, detalles, dividendos] = await Promise.all([
+    listarTodos(listAsambleas, 'listAsambleas', { filter: { estado: { eq: 'Realizada' } } }),
+    listarDetalles(),
+    listarDividendos(),
+  ]);
+  const periodoDe = new Map(dividendos.map((d) => [d.id, d.div_periodo]));
+  return asambleas.filter((a) => a.temaDividendo).map((a) => {
+    const hechos = aniosRepartidos(a.id, detalles, periodoDe);
+    const elegidos = (a.dividendoPeriodos || []).filter(Number.isFinite);
+    if (!elegidos.length) return hechos.size ? null : { ...a, periodosPendientes: null };
+    const pendientes = elegidos.filter((anio) => !hechos.has(anio)).sort((x, y) => y - x);
+    return pendientes.length ? { ...a, periodosPendientes: pendientes } : null;
+  }).filter(Boolean);
+}
+
+// Estado de los años (disponibles, pendientes o completos) para elegirlos desde una asamblea.
+export async function estadoPeriodos(anioActual = new Date().getFullYear()) {
+  const [dividendos, detalles] = await Promise.all([listarDividendos(), listarDetalles()]);
+  return resumenPeriodos(dividendos, detalles, anioActual);
+}
+
+// Votación y foto de la asamblea. Reciben el reparto los beneficiarios elegidos en la asamblea o, si no se eligieron,
+// los presentes; los demás se ponen al día en un reparto posterior que los incluya.
 export async function revisarAsamblea(asamblea) {
   const [junta, foto] = await Promise.all([
     cargarRegistros(asamblea.id),
     obtenerFotoTitulos(asamblea.id),
   ]);
-  // El reparto incluye solo a los accionistas presentes; los ausentes se ponen al día en un reparto posterior.
   const presentes = new Set(junta.filter((r) => r.presente === true).map((r) => r.accionistaID));
+  const lista = leerBeneficiarios(asamblea.dividendoBeneficiarios);
+  const beneficiarios = lista ? new Set(lista) : presentes;
   return {
     votacion: resultadoVotacion(junta, asamblea.temaDividendo),
-    foto: foto.filter((f) => presentes.has(f.accionistaID)),
+    foto: foto.filter((f) => beneficiarios.has(f.accionistaID)),
     fotoTotal: foto.length,
     presentes: presentes.size,
+    origen: lista ? 'lista' : 'presentes',
+    beneficiarios: beneficiarios.size,
   };
 }
 
@@ -200,18 +227,18 @@ export async function obtenerPeriodo(anio) {
     listarTitulosDividendo({ div_tit_periodo: { eq: anio } }),
     listarDetalles({ ddiv_dividendo_id: { eq: dividendo.id } }),
   ]);
-  const porcentajeDeclarado = redondear2(detalles.reduce((s, d) => s + (d.ddiv_porcentaje || 0), 0));
-  return { dividendo, pagados, detalles, porcentajeDeclarado };
+  // Nivel general: solo suman los repartos generales (los de un grupo no cambian el % de los demás).
+  return { dividendo, pagados, detalles, porcentajeDeclarado: nivelGeneral(detalles) };
 }
 
 /**
  * Guarda el reparto calculado. datos: {
- *   asamblea, anio, concepto, dividendoTotal, accionesBase, porcentajeReparto, fechaPago (d-m-aaaa), usuario,
+ *   asamblea, anio, concepto, dividendoTotal, accionesBase, porcentajeReparto, fechaPago (d-m-aaaa), usuario, general,
  *   periodo (resultado de obtenerPeriodo usado en el cálculo), calculo (resultado de calcularReparto)
  * }
  */
 export async function guardarReparto(datos) {
-  const { asamblea, anio, concepto, dividendoTotal, accionesBase, porcentajeReparto, fechaPago, usuario, periodo, calculo } = datos;
+  const { asamblea, anio, concepto, dividendoTotal, accionesBase, porcentajeReparto, fechaPago, usuario, periodo, calculo, general = true } = datos;
   if (calculo.tramos.length === 0) throw new Error('El reparto no tiene acciones pendientes de pago.');
 
   // Se vuelve a leer el período justo antes de guardar, por si otro usuario generó un reparto.
@@ -255,6 +282,7 @@ export async function guardarReparto(datos) {
         ddiv_valor_accion: calculo.valorAccion,
         ddiv_acciones: calculo.accionesReparto,
         ddiv_monto: calculo.montoReparto,
+        ddiv_tipo: general ? 'General' : TIPO_GRUPO,
       },
     },
   })).data.createDetalleDividendo;
@@ -286,7 +314,9 @@ export async function guardarReparto(datos) {
     query: updateDividendoNuevo,
     variables: { input: { id: dividendo.id, div_repartido: redondear2((dividendo.div_repartido || 0) + calculo.montoReparto) } },
   });
-  await API.graphql({ query: updateAsamblea, variables: { input: { id: asamblea.id, estado: 'DividendoGenerado' } } });
+  // La asamblea queda DividendoGenerado cuando ya repartió todos sus años (o su único reparto, si no eligió años).
+  const pendientes = (asamblea.periodosPendientes || []).filter((a) => a !== anio);
+  if (!pendientes.length) await API.graphql({ query: updateAsamblea, variables: { input: { id: asamblea.id, estado: 'DividendoGenerado' } } });
   return detalle;
 }
 

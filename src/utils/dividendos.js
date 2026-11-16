@@ -1,6 +1,6 @@
 // Cálculo puro de un reparto de dividendos por rango de acciones (sin llamadas al API).
 import { segmentarCobertura, accionesDeRango } from './rangos';
-import { calcularRetencion, leerReglas } from './retencion';
+import { calcularRetencion, desgloseRetencion, leerReglas } from './retencion';
 
 export const redondear2 = (x) => Math.round(x * 100) / 100;
 
@@ -48,6 +48,38 @@ export function repartirExacto(totalCentavos, exactos) {
 }
 
 const EPS = 1e-9;
+// Tipo de reparto: 'Grupo' no sube el nivel general del año; null/'General' (repartos anteriores) sí.
+export const TIPO_GRUPO = 'Grupo';
+export const esGeneral = (detalle) => (detalle && detalle.ddiv_tipo) !== TIPO_GRUPO;
+// Nivel general del año: suma del % de los repartos generales.
+export const nivelGeneral = (detalles) => redondear2(detalles.filter(esGeneral).reduce((s, d) => s + (d.ddiv_porcentaje || 0), 0));
+
+/**
+ * Estado de los años para elegirlos desde una asamblea. dividendos: DividendoNuevo[]; detalles: DetalleDividendo[].
+ * Años: desde (anioActual − atras) o el período más antiguo registrado, hasta anioActual.
+ * Disponible = sin repartos; Pendiente = falta asignar parte del dividendo del año; Completo = asignado el 100%.
+ */
+export function resumenPeriodos(dividendos, detalles, anioActual, atras = 5) {
+  const porAnio = new Map(dividendos.map((d) => [d.div_periodo, d]));
+  const desde = Math.min(anioActual - atras, ...dividendos.map((d) => d.div_periodo).filter(Number.isFinite));
+  const anios = [];
+  for (let anio = anioActual; anio >= desde; anio--) {
+    const div = porAnio.get(anio);
+    if (!div) { anios.push({ anio, estado: 'Disponible', repartos: 0, nivelGeneral: 0, cubierto: 0 }); continue; }
+    const suyos = detalles.filter((d) => d.ddiv_dividendo_id === div.id);
+    const cubierto = div.div_dividendo ? Math.min(100, redondear2((div.div_repartido || 0) * 100 / div.div_dividendo)) : 0;
+    anios.push({
+      anio,
+      estado: div.div_acciones_base == null ? 'Esquema anterior' : cubierto >= 100 - 0.005 ? 'Completo' : 'Pendiente',
+      repartos: suyos.length,
+      nivelGeneral: nivelGeneral(suyos),
+      cubierto,
+      dividendo: div.div_dividendo,
+      asignado: div.div_repartido || 0,
+    });
+  }
+  return anios;
+}
 // % del dividendo del período que ya cobró un tramo (null = 100: tramos generados antes de existir el porcentaje).
 export const porcentajePagado = (p) => (p.div_tit_porcentaje == null ? 100 : p.div_tit_porcentaje);
 
@@ -55,19 +87,25 @@ export const porcentajePagado = (p) => (p.div_tit_porcentaje == null ? 100 : p.d
  * foto: TituloxJunta[] de la asamblea.
  * pagadosPeriodo: DividendosTitulos[] ya generados en el período (con div_tit_desde/hasta/porcentaje).
  * accionistas: Map id -> { acc_tipo_identificacion, acc_residencia, acc_nacionalidad, acc_nombre_completo, acc_identificacion }
- * periodo: { dividendoTotal, accionesBase, porcentajeDeclarado } (porcentajeDeclarado: suma de % de repartos anteriores)
+ * periodo: { dividendoTotal, accionesBase, porcentajeDeclarado } (porcentajeDeclarado: suma de % de los repartos
+ *   GENERALES anteriores del año = nivel general).
  * porcentajeReparto: % del dividendo del año que declara este reparto (puede ser 0 para solo poner al día).
+ * general: true = reparto general (sube el nivel general del año); false = reparto a un grupo (no lo sube).
+ *
+ * Nivel del reparto = nivel general + porcentajeReparto (máximo 100). Cada acción de la foto cobra lo que le falta para
+ * llegar a ese nivel: quien faltó se pone al día y quien ya cobró más en un reparto a un grupo no cobra de nuevo.
+ * Ej.: un grupo cobra 50% (nivel 50, el general sigue en 0); luego un general de 25% (nivel 25): el grupo no cobra.
  * reglas: reglas de retención (Parametro.reglasRetencion); sin ellas, las iniciales.
  * sbu: salario básico unificado (Parametro.baseImponible). valorNominal: Parametro.valorNominal (para mostrar capital).
- *
- * Cada acción de la foto cobra lo que le falta para llegar al % acumulado declarado (anteriores + este).
  */
-export function calcularReparto({ foto, pagadosPeriodo, accionistas, periodo, porcentajeReparto, sbu, valorNominal = 0, reglas: reglasDadas }) {
+export function calcularReparto({
+  foto, pagadosPeriodo, accionistas, periodo, porcentajeReparto, sbu, valorNominal = 0, reglas: reglasDadas, general = true,
+}) {
   const reglas = leerReglas(reglasDadas);
   if (!(porcentajeReparto >= 0)) throw new Error('El porcentaje a repartir no es válido.');
   const declarado = (periodo.porcentajeDeclarado || 0) + porcentajeReparto;
   if (declarado <= 0) throw new Error('Indique el porcentaje a repartir.');
-  if (declarado > 100 + EPS) throw new Error(`Con este reparto se declararía el ${declarado.toFixed(2)}% del dividendo del año (máximo 100%).`);
+  if (declarado > 100 + EPS) throw new Error(`Con este reparto se llegaría al ${declarado.toFixed(2)}% del dividendo del año (máximo 100%).`);
   // La foto no puede tener rangos cruzados (se pagaría dos veces la misma acción).
   const ordenada = [...foto].sort((a, b) => a.desde - b.desde);
   for (let i = 0; i < ordenada.length; i++) {
@@ -81,13 +119,14 @@ export function calcularReparto({ foto, pagadosPeriodo, accionistas, periodo, po
   // Unidades = acciones × fracción del dividendo anual cobrada.
   const unidadesPagadas = pagadosPeriodo.reduce((s, p) => s + (p.div_tit_acciones || 0) * porcentajePagado(p) / 100, 0);
   const montoAsignado = redondear2(pagadosPeriodo.reduce((s, p) => s + (p.div_tit_dividendo || 0), 0));
-  const unidadesPendientes = periodo.accionesBase * declarado / 100 - unidadesPagadas;
-  const montoPendiente = periodo.dividendoTotal * declarado / 100 - montoAsignado;
-  if (unidadesPendientes <= EPS) throw new Error(`Todas las acciones ya cobraron el ${declarado.toFixed(2)}% declarado.`);
-  if (montoPendiente < 0) throw new Error('Lo ya asignado supera el monto del porcentaje declarado.');
-  // Valor del 100% del dividendo por acción. Si hubo aumento de capital, la base creció y se recalcula
-  // repartiendo lo que falta del monto declarado entre lo que falta por cubrir.
-  const valorAccion = montoPendiente / unidadesPendientes;
+  // Valor del 100% del dividendo por acción = lo que falta del dividendo del año ÷ lo que falta por cubrir.
+  // Sin aumentos de capital es dividendo ÷ acciones base; si la base creció, se reparte lo pendiente entre todas.
+  // (Con repartos a grupos lo asignado no sigue al % general, por eso se mide sobre el 100% del año.)
+  const unidadesPendientes = periodo.accionesBase - unidadesPagadas;
+  const montoPendiente = periodo.dividendoTotal - montoAsignado;
+  if (unidadesPendientes <= EPS) throw new Error('Todas las acciones ya cobraron el 100% del dividendo del año.');
+  if (montoPendiente < -0.005) throw new Error('Lo ya asignado supera el dividendo del año.');
+  const valorAccion = Math.max(0, montoPendiente) / unidadesPendientes;
 
   const tramos = [];
   ordenada.forEach((f) => {
@@ -110,6 +149,7 @@ export function calcularReparto({ foto, pagadosPeriodo, accionistas, periodo, po
 
   // Centavos: el total del reparto lleva lo asignado en el año a su valor exacto (absorbe los redondeos de
   // repartos anteriores) y se reparte por mayor residuo, así la suma de los tramos cuadra al centavo.
+  if (tramos.length === 0) throw new Error(`Las acciones de este reparto ya cobraron el ${declarado.toFixed(2)}% del dividendo del año.`);
   const exactoReparto = tramos.reduce((s, t) => s + t.exacto, 0);
   const totalCentavos = Math.round((montoAsignado + exactoReparto) * 100) - Math.round(montoAsignado * 100);
   repartirExacto(Math.max(0, totalCentavos), tramos.map((t) => t.exacto)).forEach((d, i) => {
@@ -130,8 +170,9 @@ export function calcularReparto({ foto, pagadosPeriodo, accionistas, periodo, po
     const dividendoPrevio = redondear2(previos.reduce((s, p) => s + (p.div_tit_dividendo || 0), 0));
     const retencionPrevia = redondear2(previos.reduce((s, p) => s + (p.div_tit_retencion || 0), 0));
     const dividendo = redondear2(susTramos.reduce((s, t) => s + t.dividendo, 0));
-    const retencionAnual = calcularRetencion(dividendoPrevio + dividendo, acc, reglas, sbu);
-    const retencion = Math.max(0, redondear2(retencionAnual - retencionPrevia));
+    // Rebaja y base imponible sobre lo acumulado del año (la rebaja se aplica una sola vez por período).
+    const anual = desgloseRetencion(redondear2(dividendoPrevio + dividendo), acc, reglas, sbu);
+    const retencion = Math.max(0, redondear2(anual.retencion - retencionPrevia));
     repartirCentavos(retencion, susTramos.map((t) => t.dividendo)).forEach((r, i) => { susTramos[i].retencion = r; });
     const accionesAcc = susTramos.reduce((s, t) => s + t.acciones, 0);
     porAccionista.push({
@@ -141,6 +182,10 @@ export function calcularReparto({ foto, pagadosPeriodo, accionistas, periodo, po
       acciones: accionesAcc,
       capital: redondear2(accionesAcc * valorNominal),
       dividendo,
+      dividendoAnual: redondear2(dividendoPrevio + dividendo),
+      rebaja: anual.rebaja,
+      baseImponible: anual.baseImponible,
+      tarifa: anual.porcentaje,
       retencion,
       neto: redondear2(dividendo - retencion),
       estado: susTramos.some((t) => t.estado === 'Retenido') ? 'Retenido' : 'Pendiente',
@@ -151,7 +196,9 @@ export function calcularReparto({ foto, pagadosPeriodo, accionistas, periodo, po
   const unidadesReparto = tramos.reduce((s, t) => s + t.acciones * t.porcentaje / 100, 0);
   return {
     valorAccion,
-    declarado,
+    declarado, // nivel del reparto (% del dividendo del año que alcanzan sus beneficiarios)
+    general,
+    nivelGeneral: general ? declarado : periodo.porcentajeDeclarado || 0,
     tramos,
     porAccionista,
     accionesReparto,
@@ -359,8 +406,19 @@ export function cuadreReparto(reparto, filas, repartosPeriodo) {
   };
   totales.pagado = redondear2(totales.dividendo - totales.pendiente);
 
-  const anteriores = repartosPeriodo.filter((r) => r.ddiv_secuencial <= reparto.ddiv_secuencial);
-  const declarado = anteriores.reduce((s, r) => s + (r.ddiv_porcentaje || 0), 0);
+  const anteriores = repartosPeriodo.filter((r) => r.ddiv_secuencial <= reparto.ddiv_secuencial)
+    .sort((a, b) => a.ddiv_secuencial - b.ddiv_secuencial);
+  // Nivel máximo alcanzado: cada reparto lleva a sus beneficiarios a (nivel general + su %); los de grupo no suben el general.
+  let general = 0;
+  let declarado = 0;
+  let nivelReparto = 0;
+  anteriores.forEach((r) => {
+    const nivel = Math.min(100, general + (r.ddiv_porcentaje || 0));
+    if (r.ddiv_secuencial === reparto.ddiv_secuencial) nivelReparto = nivel;
+    declarado = Math.max(declarado, nivel);
+    if (esGeneral(r)) general += r.ddiv_porcentaje || 0;
+  });
+  const conGrupos = anteriores.some((r) => !esGeneral(r));
   const asignado = redondear2(anteriores.reduce((s, r) => s + (r.monto || 0), 0));
   const tope = redondear2((reparto.div_dividendo || 0) * declarado / 100);
 
@@ -379,8 +437,9 @@ export function cuadreReparto(reparto, filas, repartosPeriodo) {
   }
   // Lo asignado nunca puede superar lo declarado; si es menor, falta cubrir acciones (ausentes en las asambleas).
   const periodo = control('Período (acumulado)',
-    `Repartos 1 a ${reparto.ddiv_secuencial} del período: asignado ≤ dividendo del período × ${redondear2(declarado)}% declarado.`,
+    `Repartos 1 a ${reparto.ddiv_secuencial} del período: asignado ≤ dividendo del período × ${redondear2(declarado)}% (nivel más alto alcanzado).`,
     tope, asignado, asignado <= tope + 0.005);
   controles.push(periodo);
-  return { totales, controles, declarado, asignado, tope, porCubrir: redondear2(Math.max(0, tope - asignado)) };
+  // Con repartos a grupos no todas las acciones llegan al mismo nivel: la diferencia no es un faltante.
+  return { totales, controles, declarado, nivelReparto, general: esGeneral(reparto), asignado, tope, conGrupos, porCubrir: conGrupos ? 0 : redondear2(Math.max(0, tope - asignado)) };
 }

@@ -5,9 +5,31 @@ import {
   ListaDinamica, cambiarLista, quitarDeLista, camposBaseAccionista, TIPOS_ACCIONES, TIPOS_IDENTIFICACION_PERSONA,
 } from '../components/formularioAccionista';
 import { cargarRelacionados, guardarPersonaNatural, tieneConyuge } from '../services/personaNatural';
-import { ESTADOS_CIVILES } from '../utils/accionistas';
+import {
+  ESTADOS_CIVILES, limpiarIdentificacion, limpiarNombre, problemaIdentificacion, problemaNombre,
+} from '../utils/accionistas';
 
-const OBLIGATORIOS = ['acc_decevale', 'acc_identificacion', 'pn_primer_nombre', 'pn_apellido_paterno'];
+const OBLIGATORIOS = ['acc_identificacion', 'pn_primer_nombre', 'pn_apellido_paterno'];
+// Casado o unión de hecho: los datos del cónyuge son obligatorios.
+const OBLIGATORIOS_CONYUGE = ['con_identificacion', 'con_nombre', 'con_nacionalidad'];
+const NOMBRES = ['pn_primer_nombre', 'pn_segundo_nombre', 'pn_apellido_paterno', 'pn_apellido_materno'];
+
+const obligatorios = (form) => (tieneConyuge(form.pn_estado_civil) ? [...OBLIGATORIOS, ...OBLIGATORIOS_CONYUGE] : OBLIGATORIOS);
+
+// Errores de formato. La identificación del accionista no se valida al editar: no se puede cambiar.
+function validar(form, edicion) {
+  const errores = {};
+  const anotar = (campo, problema) => { if (problema) errores[campo] = problema; };
+  if (!edicion) anotar('acc_identificacion', problemaIdentificacion(form.acc_identificacion, form.acc_tipo_identificacion));
+  NOMBRES.forEach((c) => anotar(c, problemaNombre(form[c])));
+  if (tieneConyuge(form.pn_estado_civil)) {
+    anotar('con_identificacion', problemaIdentificacion(form.con_identificacion, form.con_tipo_identificacion));
+    anotar('con_nombre', problemaNombre(form.con_nombre));
+  }
+  return errores;
+}
+const soloLetras = { filtro: limpiarNombre };
+const identificacion = (tipo) => ({ filtro: (v, form) => limpiarIdentificacion(v, form[tipo]) });
 const MAX_HEREDEROS = 9;
 const DOCUMENTOS = [
   ['pn_doc_identificacion', 'Documento de identidad'],
@@ -27,7 +49,7 @@ const formularioVacio = () => ({
 const herederoVacio = () => ({ her_identificacion: '', her_nombre: '' });
 
 export default function PersonaNatural() {
-  const f = useFormularioAccionista({ vacio: formularioVacio, obligatorios: OBLIGATORIOS });
+  const f = useFormularioAccionista({ vacio: formularioVacio, obligatorios, validar });
   const [conHerederos, setConHerederos] = useState(!!(f.precargado && f.precargado.acc_tiene_herederos));
   const [herederos, setHerederos] = useState([herederoVacio()]);
   const conConyuge = tieneConyuge(f.form.pn_estado_civil);
@@ -65,12 +87,12 @@ export default function PersonaNatural() {
           {f.campo('acc_decevale', 'Decevale', { sm: 3 })}
           {f.seleccion('acc_tipo_identificacion', 'Tipo de identificación', TIPOS_IDENTIFICACION_PERSONA, { sm: 3 })}
           {/* La identificación es el id del accionista: no se cambia al editar. */}
-          {f.campo('acc_identificacion', 'Identificación', { sm: 3, disabled: f.edicion, ayuda: f.edicion ? 'No editable' : undefined })}
+          {f.campo('acc_identificacion', 'Identificación', { sm: 3, disabled: f.edicion, ayuda: f.edicion ? 'No editable' : undefined, ...identificacion('acc_tipo_identificacion') })}
           {f.pais('acc_nacionalidad', 'Nacionalidad', { sm: 3 })}
-          {f.campo('pn_primer_nombre', 'Primer nombre', { sm: 3 })}
-          {f.campo('pn_segundo_nombre', 'Segundo nombre', { sm: 3 })}
-          {f.campo('pn_apellido_paterno', 'Apellido paterno', { sm: 3 })}
-          {f.campo('pn_apellido_materno', 'Apellido materno', { sm: 3 })}
+          {f.campo('pn_primer_nombre', 'Primer nombre', { sm: 3, ...soloLetras })}
+          {f.campo('pn_segundo_nombre', 'Segundo nombre', { sm: 3, ...soloLetras })}
+          {f.campo('pn_apellido_paterno', 'Apellido paterno', { sm: 3, ...soloLetras })}
+          {f.campo('pn_apellido_materno', 'Apellido materno', { sm: 3, ...soloLetras })}
           {f.seleccion('pn_estado_civil', 'Estado civil', ESTADOS_CIVILES_OPCIONES, { sm: 3 })}
           {f.seleccion('acc_tipo_acciones', 'Tipo de acciones', TIPOS_ACCIONES, { sm: 3 })}
         </Seccion>
@@ -78,10 +100,10 @@ export default function PersonaNatural() {
 
       {conConyuge && (
         <Grid item xs={12} md={6}>
-          <Seccion titulo="Cónyuge">
+          <Seccion titulo="Cónyuge (obligatorio para casado o unión de hecho)">
             {f.seleccion('con_tipo_identificacion', 'Tipo de identificación', TIPOS_IDENTIFICACION_PERSONA)}
-            {f.campo('con_identificacion', 'Identificación')}
-            {f.campo('con_nombre', 'Nombre')}
+            {f.campo('con_identificacion', 'Identificación', identificacion('con_tipo_identificacion'))}
+            {f.campo('con_nombre', 'Nombres y apellidos', soloLetras)}
             {f.pais('con_nacionalidad', 'Nacionalidad')}
           </Seccion>
         </Grid>

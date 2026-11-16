@@ -13,7 +13,7 @@ import DeleteIcon from '@material-ui/icons/Delete';
 import AddIcon from '@material-ui/icons/Add';
 import RestoreIcon from '@material-ui/icons/Restore';
 import {
-  PERSONAS, RESIDENCIAS, NACIONALIDADES, REGLAS_INICIALES, validarReglas, indiceRegla, calcularRetencion, conParaisoFiscal, normal,
+  PERSONAS, RESIDENCIAS, NACIONALIDADES, REGLAS_INICIALES, validarReglas, indiceRegla, desgloseRetencion, conParaisoFiscal, normal,
 } from '../utils/retencion';
 
 const formato = (n) => new Intl.NumberFormat('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 }).format(n || 0);
@@ -54,14 +54,15 @@ export default function ReglasRetencion({ reglas, onChange, sbu, paises = [] }) 
   const monto = parseFloat(prueba.monto) || 0;
   const valida = !errores.length;
   const indice = valida ? indiceRegla(acc, reglas) : -1;
-  const retencion = valida ? calcularRetencion(monto, acc, reglas, sbu) : 0;
+  const calculo = desgloseRetencion(monto, acc, reglas, sbu);
+  const retencion = valida ? calculo.retencion : 0;
 
   return (
     <>
       <Typography variant="body2" color="textSecondary" paragraph>
-        Se aplica la <b>primera</b> regla que coincide con el accionista (las excepciones van arriba). El porcentaje se calcula
-        sobre el dividendo acumulado del beneficiario en el año y se restan los SBU indicados. Si ninguna regla coincide, la
-        retención es 0. Cada reparto guarda una copia de las reglas con que se calculó.
+        Se aplica la <b>primera</b> regla que coincide con el accionista (las excepciones van arriba). Base imponible =
+        dividendo acumulado del beneficiario en el año − rebaja (SBU indicados × SBU); la retención es la tarifa sobre esa base.
+        La rebaja se aplica una vez por período. Si ninguna regla coincide, la retención es 0. Cada reparto guarda una copia de las reglas con que se calculó.
       </Typography>
 
       <Table size="small">
@@ -72,7 +73,7 @@ export default function ReglasRetencion({ reglas, onChange, sbu, paises = [] }) 
             <TableCell>Residencia</TableCell>
             <TableCell>Nacionalidad</TableCell>
             <TableCell>Retención</TableCell>
-            <TableCell>SBU a restar</TableCell>
+            <TableCell>Rebaja (SBU)</TableCell>
             <TableCell align="right" />
           </TableRow>
         </TableHead>
@@ -148,7 +149,7 @@ export default function ReglasRetencion({ reglas, onChange, sbu, paises = [] }) 
         <Typography variant="body2" color="textSecondary" style={{ marginTop: 8 }}>
           {!valida && 'Corrija las reglas para simular.'}
           {valida && acc.acc_paraiso_fiscal && 'Residencia en paraíso fiscal según el catálogo. '}
-          {valida && indice >= 0 && `Aplica la regla ${indice + 1}: ${reglas[indice].porcentaje}% de ${formato(monto)}${reglas[indice].sbu ? ` − ${reglas[indice].sbu} SBU (${formato(reglas[indice].sbu * (sbu || 0))})` : ''} (resaltada en la tabla).`}
+          {valida && indice >= 0 && `Aplica la regla ${indice + 1} (resaltada en la tabla): dividendo ${formato(monto)} − rebaja ${formato(calculo.rebaja)} = base imponible ${formato(calculo.baseImponible)}; retención ${calculo.porcentaje}% de la base = ${formato(calculo.retencion)}.`}
           {valida && indice < 0 && 'Ninguna regla coincide: retención 0.'}
         </Typography>
       </Paper>

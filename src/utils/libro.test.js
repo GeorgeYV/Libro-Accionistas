@@ -1,4 +1,4 @@
-import { reconstruirLibro, valorFecha } from './libro';
+import { reconstruirLibro, valorFecha, historialAccionista } from './libro';
 
 const acc = (id, acciones, extra = {}) => ({ id, acc_identificacion: id, acc_nombre_completo: id, acc_cantidad_acciones: acciones, acc_estado: 1, acc_tipo_acciones: 1, ...extra });
 const op = (id, tipo, acciones, fechaAprobacion, extra = {}) => ({ id, ope_tipo: tipo, ope_acciones: acciones, ope_estado: 1, ope_fecha: fechaAprobacion, ope_fecha_aprobacion: fechaAprobacion, ...extra });
@@ -69,4 +69,22 @@ test('advierte anulaciones que pudieron estar vigentes al corte', () => {
     operaciones: [op('O1', 3, 10, '20-6-2026', { ope_estado: 3, ope_fecha: '10-6-2026' })],
   });
   expect(r.advertencias[0]).toMatch(/pudo estar vigente/);
+});
+
+test('historial de un accionista: rol, fechas de aprobación, tipo y estado', () => {
+  const ops = [
+    { id: 'a', ope_tipo: 3, ope_estado: 1, ope_fecha_aprobacion: '5-3-2026', createdAt: '2026-03-01' },
+    { id: 'b', ope_tipo: 5, ope_estado: 2, ope_fecha_aprobacion: '20-6-2026', createdAt: '2026-06-01' },
+    { id: 'c', ope_tipo: 3, ope_estado: 0, ope_fecha_aprobacion: '', createdAt: '2026-07-01' },
+    { id: 'x', ope_tipo: 3, ope_estado: 1, ope_fecha_aprobacion: '5-3-2026', createdAt: '2026-03-01' }, // de otro accionista
+  ];
+  const vinculos = [
+    { acc_ope_operacion_id: 'a', acc_ope_detalle: 'Cedente' },
+    { acc_ope_operacion_id: 'b', acc_ope_detalle: 'Cesionario' },
+    { acc_ope_operacion_id: 'c', acc_ope_detalle: 'Cedente' },
+  ];
+  expect(historialAccionista(ops, vinculos).map((o) => [o.id, o.rol])).toEqual([['a', 'Cedente'], ['b', 'Cesionario'], ['c', 'Cedente']]);
+  expect(historialAccionista(ops, vinculos, { desde: '2026-03-05', hasta: '2026-03-05' }).map((o) => o.id)).toEqual(['a']);
+  expect(historialAccionista(ops, vinculos, { desde: '2026-01-01' }).map((o) => o.id)).toEqual(['a', 'b']); // la pendiente no tiene fecha
+  expect(historialAccionista(ops, vinculos, { tipo: 3, estado: 0 }).map((o) => o.id)).toEqual(['c']);
 });

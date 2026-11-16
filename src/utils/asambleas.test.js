@@ -1,4 +1,6 @@
-import { unirListaAsistencia, votosIniciales, filtrarPorNombre } from './asambleas';
+import {
+  unirListaAsistencia, votosIniciales, filtrarPorNombre, filtrarPorAcciones, leerBeneficiarios,
+} from './asambleas';
 
 const activos = [
   { id: 'A', acc_nombre_completo: 'Bravo', acc_identificacion: '111', acc_cantidad_acciones: 10, acc_estado: 1 },
@@ -49,4 +51,14 @@ describe('quórum y votos', () => {
     expect(asambleaCerrada({ estado: 'Convocatoria' })).toBe(false);
     expect(temasDe({ votacionTema1: 'A', votacionTema3: 'B' })).toEqual([1, 3]);
   });
+});
+
+test('beneficiarios: filtro por acciones y lista guardada', () => {
+  const lista = [{ accionistaID: 'a', acciones: 500 }, { accionistaID: 'b', acciones: 9999 }, { accionistaID: 'c', acciones: 10000 }, { accionistaID: 'd' }];
+  expect(filtrarPorAcciones(lista, { menorA: 10000 }).map((i) => i.accionistaID)).toEqual(['a', 'b', 'd']);
+  expect(filtrarPorAcciones(lista, { minimo: '1000', menorA: '' }).map((i) => i.accionistaID)).toEqual(['b', 'c']);
+  expect(filtrarPorAcciones(lista, {})).toHaveLength(4);
+  expect(leerBeneficiarios(null)).toBeNull();
+  expect(leerBeneficiarios('["1",2]')).toEqual(['1', '2']);
+  expect(leerBeneficiarios('no json')).toBeNull();
 });

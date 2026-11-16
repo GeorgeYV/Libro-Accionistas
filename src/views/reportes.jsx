@@ -5,10 +5,12 @@ import {
 import { makeStyles } from '@material-ui/core/styles';
 import MuiAlert from '@material-ui/lab/Alert';
 import { DataGrid } from '@mui/x-data-grid';
+import Autocomplete from '@material-ui/lab/Autocomplete';
 import PrintOutlinedIcon from '@material-ui/icons/PrintOutlined';
 import GetAppIcon from '@material-ui/icons/GetApp';
 import MenuBookIcon from '@material-ui/icons/MenuBook';
-import { cargarDatosReportes, libroAFecha, descargarExcel, fechaHoy } from '../services/reportes';
+import { cargarDatosReportes, libroAFecha, descargarExcel, fechaHoy, vinculosDeAccionista } from '../services/reportes';
+import { historialAccionista } from '../utils/libro';
 import { TIPOS_OPERACION, ESTADOS_OPERACION, MOTIVOS_RECHAZO } from '../services/aprobacion';
 import { ESTADOS_ACCIONISTA, TIPOS_IDENTIFICACION, ESTADOS_CIVILES, separar } from '../utils/accionistas';
 import Cargando from '../components/cargando';
@@ -45,6 +47,12 @@ const filaLibro = (a) => [
   a.createdAt ? a.createdAt.slice(0, 10) : '',
 ];
 
+// Mismas columnas en el reporte de operaciones y en el historial de un accionista.
+const ENCABEZADOS_OPERACIONES = ['Fecha', 'Operación', '# Acciones', 'Estado', 'Usuario ingreso', 'Usuario aprobador', 'Fecha aprobación',
+  'Motivo rechazo', 'Observación', 'Motivo anulación', 'Fecha registro'];
+const filaOperacion = (o) => [o.ope_fecha, TIPOS_OPERACION[o.ope_tipo] || 'Otro', o.ope_acciones, ESTADOS_OPERACION[o.ope_estado] || 'Error',
+  o.ope_ingresador, o.ope_aprobador, o.ope_fecha_aprobacion, motivo(o.ope_motivo_rechazo), o.ope_observacion, o.ope_motivo_anulacion || '', o.createdAt];
+
 function Tarjeta({ titulo, descripcion, children }) {
   const classes = useStyles();
   return (
@@ -78,6 +86,13 @@ export default function Reportes() {
   const [opeHasta, setOpeHasta] = useState(fechaHoy());
   const [opeTipo, setOpeTipo] = useState('todos');
   const [opeEstado, setOpeEstado] = useState('todos');
+  // Historial de un accionista (fechas de aprobación opcionales)
+  const [hisAccionista, setHisAccionista] = useState(null);
+  const [hisVinculos, setHisVinculos] = useState([]);
+  const [hisDesde, setHisDesde] = useState('');
+  const [hisHasta, setHisHasta] = useState('');
+  const [hisTipo, setHisTipo] = useState('todos');
+  const [hisEstado, setHisEstado] = useState('todos');
 
   async function ejecutar(fn) {
     setCargando(true);
@@ -100,6 +115,16 @@ export default function Reportes() {
     .sort((a, b) => String(a.createdAt).localeCompare(String(b.createdAt))) : []),
   [datos, opeDesde, opeHasta, opeTipo, opeEstado]);
 
+  const historial = useMemo(() => (datos && hisAccionista
+    ? historialAccionista(datos.operaciones, hisVinculos, { desde: hisDesde, hasta: hisHasta, tipo: hisTipo, estado: hisEstado })
+    : []), [datos, hisAccionista, hisVinculos, hisDesde, hisHasta, hisTipo, hisEstado]);
+
+  const elegirAccionista = (accionista) => {
+    setHisAccionista(accionista);
+    setHisVinculos([]);
+    if (accionista) ejecutar(async () => setHisVinculos(await vinculosDeAccionista(accionista.id)));
+  };
+
   const generarLibro = () => ejecutar(async () => {
     if (!fechaCorte) throw new Error('Indique la fecha de corte.');
     if (fechaCorte > fechaHoy()) throw new Error('La fecha de corte no puede ser futura.');
@@ -121,10 +146,21 @@ export default function Reportes() {
 
   const descargarOperaciones = () => ejecutar(() => descargarExcel({
     titulo: 'Reporte de Operaciones', subtitulo: `Del ${opeDesde} al ${opeHasta} — Generado: ${fechaHoy()}`, hoja: 'Operaciones', archivo: 'Operaciones.xlsx',
-    encabezados: ['Fecha', 'Operación', '# Acciones', 'Estado', 'Usuario ingreso', 'Usuario aprobador', 'Fecha aprobación', 'Motivo rechazo', 'Observación', 'Fecha registro'],
-    filas: operaciones.map((o) => [o.ope_fecha, TIPOS_OPERACION[o.ope_tipo] || 'Otro', o.ope_acciones, ESTADOS_OPERACION[o.ope_estado] || 'Error',
-      o.ope_ingresador, o.ope_aprobador, o.ope_fecha_aprobacion, motivo(o.ope_motivo_rechazo), o.ope_observacion, o.createdAt]),
+    encabezados: ENCABEZADOS_OPERACIONES,
+    filas: operaciones.map(filaOperacion),
   }));
+
+  const descargarHistorial = () => ejecutar(async () => {
+    if (hisDesde && hisHasta && hisDesde > hisHasta) throw new Error('La fecha desde no puede ser posterior a la fecha hasta.');
+    const rango = hisDesde || hisHasta ? `Aprobación del ${hisDesde || 'inicio'} al ${hisHasta || 'hoy'}` : 'Todas las fechas';
+    await descargarExcel({
+      titulo: 'Historial de Operaciones del Accionista',
+      subtitulo: `${hisAccionista.acc_nombre_completo} (${hisAccionista.acc_identificacion}) — ${rango} — Generado: ${fechaHoy()}`,
+      hoja: 'Historial', archivo: `HistorialOperaciones_${hisAccionista.acc_identificacion}.xlsx`,
+      encabezados: [...ENCABEZADOS_OPERACIONES.slice(0, 2), 'Rol del accionista', ...ENCABEZADOS_OPERACIONES.slice(2)],
+      filas: historial.map((o) => { const f = filaOperacion(o); return [...f.slice(0, 2), o.rol, ...f.slice(2)]; }),
+    });
+  });
 
   return (
     <main className={classes.content}>
@@ -186,6 +222,35 @@ export default function Reportes() {
             <Box display="flex" alignItems="center" justifyContent="space-between">
               <Chip size="small" label={`${enteros(operaciones.length)} operaciones`} />
               <Button variant="contained" color="primary" startIcon={<GetAppIcon />} onClick={descargarOperaciones} disabled={cargando || operaciones.length === 0}>Descargar</Button>
+            </Box>
+          </Tarjeta>
+        </Grid>
+
+        <Grid item xs={12} md={4}>
+          <Tarjeta titulo="Historial de un accionista" descripcion="Operaciones en las que participó el accionista, con su rol. Las fechas filtran por fecha de aprobación (opcionales).">
+            <Autocomplete
+              size="small" options={datos ? datos.accionistas : []} value={hisAccionista} onChange={(e, v) => elegirAccionista(v)}
+              getOptionLabel={(a) => `${a.acc_nombre_completo || ''} (${a.acc_identificacion})`}
+              getOptionSelected={(a, b) => a.id === b.id} noOptionsText="Sin coincidencias"
+              renderInput={(params) => <TextField {...params} variant="outlined" label="Accionista (nombre o identificación)" />}
+            />
+            <Box display="flex" style={{ gap: 8 }}>
+              {campoFecha('Aprobación desde', hisDesde, setHisDesde)}
+              {campoFecha('Aprobación hasta', hisHasta, setHisHasta)}
+            </Box>
+            <Box display="flex" style={{ gap: 8 }}>
+              <TextField select size="small" variant="outlined" label="Tipo" value={hisTipo} onChange={(e) => setHisTipo(e.target.value)} fullWidth>
+                <MenuItem value="todos">Todos</MenuItem>
+                {Object.entries(TIPOS_OPERACION).map(([v, t]) => <MenuItem key={v} value={Number(v)}>{t}</MenuItem>)}
+              </TextField>
+              <TextField select size="small" variant="outlined" label="Estado" value={hisEstado} onChange={(e) => setHisEstado(e.target.value)} fullWidth>
+                <MenuItem value="todos">Todos</MenuItem>
+                {Object.entries(ESTADOS_OPERACION).map(([v, t]) => <MenuItem key={v} value={Number(v)}>{t}</MenuItem>)}
+              </TextField>
+            </Box>
+            <Box display="flex" alignItems="center" justifyContent="space-between">
+              <Chip size="small" label={hisAccionista ? `${enteros(historial.length)} operaciones` : 'Seleccione un accionista'} />
+              <Button variant="contained" color="primary" startIcon={<GetAppIcon />} onClick={descargarHistorial} disabled={cargando || historial.length === 0}>Descargar</Button>
             </Box>
           </Tarjeta>
         </Grid>

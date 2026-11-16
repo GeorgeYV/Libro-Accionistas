@@ -80,3 +80,22 @@ export function conteoVotos(registros, tema) {
   const aFavor = presentes.filter((r) => r['votacion' + tema] === true).length;
   return { aFavor, enContra: presentes.length - aFavor };
 }
+
+// ---- Beneficiarios de los dividendos de la asamblea ----------------------------------------------
+// Filtro por cantidad de acciones: minimo (≥) y menorA (<), vacíos = sin límite. Ej.: menorA 10000 = minoritarios.
+export function filtrarPorAcciones(lista, { minimo, menorA } = {}) {
+  const min = minimo === '' || minimo == null ? -Infinity : Number(minimo);
+  const max = menorA === '' || menorA == null ? Infinity : Number(menorA);
+  return lista.filter((i) => (i.acciones || 0) >= min && (i.acciones || 0) < max);
+}
+
+// Lista guardada en Asamblea.dividendoBeneficiarios (AWSJSON). null = sin lista (se usan los presentes).
+export function leerBeneficiarios(valor) {
+  if (valor == null || valor === '') return null;
+  try {
+    const ids = typeof valor === 'string' ? JSON.parse(valor) : valor;
+    return Array.isArray(ids) ? ids.map(String) : null;
+  } catch (e) {
+    return null;
+  }
+}

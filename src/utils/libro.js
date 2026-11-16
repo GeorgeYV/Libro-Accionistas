@@ -97,3 +97,27 @@ export function reconstruirLibro({ accionistas, operaciones, vinculos, herederos
 
   return { filas, totalEmitido, advertencias, revertidas: posteriores.length };
 }
+
+// ---- Historial de operaciones de un accionista ---------------------------------------------------
+/**
+ * operaciones: Operacion[]; vinculos: AccionistaOperacion[] del accionista (acc_ope_detalle = su rol).
+ * filtros: { desde, hasta } ("aaaa-mm-dd", opcionales) sobre ope_fecha_aprobacion; tipo y estado ('todos' o número).
+ * Con rango de fechas solo entran operaciones con fecha de aprobación (las pendientes no la tienen).
+ * Devuelve las operaciones con su rol (Cedente, Cesionario, Heredero…), de la más antigua a la más reciente.
+ */
+export function historialAccionista(operaciones, vinculos, { desde, hasta, tipo = 'todos', estado = 'todos' } = {}) {
+  const roles = new Map();
+  vinculos.forEach((v) => roles.set(v.acc_ope_operacion_id, [...(roles.get(v.acc_ope_operacion_id) || []), v.acc_ope_detalle].filter(Boolean)));
+  const min = desde ? valorFecha(desde) : 0;
+  const max = hasta ? valorFecha(hasta) : Infinity;
+  return operaciones
+    .filter((o) => roles.has(o.id))
+    .filter((o) => (tipo === 'todos' || o.ope_tipo === tipo) && (estado === 'todos' || o.ope_estado === estado))
+    .filter((o) => {
+      if (!desde && !hasta) return true;
+      const f = valorFecha(o.ope_fecha_aprobacion);
+      return f > 0 && f >= min && f <= max;
+    })
+    .map((o) => ({ ...o, rol: [...new Set(roles.get(o.id))].join(', ') }))
+    .sort((a, b) => String(a.createdAt).localeCompare(String(b.createdAt)));
+}

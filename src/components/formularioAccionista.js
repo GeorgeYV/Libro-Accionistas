@@ -53,9 +53,10 @@ export const quitarDeLista = (setter, i, vacio) =>
 
 /**
  * Estado y helpers del formulario: valores, contactos, validación, subida de documentos y mensajes.
- * vacio: () => valores iniciales; obligatorios: campos requeridos.
+ * vacio: () => valores iniciales; obligatorios: campos requeridos (lista o form => lista);
+ * validar (opcional): (form, edicion) => { campo: mensaje } con los errores de formato.
  */
-export function useFormularioAccionista({ vacio, obligatorios }) {
+export function useFormularioAccionista({ vacio, obligatorios: requeridos, validar = () => ({}) }) {
   const history = useHistory();
   const location = useLocation();
   const precargado = location.state && location.state.preloadedValue;
@@ -74,6 +75,8 @@ export function useFormularioAccionista({ vacio, obligatorios }) {
   const [cargando, setCargando] = useState(false);
   const [mensaje, setMensaje] = useState(null); // { tipo, texto, volver }
   const [paises, setPaises] = useState(PAISES_RESPALDO);
+  const obligatorios = typeof requeridos === 'function' ? requeridos(form) : requeridos;
+  const errores = validar(form, edicion);
 
   // Catálogo de países (una carga por sesión); si falla, queda la lista anterior.
   useEffect(() => {
@@ -94,14 +97,16 @@ export function useFormularioAccionista({ vacio, obligatorios }) {
   }
 
   const valor = (nombre) => (form[nombre] == null ? '' : form[nombre]);
-  const cambiar = (nombre) => (e) => setForm({ ...form, [nombre]: e.target.value });
+  // filtro (opcional): (valor, form) => valor permitido, aplicado al escribir.
+  const cambiar = (nombre, filtro) => (e) => setForm({ ...form, [nombre]: filtro ? filtro(e.target.value, form) : e.target.value });
   const faltante = (nombre) => enviado && obligatorios.includes(nombre) && String(valor(nombre)).trim() === '';
+  const ayudaDe = (nombre, ayuda) => (faltante(nombre) ? 'Obligatorio' : errores[nombre] || ayuda);
 
   const campo = (nombre, etiqueta, props = {}) => (
     <Grid item xs={12} sm={props.sm || 6}>
       <TextField
-        fullWidth size="small" variant="outlined" label={etiqueta} value={valor(nombre)} onChange={cambiar(nombre)} type={props.type}
-        required={obligatorios.includes(nombre)} error={faltante(nombre)} helperText={faltante(nombre) ? 'Obligatorio' : props.ayuda}
+        fullWidth size="small" variant="outlined" label={etiqueta} value={valor(nombre)} onChange={cambiar(nombre, props.filtro)} type={props.type}
+        required={obligatorios.includes(nombre)} error={faltante(nombre) || !!errores[nombre]} helperText={ayudaDe(nombre, props.ayuda)}
         disabled={props.disabled}
       />
     </Grid>
@@ -113,7 +118,8 @@ export function useFormularioAccionista({ vacio, obligatorios }) {
       : opciones;
     return (
       <Grid item xs={12} sm={props.sm || 6}>
-        <TextField select fullWidth size="small" variant="outlined" label={etiqueta} value={valor(nombre)} onChange={cambiar(nombre)}>
+        <TextField select fullWidth size="small" variant="outlined" label={etiqueta} value={valor(nombre)} onChange={cambiar(nombre)}
+          required={obligatorios.includes(nombre)} error={faltante(nombre)} helperText={faltante(nombre) ? 'Obligatorio' : undefined}>
           {lista.map((o) => <MenuItem key={String(o.valor)} value={o.valor}>{o.etiqueta}</MenuItem>)}
         </TextField>
       </Grid>
@@ -128,7 +134,7 @@ export function useFormularioAccionista({ vacio, obligatorios }) {
         onChange={(e, v) => setForm((f) => ({ ...f, [nombre]: v || '' }))}
         renderInput={(params) => (
           <TextField {...params} variant="outlined" label={etiqueta} required={obligatorios.includes(nombre)}
-            error={faltante(nombre)} helperText={faltante(nombre) ? 'Obligatorio' : props.ayuda} />
+            error={faltante(nombre) || !!errores[nombre]} helperText={ayudaDe(nombre, props.ayuda)} />
         )}
       />
     </Grid>
@@ -153,6 +159,10 @@ export function useFormularioAccionista({ vacio, obligatorios }) {
     setEnviado(true);
     if (verificarCamposVacios(form, obligatorios).error) {
       setMensaje({ tipo: 'error', texto: 'Existen campos obligatorios sin datos.' });
+      return null;
+    }
+    if (Object.keys(errores).length) {
+      setMensaje({ tipo: 'error', texto: 'Corrija los campos marcados en rojo.' });
       return null;
     }
     const contacto = unirContacto(telefonos);

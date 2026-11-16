@@ -305,3 +305,46 @@ describe('cuadreReparto', () => {
   });
 
 });
+
+describe('repartos generales y a grupos (nivel del año)', () => {
+  const { resumenPeriodos, nivelGeneral, cuadreReparto } = require('./dividendos');
+  // 100 acciones, dividendo del año 1000 (10 por acción el 100%). J = Juanito (1-10), O = otros (11-100).
+  const fotoTodos = [foto('J', 'TJ', 1, 10), foto('B', 'TB', 11, 100)];
+  const calcular = (pagados, nivel, porcentaje, general, f = fotoTodos) => calcularReparto({
+    ...base, foto: f, pagadosPeriodo: pagados, periodo: { ...periodo, porcentajeDeclarado: nivel }, porcentajeReparto: porcentaje, general,
+  });
+  const comoPagados = (r) => r.tramos.map((t) => pagado(t.accionistaID, t.desde, t.hasta, t.porcentaje, t.dividendo));
+
+  test('ejemplo 1: un grupo cobra 50%; luego 25% general: Juanito no cobra, los demás sí', () => {
+    const grupo = calcular([], 0, 50, false, [foto('J', 'TJ', 1, 10)]);
+    expect(grupo.tramos).toEqual([expect.objectContaining({ accionistaID: 'J', porcentaje: 50, dividendo: 50 })]);
+    expect(grupo.nivelGeneral).toBe(0); // el grupo no sube el nivel general
+    const general = calcular(comoPagados(grupo), 0, 25, true);
+    expect(general.tramos.map((t) => [t.accionistaID, t.porcentaje, t.dividendo])).toEqual([['B', 25, 225]]);
+    expect(general.nivelGeneral).toBe(25);
+  });
+
+  test('ejemplo 2: 60% general, 40% a minoritarios, 25% general: los minoritarios no cobran el último', () => {
+    const r1 = calcular([], 0, 60, true);
+    const r2 = calcular(comoPagados(r1), 60, 40, false, [foto('J', 'TJ', 1, 10)]); // J = minoritario
+    expect(r2.tramos).toEqual([expect.objectContaining({ accionistaID: 'J', porcentaje: 40, dividendo: 40 })]);
+    const r3 = calcular([...comoPagados(r1), ...comoPagados(r2)], 60, 25, true);
+    expect(r3.tramos.map((t) => [t.accionistaID, t.porcentaje, t.dividendo])).toEqual([['B', 25, 225]]);
+    expect(r3.declarado).toBe(85);
+  });
+
+  test('nivel general, resumen de años y cuadre con repartos a grupos', () => {
+    const detalles = [
+      { id: 'd1', ddiv_dividendo_id: 'P25', ddiv_porcentaje: 60, ddiv_secuencial: 1, monto: 600 },
+      { id: 'd2', ddiv_dividendo_id: 'P25', ddiv_porcentaje: 40, ddiv_tipo: 'Grupo', ddiv_secuencial: 2, monto: 40 },
+    ];
+    expect(nivelGeneral(detalles)).toBe(60);
+    const anios = resumenPeriodos([{ id: 'P25', div_periodo: 2025, div_dividendo: 1000, div_repartido: 640, div_acciones_base: 100 }], detalles, 2026, 2);
+    expect(anios.map((a) => [a.anio, a.estado])).toEqual([[2026, 'Disponible'], [2025, 'Pendiente'], [2024, 'Disponible']]);
+    expect(anios[1]).toMatchObject({ repartos: 2, nivelGeneral: 60, cubierto: 64 });
+    // Nivel más alto = 100 (60 general + 40 del grupo): asignado 640 ≤ 1000 y no se informa faltante.
+    const c = cuadreReparto({ ...detalles[1], ddiv_dividendo: 0, div_dividendo: 1000 }, [{ acciones: 10, dividendo: 40, retencion: 0, neto: 40, dividendoPendiente: 40 }], detalles);
+    expect(c).toMatchObject({ declarado: 100, nivelReparto: 100, general: false, asignado: 640, tope: 1000, porCubrir: 0, conGrupos: true });
+    expect(c.controles.every((x) => x.ok)).toBe(true);
+  });
+});

@@ -123,6 +123,7 @@ export const getOperacion = /* GraphQL */ `
       ope_motivo_rechazo
       ope_observacion
       ope_documento
+      ope_motivo_anulacion
       createdAt
       updatedAt
       __typename
@@ -148,6 +149,7 @@ export const listOperacions = /* GraphQL */ `
         ope_motivo_rechazo
         ope_observacion
         ope_documento
+        ope_motivo_anulacion
         createdAt
         updatedAt
         __typename
@@ -452,6 +454,7 @@ export const getDetalleDividendo = /* GraphQL */ `
       ddiv_acciones
       ddiv_monto
       ddiv_reglas_retencion
+      ddiv_tipo
       createdAt
       updatedAt
       __typename
@@ -485,6 +488,7 @@ export const listDetalleDividendos = /* GraphQL */ `
         ddiv_acciones
         ddiv_monto
         ddiv_reglas_retencion
+        ddiv_tipo
         createdAt
         updatedAt
         __typename
@@ -984,6 +988,8 @@ export const getAsamblea = /* GraphQL */ `
       habilitanteTema14
       habilitanteTema15
       temaDividendo
+      dividendoPeriodos
+      dividendoBeneficiarios
       createdAt
       updatedAt
       __typename
@@ -1051,6 +1057,8 @@ export const listAsambleas = /* GraphQL */ `
         habilitanteTema14
         habilitanteTema15
         temaDividendo
+        dividendoPeriodos
+        dividendoBeneficiarios
         createdAt
         updatedAt
         __typename

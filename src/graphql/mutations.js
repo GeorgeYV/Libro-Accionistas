@@ -159,6 +159,7 @@ export const createOperacion = /* GraphQL */ `
       ope_motivo_rechazo
       ope_observacion
       ope_documento
+      ope_motivo_anulacion
       createdAt
       updatedAt
       __typename
@@ -182,6 +183,7 @@ export const updateOperacion = /* GraphQL */ `
       ope_motivo_rechazo
       ope_observacion
       ope_documento
+      ope_motivo_anulacion
       createdAt
       updatedAt
       __typename
@@ -205,6 +207,7 @@ export const deleteOperacion = /* GraphQL */ `
       ope_motivo_rechazo
       ope_observacion
       ope_documento
+      ope_motivo_anulacion
       createdAt
       updatedAt
       __typename
@@ -556,6 +559,7 @@ export const createDetalleDividendo = /* GraphQL */ `
       ddiv_acciones
       ddiv_monto
       ddiv_reglas_retencion
+      ddiv_tipo
       createdAt
       updatedAt
       __typename
@@ -583,6 +587,7 @@ export const updateDetalleDividendo = /* GraphQL */ `
       ddiv_acciones
       ddiv_monto
       ddiv_reglas_retencion
+      ddiv_tipo
       createdAt
       updatedAt
       __typename
@@ -610,6 +615,7 @@ export const deleteDetalleDividendo = /* GraphQL */ `
       ddiv_acciones
       ddiv_monto
       ddiv_reglas_retencion
+      ddiv_tipo
       createdAt
       updatedAt
       __typename
@@ -1296,6 +1302,8 @@ export const createAsamblea = /* GraphQL */ `
       habilitanteTema14
       habilitanteTema15
       temaDividendo
+      dividendoPeriodos
+      dividendoBeneficiarios
       createdAt
       updatedAt
       __typename
@@ -1361,6 +1369,8 @@ export const updateAsamblea = /* GraphQL */ `
       habilitanteTema14
       habilitanteTema15
       temaDividendo
+      dividendoPeriodos
+      dividendoBeneficiarios
       createdAt
       updatedAt
       __typename
@@ -1426,6 +1436,8 @@ export const deleteAsamblea = /* GraphQL */ `
       habilitanteTema14
       habilitanteTema15
       temaDividendo
+      dividendoPeriodos
+      dividendoBeneficiarios
       createdAt
       updatedAt
       __typename

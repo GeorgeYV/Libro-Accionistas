@@ -25,6 +25,7 @@ import {
 } from '../utils/asambleas';
 import { resultadoVotacion } from '../utils/dividendos';
 import Cargando from '../components/cargando';
+import DividendosAsamblea from '../components/dividendosAsamblea';
 import { ACEPTA_PDF } from '../utils/archivos';
 
 const useStyles = makeStyles((theme) => ({
@@ -419,9 +420,10 @@ export default function Asambleas() {
                 <Tab label="Quórum" />
                 <Tab label="Votaciones" />
                 <Tab label="Cierre" />
+                {asambleaSeleccionada.temaDividendo && <Tab label="Dividendos" />}
               </Tabs>
               <Divider style={{ marginBottom: 16 }} />
-              {cerrada && tab !== 3 && (
+              {cerrada && tab < 3 && (
                 <MuiAlert severity="info" style={{ marginBottom: 12 }}>{`La asamblea está ${asambleaSeleccionada.estado}: la asistencia y los votos son solo de consulta.`}</MuiAlert>
               )}
 
@@ -534,6 +536,17 @@ export default function Asambleas() {
                     </div>
                   </>
                 )
+              )}
+
+              {tab === 4 && asambleaSeleccionada.temaDividendo && (
+                <DividendosAsamblea
+                  key={asambleaSeleccionada.id}
+                  asamblea={asambleaSeleccionada}
+                  lista={listaAsistencia}
+                  ejecutar={ejecutar}
+                  guardar={cambiarAsamblea}
+                  soloLectura={asambleaSeleccionada.estado === 'DividendoGenerado'}
+                />
               )}
 
               {tab === 3 && (

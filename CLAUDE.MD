@@ -119,6 +119,7 @@ Prefijos de campos por entidad: `acc_` Accionista, `tit_` Titulo, `ope_` Operaci
 3. **Rechazo**: solo cambia `ope_estado: 2` + motivo/observación.
 4. **Anulación** (`ope_estado: 3`): revierte exactamente los efectos de la aprobación (`anular` en `services/aprobacion.js`;
    todos los tipos, incluida la posesión efectiva). Si los títulos cambiaron después, se rechaza con un mensaje en vez de forzarla.
+   Exige un motivo (`MOTIVOS_ANULACION` + detalle, `textoAnulacion`) que se guarda en `ope_motivo_anulacion`.
 
 Al agregar o modificar un tipo de operación, tocar siempre: vista de ingreso, `ope_tipo_letras` y los `switch` de
 aprobar/anular en `blotter.jsx`, documentos requeridos mostrados en el diálogo de revisión, y el sidebar.
@@ -135,9 +136,14 @@ aprobar/anular en `blotter.jsx`, documentos requeridos mostrados en el diálogo 
 ## Dividendos (varios repartos por año)
 
 - Cada reparto (`DetalleDividendo`) nace de una asamblea `Realizada` cuya votación del tema `Asamblea.temaDividendo`
-  resultó aprobada (`resultadoVotacion`: mayoría de acciones presentes en `AccionistasxJunta`).
+  resultó aprobada (`resultadoVotacion`: mayoría de acciones presentes en `AccionistasxJunta`). Una asamblea reparte uno
+  o varios años (`Asamblea.dividendoPeriodos`, un reparto por año; queda `DividendoGenerado` al repartirlos todos) a los
+  accionistas de `Asamblea.dividendoBeneficiarios` (JSON de ids; null = presentes). Pestaña Dividendos de la asamblea.
+- Tipo de reparto (`DetalleDividendo.ddiv_tipo`): `General` (null en los antiguos) sube el nivel general del año (suma de
+  sus %); `Grupo` no lo sube. Nivel del reparto = nivel general + su %; cada acción cobra hasta ese nivel. Valor por
+  acción = (dividendo del año − asignado) ÷ (acciones base − cubiertas).
 - Al **cerrar el quórum** se guarda una foto de todo el libro en `TituloxJunta` (rango, acciones, estados); si no
-  existe, se toma al finalizar la asamblea. El reparto usa **solo los títulos de los accionistas presentes**; los
+  existe, se toma al finalizar la asamblea. El reparto usa **solo los títulos de los beneficiarios** (lista de la asamblea o, sin lista, los presentes); los
   ausentes se ponen al día con el % acumulado en un reparto posterior al que asistan.
 - Asambleas en `Realizada` o `DividendoGenerado` no permiten cambiar asistencia ni votos (`asambleaCerrada`).
 - Asistencia (`asambleas.jsx`): lista virtual de accionistas activos con acciones > 0; solo se crea un registro
@@ -149,9 +155,10 @@ aprobar/anular en `blotter.jsx`, documentos requeridos mostrados en el diálogo 
   dividendo **pendientes** de esas acciones (`actualizarDividendosPorTransferencia`); los pagados no se tocan.
 - El control es **por rango de acciones y porcentaje**: `DividendosTitulos` guarda `div_tit_periodo`/`desde`/`hasta`/
   `acciones`/`porcentaje` (% del dividendo anual que ese tramo pagó; null = 100).
-- Cada reparto declara un % del dividendo anual (`DetalleDividendo.ddiv_porcentaje`; puede ser 0). Cada acción de la
-  foto cobra lo que le falta para llegar al % acumulado declarado: quien faltó a un reparto se pone al día en el
-  siguiente, y una acción nunca cobra dos veces aunque cambie de dueño. Cálculo puro en `src/utils/dividendos.js`.
+- Cada reparto declara un % del dividendo anual (`DetalleDividendo.ddiv_porcentaje`; puede ser 0). Cada acción de los
+  beneficiarios cobra lo que le falta para llegar al nivel del reparto: quien faltó se pone al día en el siguiente, quien
+  cobró más en un reparto a un grupo no vuelve a cobrar, y una acción nunca cobra dos veces aunque cambie de dueño.
+  Cálculo puro en `src/utils/dividendos.js`.
 - Meta: 100% declarado y 100% cubierto (acciones × %) de `DividendoNuevo.div_acciones_base` en el año.
 - `Parametro.valorNominal` se usa para mostrar el capital (acciones × valor nominal); el reparto es proporcional a acciones.
 - El flujo antiguo "Nuevo Dividendo" y su modelo `DividendosAccionista` se eliminaron.
@@ -160,7 +167,8 @@ aprobar/anular en `blotter.jsx`, documentos requeridos mostrados en el diálogo 
 - **Accionistas o títulos bloqueados:** se calculan, pero quedan `div_tit_estado = 'Retenido'`; el pago requiere
   aprobación en el botón Pagar de la vista dividendos.
 - Retención: sobre lo acumulado del beneficiario en el año, con las reglas de `Parametro.reglasRetencion` (pestaña
-  Parámetros; primera regla que coincide por persona/residencia/nacionalidad: % y SBU a restar). Lógica en
+  Parámetros; primera regla que coincide por persona/residencia/nacionalidad). Base imponible = dividendo acumulado del
+  año − rebaja (`sbu` de la regla × SBU), mínimo 0; retención = base × % (`desgloseRetencion`). La rebaja va una vez por período. Lógica en
   `src/utils/retencion.js`; sin reglas guardadas se usan `REGLAS_INICIALES` (equivalentes a la regla anterior).
   Cada reparto guarda la copia usada en `DetalleDividendo.ddiv_reglas_retencion`.
 - Países: catálogo en la tabla `Pais` (Parámetros → Países; carga inicial con `scripts/cargar-paises.js`). Los accionistas

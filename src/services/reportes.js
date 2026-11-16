@@ -47,6 +47,11 @@ export async function cargarDatosReportes() {
   return { accionistas, parametro, operaciones };
 }
 
+// Participaciones del accionista en operaciones (AccionistaOperacion, con su rol en acc_ope_detalle).
+export function vinculosDeAccionista(accionistaId) {
+  return listarTodos(listAccionistaOperacions, 'listAccionistaOperacions', { filter: { acc_ope_accionista_id: { eq: accionistaId } } });
+}
+
 /** Libro de accionistas a la fecha de corte ("aaaa-mm-dd"), revirtiendo en memoria las operaciones posteriores. */
 export async function libroAFecha({ accionistas, operaciones }, fechaCorte) {
   const corte = valorFecha(fechaCorte);

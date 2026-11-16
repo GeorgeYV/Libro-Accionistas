@@ -30,6 +30,8 @@ type Operacion @model @auth(rules: [{allow: public}]) {
   ope_motivo_rechazo: Int
   ope_observacion: String
   ope_documento: String
+  # Motivo de la anulación (catálogo MOTIVOS_ANULACION + detalle); vacío si no se anuló.
+  ope_motivo_anulacion: String
 }
 
 type Titulo @model @auth(rules: [{allow: public}]) {
@@ -118,6 +120,8 @@ type DetalleDividendo @model @auth(rules: [{allow: public}]) {
   ddiv_monto: Float
   # Copia de las reglas de retención con que se calculó el reparto.
   ddiv_reglas_retencion: AWSJSON
+  # General (sube el nivel del año para todos; null en repartos anteriores) | Grupo (solo sus beneficiarios).
+  ddiv_tipo: String
 }
 
 type DividendoNuevo @model @auth(rules: [{allow: public}]) {
@@ -313,6 +317,10 @@ type Asamblea @model @auth(rules: [{allow: public}]) {
   habilitanteTema15: String
   # Número del tema (1..15) cuya votación decide el reparto de dividendos; null si no aplica.
   temaDividendo: Int
+  # Años (períodos) de dividendo que reparte la asamblea: un reparto por año.
+  dividendoPeriodos: [Int]
+  # Ids de los accionistas que reciben los dividendos de la asamblea (lista JSON); null = los presentes.
+  dividendoBeneficiarios: AWSJSON
 }
 
 # Foto de los títulos al armar la lista de la asamblea (incluye accionistas bloqueados).

@@ -5,7 +5,9 @@
 //   residencia:   'Ecuador' | 'Exterior' | 'Paraíso fiscal' | 'Cualquiera' | nombre de un país (p. ej. 'Panamá')
 //                 'Paraíso fiscal' = país de residencia marcado así en el catálogo de países (acc_paraiso_fiscal).
 //   nacionalidad: 'Ecuatoriana' | 'Otra' | 'Cualquiera'
-//   porcentaje:   % sobre el dividendo acumulado del año; sbu: salarios básicos que se restan.
+//   porcentaje:   tarifa sobre la base imponible; sbu: salarios básicos de rebaja.
+// Base imponible = dividendo acumulado del período (año) − rebaja (sbu × SBU), mínimo 0. Retención = base × porcentaje.
+// La rebaja se aplica una vez por período: el cálculo es siempre sobre lo acumulado del beneficiario en el año.
 // Se aplica la PRIMERA regla que coincide (las excepciones van arriba). Sin coincidencia: 0%.
 
 export const PERSONAS = ['Natural', 'Jurídica', 'Todas'];
@@ -81,10 +83,15 @@ export const conParaisoFiscal = (acc, paraisos) => ({ ...acc, acc_paraiso_fiscal
 // Índice de la regla que aplica al accionista (-1 si ninguna).
 export const indiceRegla = (acc, reglas) => reglas.findIndex((r) => coincide(r, acc));
 
-// Retención sobre el dividendo acumulado del año (base). acc: { acc_tipo_persona, acc_residencia, acc_nacionalidad }.
-export function calcularRetencion(base, acc, reglas, sbu) {
-  const regla = reglas[indiceRegla(acc || {}, reglas)];
-  if (!regla) return 0;
-  const retencion = redondear2(base * regla.porcentaje / 100 - regla.sbu * (sbu || 0));
-  return retencion < 0 ? 0 : retencion;
+// Desglose sobre el dividendo acumulado del año. acc: { acc_tipo_persona, acc_residencia, acc_nacionalidad }.
+// Devuelve { indice, rebaja, baseImponible, porcentaje, retencion } (sin regla que coincida: todo en 0).
+export function desgloseRetencion(dividendo, acc, reglas, sbu) {
+  const indice = indiceRegla(acc || {}, reglas);
+  const regla = reglas[indice];
+  const rebaja = regla ? redondear2(regla.sbu * (sbu || 0)) : 0;
+  const baseImponible = Math.max(0, redondear2((dividendo || 0) - rebaja));
+  const porcentaje = regla ? regla.porcentaje : 0;
+  return { indice, rebaja, baseImponible, porcentaje, retencion: redondear2(baseImponible * porcentaje / 100) };
 }
+
+export const calcularRetencion = (dividendo, acc, reglas, sbu) => desgloseRetencion(dividendo, acc, reglas, sbu).retencion;

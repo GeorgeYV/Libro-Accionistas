@@ -5,14 +5,27 @@ import {
   camposBaseAccionista, TIPOS_ACCIONES, TIPOS_IDENTIFICACION_PERSONA,
 } from '../components/formularioAccionista';
 import { guardarPersonaJuridica } from '../services/personaJuridica';
+import { limpiarIdentificacion, limpiarNombre, problemaIdentificacion, problemaNombre } from '../utils/accionistas';
 
-const OBLIGATORIOS = ['acc_decevale', 'acc_identificacion', 'pj_razon_social'];
+const OBLIGATORIOS = ['acc_identificacion', 'pj_razon_social', 'pj_rl_tipo_identificacion', 'pj_rl_identificacion', 'pj_rl_nombre'];
 const DOCUMENTOS = [
   ['pj_doc_nombramiento', 'Nombramiento del representante legal'],
   ['acc_doc_certificado_bancario', 'Certificado bancario'],
   ['acc_doc_actualizacion_datos', 'Carta de actualización de datos'],
   ['acc_doc_uso_datos', 'Autorización para uso de datos'],
 ];
+
+// Errores de formato (mismas reglas que persona natural). El RUC no se valida al editar: no se puede cambiar.
+// La razón social no se limita a letras: los nombres de empresas llevan números y signos (S.A., &).
+function validar(form, edicion) {
+  const errores = {};
+  const anotar = (campo, problema) => { if (problema) errores[campo] = problema; };
+  if (!edicion) anotar('acc_identificacion', problemaIdentificacion(form.acc_identificacion, form.acc_tipo_identificacion));
+  anotar('pj_rl_identificacion', problemaIdentificacion(form.pj_rl_identificacion, form.pj_rl_tipo_identificacion));
+  anotar('pj_rl_nombre', problemaNombre(form.pj_rl_nombre));
+  return errores;
+}
+const identificacion = (tipo) => ({ filtro: (v, form) => limpiarIdentificacion(v, form[tipo]) });
 
 const formularioVacio = () => ({
   ...camposBaseAccionista(),
@@ -22,7 +35,7 @@ const formularioVacio = () => ({
 });
 
 export default function PersonaJuridica() {
-  const f = useFormularioAccionista({ vacio: formularioVacio, obligatorios: OBLIGATORIOS });
+  const f = useFormularioAccionista({ vacio: formularioVacio, obligatorios: OBLIGATORIOS, validar });
 
   const guardar = () => {
     const datos = f.datosValidos();
@@ -41,7 +54,7 @@ export default function PersonaJuridica() {
           {f.campo('acc_decevale', 'Decevale', { sm: 3 })}
           {f.seleccion('acc_tipo_identificacion', 'Tipo de identificación', [{ valor: 1, etiqueta: 'RUC' }], { sm: 3 })}
           {/* El RUC es el id del accionista: no se cambia al editar. */}
-          {f.campo('acc_identificacion', 'RUC', { sm: 3, disabled: f.edicion, ayuda: f.edicion ? 'No editable' : undefined })}
+          {f.campo('acc_identificacion', 'RUC', { sm: 3, disabled: f.edicion, ayuda: f.edicion ? 'No editable' : undefined, ...identificacion('acc_tipo_identificacion') })}
           {f.pais('acc_nacionalidad', 'Nacionalidad', { sm: 3 })}
           {f.campo('pj_razon_social', 'Razón social', { sm: 9 })}
           {f.seleccion('acc_tipo_acciones', 'Tipo de acciones', TIPOS_ACCIONES, { sm: 3 })}
@@ -51,8 +64,8 @@ export default function PersonaJuridica() {
       <Grid item xs={12} md={6}>
         <Seccion titulo="Representante legal">
           {f.seleccion('pj_rl_tipo_identificacion', 'Tipo de identificación', TIPOS_IDENTIFICACION_PERSONA)}
-          {f.campo('pj_rl_identificacion', 'Identificación')}
-          {f.campo('pj_rl_nombre', 'Nombre completo', { sm: 12 })}
+          {f.campo('pj_rl_identificacion', 'Identificación', identificacion('pj_rl_tipo_identificacion'))}
+          {f.campo('pj_rl_nombre', 'Nombres y apellidos', { sm: 12, filtro: limpiarNombre })}
           {f.pais('pj_rl_nacionalidad', 'Nacionalidad')}
           {f.campo('pj_rl_telefono', 'Teléfono')}
           {f.campo('pj_rl_email', 'Correo electrónico', { sm: 12, type: 'email' })}

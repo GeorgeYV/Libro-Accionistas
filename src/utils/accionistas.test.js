@@ -1,4 +1,6 @@
-import { combinarAccionistas, separar, buscarAccionistas } from './accionistas';
+import {
+  combinarAccionistas, separar, buscarAccionistas, limpiarIdentificacion, problemaIdentificacion, limpiarNombre, problemaNombre,
+} from './accionistas';
 
 const accionistas = [
   { id: 'N1', acc_tipo_persona: 0, acc_nombre_completo: 'Ana Pérez' },
@@ -59,4 +61,23 @@ describe('formulario de accionista', () => {
     expect(conValorActual(['Ecuador'], 'Ecuador ')).toEqual(['Ecuador', 'Ecuador ']);
     expect(conValorActual(['Ecuador'], 'Ecuador')).toEqual(['Ecuador']);
   });
+});
+
+test('identificación: cédula y RUC solo números, pasaporte letras y números', () => {
+  expect(limpiarIdentificacion('17-1234 567a', 0)).toBe('171234567');
+  expect(limpiarIdentificacion('AB-12 3ñ', 2)).toBe('AB123');
+  expect(limpiarIdentificacion('0912', '0')).toBe('0912'); // el tipo puede llegar como texto
+  expect(problemaIdentificacion('A123', 0)).toMatch(/números/);
+  expect(problemaIdentificacion('A123', 2)).toBe('');
+  expect(problemaIdentificacion('A-123', 2)).toMatch(/letras y números/);
+  expect(problemaIdentificacion('', 0)).toBe('');
+  expect(limpiarIdentificacion('1790-0123A45001', 1)).toBe('1790012345001');
+  expect(problemaIdentificacion('17900A', 1)).toMatch(/RUC solo admite números/);
+});
+
+test('nombres: solo letras (con tildes y ñ) y espacios simples', () => {
+  expect(limpiarNombre('José  María3.')).toBe('José María');
+  expect(problemaNombre('Núñez de la Peña')).toBe('');
+  expect(problemaNombre('Juan2')).toMatch(/letras/);
+  expect(problemaNombre('  ')).toBe('');
 });
